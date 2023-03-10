@@ -3,12 +3,19 @@ package com.raf.si.userservice.service.impl;
 import com.raf.si.userservice.dto.request.CreateUserRequest;
 import com.raf.si.userservice.dto.response.UserResponse;
 import com.raf.si.userservice.exception.BadRequestException;
+import com.raf.si.userservice.exception.NotFoundException;
+import com.raf.si.userservice.exception.UnauthorizedException;
 import com.raf.si.userservice.mapper.UserMapper;
+import com.raf.si.userservice.model.Permission;
 import com.raf.si.userservice.model.User;
 import com.raf.si.userservice.repository.UserRepository;
 import com.raf.si.userservice.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -34,5 +41,19 @@ public class UserServiceImpl implements UserService {
 
         return userMapper.modelToResponse(user);
     }
+
+    @Override
+    public UserResponse getUserByLbz(UUID lbz) {
+        User user = userRepository.findUserByLbz(lbz).orElseThrow(() -> new NotFoundException(String.format("Ne postoji korisnik sa lbz-om: %s ", lbz)));
+        return userMapper.modelToResponse(user);
+
+    }
+    private void doesUserHavePermissionTo(String email,String privilege, String errorMessage) {
+        User loggedUser = userRepository.findUserByEmail(email).orElseThrow(() -> new NotFoundException(String.format("No user with email: %s found.", email)));
+        int flag = 0;
+        for (Permission permission : loggedUser.getPermissions()) if (permission.getName().equals(privilege)) flag = 1;
+        if (flag == 0) throw new UnauthorizedException("Nemate privilegiju da " + errorMessage + ".");
+    }
+
 
 }
