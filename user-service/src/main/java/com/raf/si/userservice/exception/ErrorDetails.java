@@ -1,5 +1,8 @@
 package com.raf.si.userservice.exception;
 
+import lombok.Getter;
+
+@Getter
 public class ErrorDetails {
 
     private final ErrorCode errorCode;
@@ -10,17 +13,5 @@ public class ErrorDetails {
         this.errorCode = errorCode;
         this.errorMessage = errorMessage;
         this.timestamp = timestamp;
-    }
-
-    public ErrorCode getErrorCode() {
-        return errorCode;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public String getTimestamp() {
-        return timestamp;
     }
 }

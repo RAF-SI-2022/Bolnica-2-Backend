@@ -9,7 +9,7 @@ spring:
       enabled: always
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   datasource:
     url: "jdbc:postgresql://localhost:5432/postgresDB"
@@ -20,3 +20,4 @@ server:
   port: 8081
   servlet:
     context-path: "/api"
+jwt.secret.key: "secret_key"

@@ -16,6 +16,10 @@
     <properties>
         <java.version>11</java.version>
         <gson.version>2.10.1</gson.version>
+        <spring-boot-starter-validation.version>2.7.9</spring-boot-starter-validation.version>
+        <lombok.version>1.18.26</lombok.version>
+        <io.jwt.version>0.9.1</io.jwt.version>
+        <spring-boot-autoconfigure.version>2.7.9</spring-boot-autoconfigure.version>
     </properties>
     <dependencies>
         <dependency>
@@ -30,7 +34,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -54,13 +57,25 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
-            <version>2.6.1</version>
+            <version>${spring-boot-autoconfigure.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
-            <version>0.9.1</version>
+            <version>${io.jwt.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+            <version>${spring-boot-starter-validation.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
 
 
