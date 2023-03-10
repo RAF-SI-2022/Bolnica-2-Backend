@@ -1,0 +1,119 @@
+package com.raf.si.userservice.bootstrap;
+
+import com.raf.si.userservice.model.Department;
+import com.raf.si.userservice.model.Hospital;
+import com.raf.si.userservice.model.Permission;
+import com.raf.si.userservice.model.User;
+import com.raf.si.userservice.model.enums.Profession;
+import com.raf.si.userservice.model.enums.Title;
+import com.raf.si.userservice.repository.DepartmentRepository;
+import com.raf.si.userservice.repository.HospitalRepository;
+import com.raf.si.userservice.repository.PermissionsRepository;
+import com.raf.si.userservice.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+@Component
+public class BootstrapData implements CommandLineRunner {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PermissionsRepository permissionsRepository;
+
+    @Autowired
+    private DepartmentRepository departmentRepository;
+
+    @Autowired
+    private HospitalRepository hospitalRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Override
+    public void run(String... args) throws Exception {
+        Hospital hospital = new Hospital();
+        hospital.setAddress("Dimitrija Tucovića 161");
+        hospital.setDateOfEstablishment(new Date());
+        hospital.setActivity("Hirurgija");
+        hospital.setPlace("Beograd");
+        hospital.setFullName("KBC Zvezdara - Klinika za hirurgiju \"Nikola Spasic\"");
+        hospital.setPbb(UUID.randomUUID());
+        hospital.setShortName("KBC Zvezdara");
+
+        hospital = hospitalRepository.save(hospital);
+
+        Department chirurgyDepartment = new Department();
+        chirurgyDepartment.setName("Hirurgija");
+        chirurgyDepartment.setHospital(hospital);
+        chirurgyDepartment.setPbo(UUID.randomUUID());
+
+        Department laboratoryDepartment = new Department();
+        laboratoryDepartment.setName("Laboratorija");
+        laboratoryDepartment.setHospital(hospital);
+        laboratoryDepartment.setPbo(UUID.randomUUID());
+
+        Department diagnosticDepartment = new Department();
+        diagnosticDepartment.setName("Dijagnostika");
+        diagnosticDepartment.setHospital(hospital);
+        diagnosticDepartment.setPbo(UUID.randomUUID());
+
+        chirurgyDepartment = departmentRepository.save(chirurgyDepartment);
+        departmentRepository.save(laboratoryDepartment);
+        departmentRepository.save(diagnosticDepartment);
+
+        Permission adminPermission = new Permission();
+        adminPermission.setName("ROLE_ADMIN");
+
+        Permission drSpecOdeljenjaPermission = new Permission();
+        drSpecOdeljenjaPermission.setName("ROLE_DR_SPEC_ODELJENJA");
+
+        Permission drSpecPermission = new Permission();
+        drSpecPermission.setName("ROLE_DR_SPEC");
+
+        Permission drSpecPovPermission = new Permission();
+        drSpecPovPermission.setName("ROLE_DR_SPEC_POV");
+
+        Permission visaMedSestraPermission = new Permission();
+        visaMedSestraPermission.setName("ROLE_VISA_MED_SESTRA");
+
+        Permission medSestraPermission = new Permission();
+        medSestraPermission.setName("ROLE_MED_SESTRA");
+
+        List<Permission> permissions = new ArrayList<>();
+        permissions.add(permissionsRepository.save(adminPermission));
+        permissions.add(permissionsRepository.save(drSpecOdeljenjaPermission));
+        permissions.add(permissionsRepository.save(drSpecPermission));
+        permissions.add(permissionsRepository.save(drSpecPovPermission));
+        permissions.add(permissionsRepository.save(visaMedSestraPermission));
+        permissions.add(permissionsRepository.save(medSestraPermission));
+
+        User user = new User();
+        user.setEmail("admin@ibis.rs");
+        user.setPassword(passwordEncoder.encode("admin"));
+        user.setUsername("admin");
+        user.setDepartment(chirurgyDepartment);
+        user.setResidentialAddress("Admin address");
+        user.setPermissions(permissions);
+        user.setJMBG("23112412212");
+        user.setPhone("02132123132");
+        user.setPlaceOfLiving("Place of living");
+        user.setDateOfBirth(new Date());
+        user.setGender("Muski");
+        user.setFirstName("Admin");
+        user.setLastName("Adminovic");
+        user.setTitle(Title.DR_SCI_MED);
+        user.setProfession(Profession.SPEC_HIRURG);
+        user.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+
+        userRepository.save(user);
+    }
+}
