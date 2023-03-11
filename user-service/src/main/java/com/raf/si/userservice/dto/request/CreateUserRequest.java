@@ -8,15 +8,12 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
-import java.util.UUID;
 
 @Getter
 @Setter
 @NoArgsConstructor
 public class CreateUserRequest {
 
-    @NotNull(message = "Polje lbz ne sme biti prazno")
-    private UUID lbz;
     @NotEmpty(message = "Polje ime ne sme biti prazno")
     private String firstName;
     @NotEmpty(message = "Polje prezime ne sme biti prazno")
