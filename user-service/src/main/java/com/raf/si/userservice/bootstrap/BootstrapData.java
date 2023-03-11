@@ -10,7 +10,6 @@ import com.raf.si.userservice.repository.DepartmentRepository;
 import com.raf.si.userservice.repository.HospitalRepository;
 import com.raf.si.userservice.repository.PermissionsRepository;
 import com.raf.si.userservice.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -23,23 +22,24 @@ import java.util.UUID;
 @Component
 public class BootstrapData implements CommandLineRunner {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PermissionsRepository permissionsRepository;
+    private final DepartmentRepository departmentRepository;
+    private final HospitalRepository hospitalRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private PermissionsRepository permissionsRepository;
-
-    @Autowired
-    private DepartmentRepository departmentRepository;
-
-    @Autowired
-    private HospitalRepository hospitalRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public BootstrapData(UserRepository userRepository, PermissionsRepository permissionsRepository,
+                         DepartmentRepository departmentRepository, HospitalRepository hospitalRepository,
+                         PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.permissionsRepository = permissionsRepository;
+        this.departmentRepository = departmentRepository;
+        this.hospitalRepository = hospitalRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         Hospital hospital = new Hospital();
         hospital.setAddress("Dimitrija Tucovića 161");
         hospital.setDateOfEstablishment(new Date());

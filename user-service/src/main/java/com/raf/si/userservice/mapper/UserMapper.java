@@ -1,9 +1,12 @@
 package com.raf.si.userservice.mapper;
 
 import com.raf.si.userservice.dto.request.CreateUserRequest;
+import com.raf.si.userservice.dto.request.UpdateUserRequest;
 import com.raf.si.userservice.dto.response.UserResponse;
+import com.raf.si.userservice.exception.BadRequestException;
 import com.raf.si.userservice.exception.NotFoundException;
 import com.raf.si.userservice.model.Department;
+import com.raf.si.userservice.model.Permission;
 import com.raf.si.userservice.model.User;
 import com.raf.si.userservice.model.enums.Profession;
 import com.raf.si.userservice.model.enums.Title;
@@ -14,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -52,8 +56,22 @@ public class UserMapper {
         user.setPlaceOfLiving(createUserRequest.getPlaceOfLiving());
         user.setResidentialAddress(createUserRequest.getResidentialAddress());
         user.setPermissions(permissionsRepository.findPermissionsByNameIsIn(Arrays.asList(createUserRequest.getPermissions())));
-        user.setProfession(Profession.valueOfNotation(createUserRequest.getProfession()));
-        user.setTitle(Title.valueOfNotation(createUserRequest.getTitle()));
+
+        Profession profession = Profession.valueOfNotation(createUserRequest.getProfession());
+
+        Title title = Title.valueOfNotation(createUserRequest.getTitle());
+        if (profession == null) {
+            log.error("Nepoznata profesija '{}'", createUserRequest.getProfession());
+            throw new BadRequestException("Nepoznata profesija");
+        }
+
+        if (title == null) {
+            log.error("Nepoznata titula '{}'", createUserRequest.getTitle());
+            throw new BadRequestException("Nepoznata titula");
+        }
+
+        user.setProfession(profession);
+        user.setTitle(title);
 
         if (createUserRequest.getPhone() != null)
             user.setPhone(createUserRequest.getPhone());
@@ -79,14 +97,70 @@ public class UserMapper {
         userResponse.setResidentalAddress(user.getResidentialAddress());
         userResponse.setPlaceOfLiving(user.getPlaceOfLiving());
         userResponse.setDepartment(user.getDepartment());
-        userResponse.setPermissions(user.getPermissions());
+        userResponse.setPermissions(user.getPermissions().stream().map(Permission::getName).collect(Collectors.toList()));
 
         return userResponse;
     }
 
-    private String getExtractedPrefix(String email) {
-        String EMAIL_SUFFIX = "@ibis.rs";
-        return email.replace(EMAIL_SUFFIX, "");
+    public User updateRequestToModel(User user, UpdateUserRequest updateUserRequest) {
+        Department department = departmentRepository.findById(updateUserRequest.getDepartmentId()).orElseThrow(() -> {
+                    log.error("Odeljenje sa id-ijem '{}' ne postoji", updateUserRequest.getDepartmentId());
+                    throw new NotFoundException("Odeljenje sa datim id-ijem ne postoji");
+                }
+        );
+
+        user.setLbz(updateUserRequest.getLbz());
+        user.setEmail(updateUserRequest.getEmail());
+        user.setFirstName(updateUserRequest.getFirstName());
+        user.setLastName(updateUserRequest.getLastName());
+        user.setGender(updateUserRequest.getGender());
+        user.setJMBG(updateUserRequest.getJmbg());
+        user.setUsername(updateUserRequest.getUsername());
+        user.setDepartment(department);
+        user.setDateOfBirth(updateUserRequest.getDateOfBirth());
+        user.setPlaceOfLiving(updateUserRequest.getPlaceOfLiving());
+        user.setResidentialAddress(updateUserRequest.getResidentialAddress());
+
+        Profession profession = Profession.valueOfNotation(updateUserRequest.getProfession());
+        Title title = Title.valueOfNotation(updateUserRequest.getTitle());
+        if (profession == null) {
+            log.error("Nepoznata profesija '{}'", updateUserRequest.getProfession());
+            throw new BadRequestException("Nepoznata profesija");
+        }
+
+        if (title == null) {
+            log.error("Nepoznata titula '{}'", updateUserRequest.getTitle());
+            throw new BadRequestException("Nepoznata titula");
+        }
+
+        user.setProfession(profession);
+        user.setTitle(title);
+
+        if (updateUserRequest.getPhone() != null)
+            user.setPhone(updateUserRequest.getPhone());
+
+        if (updateUserRequest.getNewPassword() != null)
+            user.setPassword(passwordEncoder.encode(updateUserRequest.getNewPassword()));
+
+        return user;
+    }
+
+    public User updateRegularRequestUserToModel(User user, UpdateUserRequest updateUserRequest) {
+        if (updateUserRequest.getPhone() != null)
+            user.setPhone(updateUserRequest.getPhone());
+        if (updateUserRequest.getOldPassword() != null && updateUserRequest.getNewPassword() != null) {
+            if (!passwordEncoder.matches(updateUserRequest.getOldPassword(), user.getPassword())) {
+                log.error("Pogresno uneta sifra za korisnika sa id-ijem '{}'", user.getId());
+                throw new BadRequestException("Pogresno uneta sifra");
+            }
+            user.setPassword(passwordEncoder.encode(updateUserRequest.getNewPassword()));
+        }
+
+        return user;
+    }
+
+    private String getExtractedPrefix(String fullString) {
+        return fullString.substring(0, fullString.indexOf('@'));
     }
 
 

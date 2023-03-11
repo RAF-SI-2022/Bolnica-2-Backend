@@ -8,11 +8,11 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SwaggerConfig {
-    private final String APP_TITLE = "User Service";
-    private final String APP_DESCRIPTION  = "API for user service";
-    private final String APP_API_VERSION = "1.0";
-    private final String APP_LICENSE = "license";
-    private final String APP_LICENSE_URL = "url";
+    public final String APP_TITLE = "User Service";
+    public final String APP_DESCRIPTION = "API for user service";
+    public final String APP_API_VERSION = "1.0";
+    public final String APP_LICENSE = "license";
+    public final String APP_LICENSE_URL = "url";
 
     @Bean
     public OpenAPI openAPI() {
@@ -21,6 +21,5 @@ public class SwaggerConfig {
                         .description(APP_DESCRIPTION)
                         .version(APP_API_VERSION)
                         .license(new License().name(APP_LICENSE).url(APP_LICENSE_URL)));
-
     }
 }
