@@ -9,10 +9,7 @@ import com.raf.si.userservice.mapper.UserMapper;
 import com.raf.si.userservice.model.User;
 import com.raf.si.userservice.repository.UserRepository;
 import com.raf.si.userservice.service.UserService;
-import com.raf.si.userservice.utils.TokenPayload;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -77,20 +74,10 @@ public class UserServiceImpl implements UserService {
             throw new NotFoundException("Korisnik sa datim lbz-om ne postoji");
         });
 
-        User updatedUser = isAdmin() ?
-                userMapper.updateRequestToModel(user, updateUserRequest) :
-                userMapper.updateRegularRequestUserToModel(user, updateUserRequest);
+        User updatedUser = userMapper.updateRequestToModel(user, updateUserRequest);
 
         updatedUser = userRepository.save(updatedUser);
         log.info("Korisnik sa lbz-om '{}' uspesno update-ovan", lbz);
         return userMapper.modelToResponse(updatedUser);
-    }
-
-    private boolean isAdmin() {
-        Authentication authentication = SecurityContextHolder.getContext()
-                .getAuthentication();
-
-        TokenPayload tokenPayload = (TokenPayload) authentication.getPrincipal();
-        return tokenPayload.getPermissions().contains("ROLE_ADMIN");
     }
 }

@@ -43,7 +43,6 @@ public class UserMapper {
         );
 
         User user = new User();
-        user.setLbz(createUserRequest.getLbz());
         user.setEmail(createUserRequest.getEmail());
         user.setFirstName(createUserRequest.getFirstName());
         user.setLastName(createUserRequest.getLastName());
@@ -109,7 +108,6 @@ public class UserMapper {
                 }
         );
 
-        user.setLbz(updateUserRequest.getLbz());
         user.setEmail(updateUserRequest.getEmail());
         user.setFirstName(updateUserRequest.getFirstName());
         user.setLastName(updateUserRequest.getLastName());
@@ -123,6 +121,7 @@ public class UserMapper {
 
         Profession profession = Profession.valueOfNotation(updateUserRequest.getProfession());
         Title title = Title.valueOfNotation(updateUserRequest.getTitle());
+
         if (profession == null) {
             log.error("Nepoznata profesija '{}'", updateUserRequest.getProfession());
             throw new BadRequestException("Nepoznata profesija");
@@ -139,15 +138,6 @@ public class UserMapper {
         if (updateUserRequest.getPhone() != null)
             user.setPhone(updateUserRequest.getPhone());
 
-        if (updateUserRequest.getNewPassword() != null)
-            user.setPassword(passwordEncoder.encode(updateUserRequest.getNewPassword()));
-
-        return user;
-    }
-
-    public User updateRegularRequestUserToModel(User user, UpdateUserRequest updateUserRequest) {
-        if (updateUserRequest.getPhone() != null)
-            user.setPhone(updateUserRequest.getPhone());
         if (updateUserRequest.getOldPassword() != null && updateUserRequest.getNewPassword() != null) {
             if (!passwordEncoder.matches(updateUserRequest.getOldPassword(), user.getPassword())) {
                 log.error("Pogresno uneta sifra za korisnika sa id-ijem '{}'", user.getId());
@@ -158,6 +148,8 @@ public class UserMapper {
 
         return user;
     }
+
+
 
     private String getExtractedPrefix(String fullString) {
         return fullString.substring(0, fullString.indexOf('@'));
