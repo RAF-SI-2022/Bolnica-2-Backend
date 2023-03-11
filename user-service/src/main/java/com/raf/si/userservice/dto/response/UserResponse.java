@@ -1,7 +1,6 @@
 package com.raf.si.userservice.dto.response;
 
 import com.raf.si.userservice.model.Department;
-import com.raf.si.userservice.model.Permission;
 import com.raf.si.userservice.model.enums.Profession;
 import com.raf.si.userservice.model.enums.Title;
 import lombok.Getter;
@@ -33,5 +32,5 @@ public class UserResponse {
     private String username;
     private boolean isDeleted;
     private Department department;
-    private List<Permission> permissions;
+    private List<String> permissions;
 }
