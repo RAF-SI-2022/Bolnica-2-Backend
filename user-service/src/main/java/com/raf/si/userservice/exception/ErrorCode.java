@@ -5,4 +5,5 @@ public enum ErrorCode {
     BAD_REQUEST,
     UNAUTHORIZED,
     FORBIDDEN,
+    INTERNAL_SERVER_ERROR
 }
