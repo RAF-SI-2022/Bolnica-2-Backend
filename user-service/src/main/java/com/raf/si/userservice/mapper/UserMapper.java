@@ -2,6 +2,7 @@ package com.raf.si.userservice.mapper;
 
 import com.raf.si.userservice.dto.request.CreateUserRequest;
 import com.raf.si.userservice.dto.request.UpdateUserRequest;
+import com.raf.si.userservice.dto.response.UserListResponse;
 import com.raf.si.userservice.dto.response.UserResponse;
 import com.raf.si.userservice.exception.BadRequestException;
 import com.raf.si.userservice.exception.NotFoundException;
@@ -146,6 +147,27 @@ public class UserMapper {
             user.setPassword(passwordEncoder.encode(updateUserRequest.getNewPassword()));
         }
 
+        return user;
+    }
+
+    public UserListResponse userListResponseToModel(User user) {
+        UserListResponse userListResponse = new UserListResponse();
+        userListResponse.setId(user.getId());
+        userListResponse.setEmail(user.getEmail());
+        userListResponse.setFirstName(user.getFirstName());
+        userListResponse.setLastName(user.getLastName());
+        userListResponse.setTitle(user.getTitle());
+        userListResponse.setProfession(user.getProfession());
+        userListResponse.setPhone(user.getPhone());
+        userListResponse.setDateOfBirth(user.getDateOfBirth());
+        userListResponse.setDepartmentName(user.getDepartment().getName());
+        userListResponse.setHospitalName(user.getDepartment().getHospital().getFullName());
+
+        return userListResponse;
+    }
+
+    public User setUserPassword(User user, String password) {
+        user.setPassword(passwordEncoder.encode(password));
         return user;
     }
 
