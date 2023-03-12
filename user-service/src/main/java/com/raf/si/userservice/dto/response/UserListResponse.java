@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.UUID;
 
 @NoArgsConstructor
 @Getter
@@ -14,6 +15,7 @@ import java.util.Date;
 public class UserListResponse {
 
     private Long id;
+    private UUID lbz;
     private String firstName;
     private String lastName;
     private Date dateOfBirth;
@@ -23,4 +25,5 @@ public class UserListResponse {
     private String email;
     private String departmentName;
     private String hospitalName;
+    private Long count;
 }

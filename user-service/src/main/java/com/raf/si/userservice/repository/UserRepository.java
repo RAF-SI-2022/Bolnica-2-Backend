@@ -25,9 +25,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
             " from users u where u.lbz = :lbz and u.isDeleted = :isDeleted")
     boolean userExists(@PathVariable("lbz") UUID lbz, @PathVariable("isDeleted") boolean isDeleted);
 
-    @Query(value =  "select u from users u where lower(u.firstName) like %:firstName% and lower(u.lastName) like %:lastName% " +
-                    "and u.isDeleted in :includeDeleted " +
-                    "and lower(u.department.name) like %:departmentName% and lower(u.department.hospital.fullName) like %:hospitalName%")
+    @Query(value = "select u from users u where lower(u.firstName) like %:firstName% and lower(u.lastName) like %:lastName% " +
+            "and u.isDeleted in :includeDeleted " +
+            "and lower(u.department.name) like %:departmentName% and lower(u.department.hospital.fullName) like %:hospitalName%")
     Page<User> listAllUsers(@PathVariable("firstName") String firstName, @PathVariable("lastName") String lastName,
                             @PathVariable("departmentName") String departmentName, @PathVariable("hospitalName") String hospitalName,
                             @PathVariable("includeDeleted") List<Boolean> includeDeleted, Pageable pageable);

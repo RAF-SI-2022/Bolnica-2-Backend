@@ -2,6 +2,7 @@ package com.raf.si.userservice.mapper;
 
 import com.raf.si.userservice.dto.request.CreateUserRequest;
 import com.raf.si.userservice.dto.request.UpdateUserRequest;
+import com.raf.si.userservice.dto.response.UserListAndCountResponse;
 import com.raf.si.userservice.dto.response.UserListResponse;
 import com.raf.si.userservice.dto.response.UserResponse;
 import com.raf.si.userservice.exception.BadRequestException;
@@ -14,10 +15,12 @@ import com.raf.si.userservice.model.enums.Title;
 import com.raf.si.userservice.repository.DepartmentRepository;
 import com.raf.si.userservice.repository.PermissionsRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -150,9 +153,23 @@ public class UserMapper {
         return user;
     }
 
-    public UserListResponse userListResponseToModel(User user) {
+    public UserListAndCountResponse modelToUserListAndCountResponse(Page<User> userPage) {
+        List<UserListResponse> userListResponseList = userPage.stream()
+                .map(this::userListResponseToModel)
+                .collect(Collectors.toList());
+
+        return new UserListAndCountResponse(userListResponseList, userPage.getTotalElements());
+    }
+
+    public User setUserPassword(User user, String password) {
+        user.setPassword(passwordEncoder.encode(password));
+        return user;
+    }
+
+    private UserListResponse userListResponseToModel(User user) {
         UserListResponse userListResponse = new UserListResponse();
         userListResponse.setId(user.getId());
+        userListResponse.setLbz(user.getLbz());
         userListResponse.setEmail(user.getEmail());
         userListResponse.setFirstName(user.getFirstName());
         userListResponse.setLastName(user.getLastName());
@@ -165,13 +182,6 @@ public class UserMapper {
 
         return userListResponse;
     }
-
-    public User setUserPassword(User user, String password) {
-        user.setPassword(passwordEncoder.encode(password));
-        return user;
-    }
-
-
 
     private String getExtractedPrefix(String fullString) {
         return fullString.substring(0, fullString.indexOf('@'));

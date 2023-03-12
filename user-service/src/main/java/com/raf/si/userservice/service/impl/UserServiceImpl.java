@@ -3,9 +3,8 @@ package com.raf.si.userservice.service.impl;
 import com.raf.si.userservice.dto.request.CreateUserRequest;
 import com.raf.si.userservice.dto.request.PasswordResetRequest;
 import com.raf.si.userservice.dto.request.UpdateUserRequest;
-import com.raf.si.userservice.dto.response.CountResponse;
 import com.raf.si.userservice.dto.response.MessageResponse;
-import com.raf.si.userservice.dto.response.UserListResponse;
+import com.raf.si.userservice.dto.response.UserListAndCountResponse;
 import com.raf.si.userservice.dto.response.UserResponse;
 import com.raf.si.userservice.exception.BadRequestException;
 import com.raf.si.userservice.exception.NotFoundException;
@@ -17,11 +16,11 @@ import com.raf.si.userservice.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -38,6 +37,7 @@ public class UserServiceImpl implements UserService {
         this.emailService = emailService;
     }
 
+    @Transactional
     @Override
     public UserResponse createUser(CreateUserRequest createUserRequest) {
         userRepository.findUserByEmail(createUserRequest.getEmail()).ifPresent((k) -> {
@@ -66,6 +66,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.userExists(lbz, false);
     }
 
+    @Transactional
     @Override
     public UserResponse deleteUser(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> {
@@ -79,6 +80,7 @@ public class UserServiceImpl implements UserService {
         return userMapper.modelToResponse(user);
     }
 
+    @Transactional
     @Override
     public UserResponse updateUser(UUID lbz, UpdateUserRequest updateUserRequest) {
         User user = userRepository.findUserByLbz(lbz).orElseThrow(() -> {
@@ -94,14 +96,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserListResponse> listUsers(String firstName, String lastName,
-                                            String departmentName, String hospitalName,
-                                            boolean includeDeleted, Pageable pageable) {
-        return userRepository.listAllUsers(firstName.toLowerCase(), lastName.toLowerCase(),
+    public UserListAndCountResponse listUsers(String firstName, String lastName,
+                                              String departmentName, String hospitalName,
+                                              boolean includeDeleted, Pageable pageable) {
+
+        return userMapper.modelToUserListAndCountResponse(userRepository.listAllUsers(firstName.toLowerCase(), lastName.toLowerCase(),
                 departmentName.toLowerCase(), hospitalName.toLowerCase(),
-                adjustIncludeDeleteParameter(includeDeleted), pageable)
-                .stream().map(userMapper::userListResponseToModel)
-                .collect(Collectors.toList());
+                adjustIncludeDeleteParameter(includeDeleted), pageable));
     }
 
     @Override
@@ -119,11 +120,6 @@ public class UserServiceImpl implements UserService {
         log.info("Sifra uspesno sacuvana za email '{}'", user.getEmail());
 
         return new MessageResponse("Email sa novom sifrom je poslat na vasu email adresu");
-    }
-
-    @Override
-    public CountResponse getUsersCount() {
-        return new CountResponse(userRepository.count());
     }
 
     private List<Boolean> adjustIncludeDeleteParameter(boolean includeDeleted) {
