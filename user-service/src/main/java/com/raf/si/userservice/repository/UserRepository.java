@@ -31,4 +31,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> listAllUsers(@PathVariable("firstName") String firstName, @PathVariable("lastName") String lastName,
                             @PathVariable("departmentName") String departmentName, @PathVariable("hospitalName") String hospitalName,
                             @PathVariable("includeDeleted") List<Boolean> includeDeleted, Pageable pageable);
+
+    Optional<User> findByPasswordToken(UUID passwordToken);
 }

@@ -6,21 +6,18 @@ import com.raf.si.userservice.dto.response.UserListAndCountResponse;
 import com.raf.si.userservice.dto.response.UserListResponse;
 import com.raf.si.userservice.dto.response.UserResponse;
 import com.raf.si.userservice.exception.BadRequestException;
-import com.raf.si.userservice.exception.NotFoundException;
 import com.raf.si.userservice.model.Department;
 import com.raf.si.userservice.model.Permission;
 import com.raf.si.userservice.model.User;
 import com.raf.si.userservice.model.enums.Profession;
 import com.raf.si.userservice.model.enums.Title;
-import com.raf.si.userservice.repository.DepartmentRepository;
-import com.raf.si.userservice.repository.PermissionsRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -28,23 +25,14 @@ import java.util.stream.Collectors;
 public class UserMapper {
 
     private final PasswordEncoder passwordEncoder;
-    private final DepartmentRepository departmentRepository;
-    private final PermissionsRepository permissionsRepository;
 
-    public UserMapper(PasswordEncoder passwordEncoder, DepartmentRepository departmentRepository,
-                      PermissionsRepository permissionsRepository) {
+    public UserMapper(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
-        this.departmentRepository = departmentRepository;
-        this.permissionsRepository = permissionsRepository;
     }
 
-    public User requestToModel(CreateUserRequest createUserRequest) {
-        Department department = departmentRepository.findById(
-                createUserRequest.getDepartmentId()).orElseThrow(() -> {
-                    log.error("Odeljenje sa id-ijem '{}' ne postoji", createUserRequest.getDepartmentId());
-                    throw new NotFoundException("Odeljenje sa datim id-ijem ne postoji");
-                }
-        );
+    public User requestToModel(CreateUserRequest createUserRequest, Department department,
+                               List<Permission> permissions) {
+
 
         User user = new User();
         user.setEmail(createUserRequest.getEmail());
@@ -58,7 +46,7 @@ public class UserMapper {
         user.setDateOfBirth(createUserRequest.getDateOfBirth());
         user.setPlaceOfLiving(createUserRequest.getPlaceOfLiving());
         user.setResidentialAddress(createUserRequest.getResidentialAddress());
-        user.setPermissions(permissionsRepository.findPermissionsByNameIsIn(Arrays.asList(createUserRequest.getPermissions())));
+        user.setPermissions(permissions);
 
         Profession profession = Profession.valueOfNotation(createUserRequest.getProfession());
 
@@ -105,12 +93,9 @@ public class UserMapper {
         return userResponse;
     }
 
-    public User updateRequestToModel(User user, UpdateUserRequest updateUserRequest) {
-        Department department = departmentRepository.findById(updateUserRequest.getDepartmentId()).orElseThrow(() -> {
-                    log.error("Odeljenje sa id-ijem '{}' ne postoji", updateUserRequest.getDepartmentId());
-                    throw new NotFoundException("Odeljenje sa datim id-ijem ne postoji");
-                }
-        );
+    public User updateRequestToModel(User user, UpdateUserRequest updateUserRequest,
+                                     Department department) {
+
 
         user.setEmail(updateUserRequest.getEmail());
         user.setFirstName(updateUserRequest.getFirstName());
@@ -142,6 +127,18 @@ public class UserMapper {
         if (updateUserRequest.getPhone() != null)
             user.setPhone(updateUserRequest.getPhone());
 
+        if (updateUserRequest.getNewPassword() != null) {
+            user.setPassword(passwordEncoder.encode(updateUserRequest.getNewPassword()));
+        }
+
+        return user;
+    }
+
+    public User updateRegularRequestToModel(User user, UpdateUserRequest updateUserRequest) {
+
+        if (updateUserRequest.getPhone() != null)
+            user.setPhone(updateUserRequest.getPhone());
+
         if (updateUserRequest.getOldPassword() != null && updateUserRequest.getNewPassword() != null) {
             if (!passwordEncoder.matches(updateUserRequest.getOldPassword(), user.getPassword())) {
                 log.error("Pogresno uneta sifra za korisnika sa id-ijem '{}'", user.getId());
@@ -163,6 +160,7 @@ public class UserMapper {
 
     public User setUserPassword(User user, String password) {
         user.setPassword(passwordEncoder.encode(password));
+        user.setPasswordToken(UUID.randomUUID());
         return user;
     }
 

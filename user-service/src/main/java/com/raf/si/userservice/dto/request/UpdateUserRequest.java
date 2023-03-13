@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import java.util.Date;
 
 @Getter
@@ -37,6 +38,7 @@ public class UpdateUserRequest {
     @NotEmpty(message = "Polje korisnicko ime ne sme biti prazno")
     private String username;
     private String oldPassword;
+    @Pattern(regexp = "^[a-zA-Z0-9_.-]*$", message = "Invalidan format sifre")
     private String newPassword;
     @NotNull(message = "Polje id odeljenja ne sme biti prazno")
     private Long departmentId;

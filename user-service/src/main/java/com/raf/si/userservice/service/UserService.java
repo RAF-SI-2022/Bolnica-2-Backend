@@ -2,6 +2,7 @@ package com.raf.si.userservice.service;
 
 import com.raf.si.userservice.dto.request.CreateUserRequest;
 import com.raf.si.userservice.dto.request.PasswordResetRequest;
+import com.raf.si.userservice.dto.request.UpdatePasswordRequest;
 import com.raf.si.userservice.dto.request.UpdateUserRequest;
 import com.raf.si.userservice.dto.response.MessageResponse;
 import com.raf.si.userservice.dto.response.UserListAndCountResponse;
@@ -20,10 +21,12 @@ public interface UserService {
 
     UserResponse deleteUser(Long id);
 
-    UserResponse updateUser(UUID lbz, UpdateUserRequest updateUserRequest);
+    UserResponse updateUser(UUID lbz, UpdateUserRequest updateUserRequest, boolean isAdmin);
 
     UserListAndCountResponse listUsers(String firstName, String lastName, String departmentName,
                                        String hospitalName, boolean includeDeleted, Pageable pageable);
 
     MessageResponse resetPassword(PasswordResetRequest passwordResetRequest);
+
+    MessageResponse updatePassword(UpdatePasswordRequest updatePasswordRequest);
 }

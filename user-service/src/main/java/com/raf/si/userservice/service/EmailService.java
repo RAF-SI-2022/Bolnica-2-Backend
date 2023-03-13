@@ -4,5 +4,5 @@ import java.util.UUID;
 
 public interface EmailService {
 
-    void resetPassword(String email, UUID password);
+    void resetPassword(String email, UUID passwordToken);
 }
