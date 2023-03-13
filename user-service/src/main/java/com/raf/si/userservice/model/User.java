@@ -50,6 +50,8 @@ public class User {
     private String password;
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
+    @Column(name = "password_token", nullable = false)
+    private UUID passwordToken = UUID.randomUUID();
     @ManyToOne
     @JoinColumn(name = "department_id", referencedColumnName = "id")
     private Department department;

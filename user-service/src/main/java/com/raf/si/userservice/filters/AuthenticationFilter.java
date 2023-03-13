@@ -99,7 +99,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 || matcher.match("/v3/api-docs/**", request.getServletPath())
                 || matcher.match("/swagger-resources/**", request.getServletPath())
                 || matcher.match("/swagger-ui/**", request.getServletPath())
-                || matcher.match("/users/reset-password", request.getServletPath());
+                || matcher.match("/users/reset-password", request.getServletPath())
+                || matcher.match("/users/update-password", request.getServletPath());
     }
 
     private List<SimpleGrantedAuthority> setAuthorities(List<String> roles) {

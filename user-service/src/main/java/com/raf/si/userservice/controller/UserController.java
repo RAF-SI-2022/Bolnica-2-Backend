@@ -2,6 +2,7 @@ package com.raf.si.userservice.controller;
 
 import com.raf.si.userservice.dto.request.CreateUserRequest;
 import com.raf.si.userservice.dto.request.PasswordResetRequest;
+import com.raf.si.userservice.dto.request.UpdatePasswordRequest;
 import com.raf.si.userservice.dto.request.UpdateUserRequest;
 import com.raf.si.userservice.dto.response.MessageResponse;
 import com.raf.si.userservice.dto.response.UserListAndCountResponse;
@@ -64,13 +65,15 @@ public class UserController {
     public ResponseEntity<UserResponse> updateUser(@PathVariable("lbz") UUID lbz,
                                                    @Valid @RequestBody UpdateUserRequest updateUserRequest) {
         TokenPayload payload = getPayload();
+        boolean isAdmin = payload.getPermissions().contains("ROLE_ADMIN");
 
-        if (!payload.getPermissions().contains("ROLE_ADMIN") && !lbz.equals(payload.getLbz())) {
+
+        if (!isAdmin && !lbz.equals(payload.getLbz())) {
             log.error("LBZ nije isti za korisnika sa lbz-om '{}' i trazeni lbz '{}'", lbz, payload.getLbz());
             throw new ForbiddenException("Nemate permisije za ovu akciju");
         }
 
-        return ResponseEntity.ok(userService.updateUser(lbz, updateUserRequest));
+        return ResponseEntity.ok(userService.updateUser(lbz, updateUserRequest, isAdmin));
     }
 
     @GetMapping
@@ -87,6 +90,11 @@ public class UserController {
     @PostMapping("/reset-password")
     public ResponseEntity<MessageResponse> resetPassword(@Valid @RequestBody PasswordResetRequest passwordResetRequest) {
         return ResponseEntity.ok(userService.resetPassword(passwordResetRequest));
+    }
+
+    @PostMapping("/update-password")
+    public ResponseEntity<MessageResponse> updatePassword(@Valid @RequestBody UpdatePasswordRequest updatePasswordRequest) {
+        return ResponseEntity.ok(userService.updatePassword(updatePasswordRequest));
     }
 
     private TokenPayload getPayload() {
