@@ -25,4 +25,5 @@ public class UserListResponse {
     private String email;
     private String departmentName;
     private String hospitalName;
+    private Long count;
 }
