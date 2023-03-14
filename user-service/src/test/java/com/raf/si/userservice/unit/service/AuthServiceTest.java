@@ -1,4 +1,4 @@
-package com.raf.si.userservice.unit;
+package com.raf.si.userservice.unit.service;
 
 import com.raf.si.userservice.dto.request.LoginUserRequest;
 import com.raf.si.userservice.dto.response.LoginUserResponse;

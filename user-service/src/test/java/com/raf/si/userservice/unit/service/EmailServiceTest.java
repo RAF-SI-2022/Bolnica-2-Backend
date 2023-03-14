@@ -1,4 +1,4 @@
-package com.raf.si.userservice.unit;
+package com.raf.si.userservice.unit.service;
 
 import com.raf.si.userservice.exception.InternalServerErrorException;
 import com.raf.si.userservice.service.EmailService;

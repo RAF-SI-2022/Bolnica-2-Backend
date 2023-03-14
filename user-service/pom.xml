@@ -22,6 +22,7 @@
         <spring-boot-autoconfigure.version>2.7.9</spring-boot-autoconfigure.version>
         <junit-jupiter.version>5.9.2</junit-jupiter.version>
         <mockito-inline.version>3.8.0</mockito-inline.version>
+        <testcontainers.version>1.17.3</testcontainers.version>
     </properties>
     <dependencies>
         <dependency>
@@ -107,6 +108,12 @@
                     <artifactId>hamcrest-core</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
