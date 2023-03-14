@@ -8,7 +8,6 @@ import com.raf.si.userservice.dto.response.MessageResponse;
 import com.raf.si.userservice.dto.response.UserListAndCountResponse;
 import com.raf.si.userservice.dto.response.UserResponse;
 import com.raf.si.userservice.exception.ForbiddenException;
-import com.raf.si.userservice.service.EmailService;
 import com.raf.si.userservice.service.UserService;
 import com.raf.si.userservice.utils.TokenPayload;
 import lombok.extern.slf4j.Slf4j;
@@ -29,12 +28,9 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
-    private final EmailService emailService;
 
-
-    public UserController(UserService userService, EmailService emailService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.emailService = emailService;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -76,6 +72,7 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(lbz, updateUserRequest, isAdmin));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<UserListAndCountResponse> listUsers(@RequestParam(defaultValue = "") String firstName,
                                                               @RequestParam(defaultValue = "") String lastName,

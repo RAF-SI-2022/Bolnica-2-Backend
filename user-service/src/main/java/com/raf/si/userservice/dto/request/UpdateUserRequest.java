@@ -2,6 +2,7 @@ package com.raf.si.userservice.dto.request;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
@@ -10,6 +11,7 @@ import javax.validation.constraints.Pattern;
 import java.util.Date;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class UpdateUserRequest {
 

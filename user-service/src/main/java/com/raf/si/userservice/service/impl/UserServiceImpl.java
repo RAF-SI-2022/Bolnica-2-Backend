@@ -96,9 +96,9 @@ public class UserServiceImpl implements UserService {
             log.error("Ne postoji korisnik sa id-ijem '{}'", id);
             throw new NotFoundException("Korisnik sa datim id-ijem ne postoji");
         });
-        user.setDeleted(!user.isDeleted());
+        user.setDeleted(true);
         user = userRepository.save(user);
-        log.info("Korisnicki nalog sa id-ijem '{}' je uspesno {}", id, user.isDeleted() ? "deaktiviran" : "aktiviran");
+        log.info("Korisnicki nalog sa id-ijem '{}' je uspesno obrisan", id);
 
         return userMapper.modelToResponse(user);
     }
@@ -117,8 +117,6 @@ public class UserServiceImpl implements UserService {
                             throw new NotFoundException("Odeljenje sa datim id-ijem ne postoji");
                         }
                 );
-
-        System.out.println(isAdmin);
 
         User updatedUser = isAdmin? userMapper.updateRequestToModel(user, updateUserRequest, department)
                 : userMapper.updateRegularRequestToModel(user, updateUserRequest);
@@ -147,7 +145,7 @@ public class UserServiceImpl implements UserService {
 
         emailService.resetPassword(user.getEmail(), user.getPasswordToken());
 
-        return new MessageResponse("Email sa novom sifrom je poslat na vasu email adresu");
+        return new MessageResponse("Proverite vas email za resetovanje sifre");
     }
 
     @Override

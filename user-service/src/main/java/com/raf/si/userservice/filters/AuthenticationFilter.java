@@ -95,12 +95,14 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         AntPathMatcher matcher = new AntPathMatcher();
-        return matcher.match("/auth/**", request.getServletPath())
-                || matcher.match("/v3/api-docs/**", request.getServletPath())
-                || matcher.match("/swagger-resources/**", request.getServletPath())
-                || matcher.match("/swagger-ui/**", request.getServletPath())
-                || matcher.match("/users/reset-password", request.getServletPath())
-                || matcher.match("/users/update-password", request.getServletPath());
+        String path = request.getRequestURI();
+        log.info(request.getRequestURI());
+        return matcher.match("/**/auth/**", path)
+                || matcher.match("/**/v3/api-docs/**", path)
+                || matcher.match("/**/swagger-resources/**", path)
+                || matcher.match("/**/swagger-ui/**", path)
+                || matcher.match("/**/users/reset-password", path)
+                || matcher.match("/**/users/update-password", path);
     }
 
     private List<SimpleGrantedAuthority> setAuthorities(List<String> roles) {

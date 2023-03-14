@@ -97,7 +97,7 @@ public class BootstrapData implements CommandLineRunner {
         permissions.add(permissionsRepository.save(medSestraPermission));
 
         User user = new User();
-        user.setEmail("admin@ibis.rs");
+        user.setEmail("balkan.medic2023@outlook.com");
         user.setPassword(passwordEncoder.encode("admin"));
         user.setUsername("admin");
         user.setDepartment(chirurgyDepartment);
