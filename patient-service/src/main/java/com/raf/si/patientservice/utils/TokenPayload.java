@@ -1,7 +1,7 @@
 package com.raf.si.patientservice.utils;
 
-import com.raf.si.patientservice.model.enums.Profession;
-import com.raf.si.patientservice.model.enums.Title;
+import com.raf.si.patientservice.model.enums.user.Profession;
+import com.raf.si.patientservice.model.enums.user.Title;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

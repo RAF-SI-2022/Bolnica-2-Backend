@@ -13,6 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @EnableMethodSecurity
+@EnableWebSecurity
 @Configuration
 public class SecurityConfig {
 
@@ -24,9 +25,22 @@ public class SecurityConfig {
     }
 
     @Bean
-    public FilterRegistrationBean jwtFilter(){
-        FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
-        filterRegistrationBean.setFilter(authenticationFilter);
-        return filterRegistrationBean;
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+        return http
+                .cors()
+                .and()
+                .csrf()
+                .disable()
+                .authorizeHttpRequests()
+                .anyRequest()
+                .permitAll()
+                .and()
+                .exceptionHandling().accessDeniedHandler(new CustomAccessDeniedHandler())
+                .and()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 }
