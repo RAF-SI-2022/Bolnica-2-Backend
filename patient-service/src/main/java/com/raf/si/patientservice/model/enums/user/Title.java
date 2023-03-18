@@ -1,4 +1,4 @@
-package com.raf.si.patientservice.model.enums;
+package com.raf.si.patientservice.model.enums.user;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
