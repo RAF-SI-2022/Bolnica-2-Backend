@@ -19,7 +19,7 @@ public class HealthRecord {
     private Long id;
 
     @Column(nullable = false)
-    private Date registrationDate;
+    private Date registrationDate = new Date(System.currentTimeMillis());
 
     @Column
     @Enumerated(EnumType.STRING)
