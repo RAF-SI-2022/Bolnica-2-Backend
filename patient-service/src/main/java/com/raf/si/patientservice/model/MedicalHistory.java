@@ -3,9 +3,12 @@ package com.raf.si.patientservice.model;
 import com.raf.si.patientservice.model.enums.medicalhistory.TreatmentResult;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.SneakyThrows;
 
 import javax.persistence.*;
-import java.sql.Date;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 @Entity
 @Getter
@@ -36,7 +39,7 @@ public class MedicalHistory {
     private Date validFrom;
 
     @Column(nullable = false)
-    private Date validUntil = Date.valueOf("9999-12-31");
+    private Date validUntil;
 
     @Column
     private Boolean valid;
@@ -47,4 +50,10 @@ public class MedicalHistory {
     @ManyToOne
     @JoinColumn(name = "health_record_id", nullable = false)
     private HealthRecord healthRecord;
+
+    @SneakyThrows
+    public MedicalHistory(){
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH);
+        validUntil = formatter.parse("31-Dec-9999");
+    }
 }
