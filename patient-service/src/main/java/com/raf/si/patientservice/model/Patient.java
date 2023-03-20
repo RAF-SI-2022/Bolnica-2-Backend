@@ -1,13 +1,11 @@
 package com.raf.si.patientservice.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.raf.si.patientservice.model.enums.patient.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.sql.Date;
-import java.time.Instant;
+import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -42,7 +40,7 @@ public class Patient {
     private Date birthDate;
 
     @Column
-    private Instant deathDate;
+    private Date deathDate;
 
     @Column(nullable = false)
     private String birthplace;
