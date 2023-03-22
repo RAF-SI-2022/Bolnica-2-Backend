@@ -29,7 +29,7 @@ public class PatientController {
         this.patientService = patientService;
     }
 
-    
+
 
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @PostMapping("/create")

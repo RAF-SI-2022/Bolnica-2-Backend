@@ -71,7 +71,8 @@ public class PatientServiceImpl implements PatientService {
                     throw new BadRequestException(errMessage);
                 });
 
-        patientRepository.delete(patient);
+        patient.setDeleted(true);
+        patientRepository.save(patient);
         log.info(String.format("Pacijent sa id-jem '%d' uspesno obrisan", id));
         return patientMapper.patientToPatientResponse(patient);
     }
