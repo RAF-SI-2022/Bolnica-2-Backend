@@ -21,7 +21,3 @@ server:
   servlet:
     context-path: "/api"
 jwt.secret.key: "secret_key"
-security:
-  basic:
-    enable: false
-  ignored: /**
