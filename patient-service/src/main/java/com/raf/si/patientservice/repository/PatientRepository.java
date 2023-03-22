@@ -5,9 +5,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface PatientRepository extends JpaRepository<Patient, Long> {
 
     Optional<Patient> findByJmbg(String jmbg);
+    Optional<Patient> findByJmbgAndDeleted(String jmbg, Boolean deleted);
+
+    Optional<Patient> findByLbp(UUID lbp);
+
+    Optional<Patient> findByLbpAndDeleted(UUID lbp, Boolean deleted);
 }

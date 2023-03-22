@@ -1,5 +1,6 @@
 package com.raf.si.patientservice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +19,7 @@ public class Allergen {
     @Column(nullable = false)
     private String name;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "allergen", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<Allergy> allergies;
 }

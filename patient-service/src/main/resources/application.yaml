@@ -21,3 +21,5 @@ server:
   servlet:
     context-path: "/api"
 jwt.secret.key: "secret_key"
+
+user-service-url: "localhost:8081/api/users"
