@@ -2,6 +2,7 @@ package com.raf.si.patientservice.model;
 
 
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
+import com.raf.si.patientservice.model.enums.examination.PatientArrivalStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,15 +29,12 @@ public class ScheduledMedExamination {
 
     @Column(nullable = false)
     private Date appointmentDate;
-
-
     @Column
     private ExaminationStatus examinationStatus = ExaminationStatus.ZAKAZANO;
-
-
+    @Column
+    private PatientArrivalStatus patientArrivalStatus= PatientArrivalStatus.NIJE_DOSAO;
     @Column
     private String note="";
-
 
     //FK
     @Column(nullable = false)

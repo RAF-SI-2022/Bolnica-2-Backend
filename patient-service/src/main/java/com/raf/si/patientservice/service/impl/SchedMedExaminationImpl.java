@@ -6,9 +6,11 @@ import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.mapper.SchedMedExamMapper;
 import com.raf.si.patientservice.model.ScheduledMedExamination;
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
+import com.raf.si.patientservice.repository.PatientRepository;
 import com.raf.si.patientservice.repository.ScheduledMedExamRepository;
 import com.raf.si.patientservice.service.SchedMedExaminationService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,15 +24,14 @@ import java.util.List;
 public class SchedMedExaminationImpl implements SchedMedExaminationService {
 
     private final ScheduledMedExamRepository scheduledMedExamRepository;
+    private final PatientRepository patientRepository;
     private final SchedMedExamMapper schedMedExamMapper;
+    @Value("${duration.of.exam}")
+    private int DURATION_OF_EXAM;
 
-    /**
-     *  Duration of scheduled medical examination expressed in minutes
-     */
-    private final int DURRATION_OF_EXAM= 45;
-
-    public SchedMedExaminationImpl(ScheduledMedExamRepository scheduledMedExamRepository, SchedMedExamMapper schedMedExamMapper) {
+    public SchedMedExaminationImpl(ScheduledMedExamRepository scheduledMedExamRepository, PatientRepository patientRepository, SchedMedExamMapper schedMedExamMapper) {
         this.scheduledMedExamRepository = scheduledMedExamRepository;
+        this.patientRepository = patientRepository;
         this.schedMedExamMapper = schedMedExamMapper;
     }
 
@@ -39,13 +40,16 @@ public class SchedMedExaminationImpl implements SchedMedExaminationService {
     @Transactional
     public SchedMedExamResponse createSchedMedExamination(SchedMedExamRequest schedMedExamRequest) {
 
-        Date appointmnet= schedMedExamRequest.getAppointmentDate();
-        Date timeBetweenAppointmnets= new Date(appointmnet.getTime() -DURRATION_OF_EXAM * 60 * 1000);
-
         /**
-         * Provera da li postoje vec zakazani pregledi za trazenog doktora. Smatracemo da svaki pregled traje 45 minuta.
-         * Ukoliko dodje do menjanja trajanja pregleda promeni DURRATION_OF_EXAM
+         * Check if there are any ongoing appointments for the requested doctor at the requested time,
+         * taking into account that each examination is assumed to have a duration of DURATION_OF_EXAM minutes.
+         *
+         * @param DURATION_OF_EXAM
          */
+
+        Date appointmnet= schedMedExamRequest.getAppointmentDate();
+        Date timeBetweenAppointmnets= new Date(appointmnet.getTime() -DURATION_OF_EXAM * 60 * 1000);
+
         List<ScheduledMedExamination> exams= scheduledMedExamRepository.findByAppointmentDateBetweenAndLbz_doctor(timeBetweenAppointmnets,
                 appointmnet, schedMedExamRequest.getLbz_doctor()).orElse(Collections.emptyList());
 
@@ -54,15 +58,36 @@ public class SchedMedExaminationImpl implements SchedMedExaminationService {
 
         if (hasUncompletedExams) {
             String errMessage = String.format("Obustavljena zakazivanje, dolazi do preklapanja pregleda. Potrebno je imati ",
-                    DURRATION_OF_EXAM ," minuta izmedju svakog zakazanog pregleda. Preklapa se sa id pregleda ",
+                    DURATION_OF_EXAM ," minuta izmedju svakog zakazanog pregleda. Preklapa se sa id pregleda ",
                     exams.get(0).getId());
             log.info(errMessage);
             throw new BadRequestException(errMessage);
         }
 
 
+        /**
+         * #TODO
+         * Checking if there is a referred doctor
+         */
 
 
-        return null;
+        /**
+         * Checking if there is a referred patient in the database, there should be.
+         */
+        patientRepository.findByLbp(schedMedExamRequest.getLbp()).orElseThrow(()->{
+            String errMessage = String.format("Pacijent sa lbp-om '%s' ne postoji", schedMedExamRequest.getLbp());
+            log.info(errMessage);
+            throw new BadRequestException(errMessage);
+        });
+
+        ScheduledMedExamination scheduledMedExamination = schedMedExamMapper.schedMedExamRequestToScheduledMedExamination
+                (new ScheduledMedExamination(), schedMedExamRequest);
+
+        scheduledMedExamRepository.save(scheduledMedExamination);
+
+
+
+        log.info("Pregled uspesno kreiran");
+        return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
     }
 }
