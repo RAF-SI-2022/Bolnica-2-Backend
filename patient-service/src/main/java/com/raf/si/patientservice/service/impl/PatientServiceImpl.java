@@ -49,15 +49,30 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public PatientResponse updatePatient(PatientRequest patientRequest) {
-        Patient patient = patientRepository.findByJmbg(patientRequest.getJmbg()).orElseThrow(() -> {
-            String errMessage = String.format("Pacijent sa jmbg-om '%s' ne postoji", patientRequest.getJmbg());
-            log.info(errMessage);
-            throw new BadRequestException(errMessage);
+        Patient patient = patientRepository.findByJmbg(patientRequest.getJmbg())
+                .orElseThrow(() -> {
+                    String errMessage = String.format("Pacijent sa jmbg-om '%s' ne postoji", patientRequest.getJmbg());
+                    log.info(errMessage);
+                    throw new BadRequestException(errMessage);
         });
 
         patient = patientMapper.patientRequestToPatient(patient, patientRequest);
         patientRepository.save(patient);
         log.info(String.format("Pacijent sa lbp-om '%s' uspesno sacuvan", patient.getLbp()));
+        return patientMapper.patientToPatientResponse(patient);
+    }
+
+    @Override
+    public PatientResponse deletePatient(Long id) {
+        Patient patient = patientRepository.findById(id)
+                .orElseThrow(() -> {
+                    String errMessage = String.format("Pacijent sa id-jem '%d' ne postoji", id);
+                    log.info(errMessage);
+                    throw new BadRequestException(errMessage);
+                });
+
+        patientRepository.delete(patient);
+        log.info(String.format("Pacijent sa id-jem '%d' uspesno obrisan", id));
         return patientMapper.patientToPatientResponse(patient);
     }
 }

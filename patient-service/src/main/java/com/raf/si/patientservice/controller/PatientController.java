@@ -29,6 +29,8 @@ public class PatientController {
         this.patientService = patientService;
     }
 
+    
+
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @PostMapping("/create")
     public ResponseEntity<PatientResponse> createPatient(@Valid @RequestBody PatientRequest patientRequest){
@@ -36,9 +38,15 @@ public class PatientController {
     }
 
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ResponseEntity<PatientResponse> updatePatient(@Valid @RequestBody PatientRequest patientRequest){
         return ResponseEntity.ok(patientService.updatePatient(patientRequest));
+    }
+
+    @PreAuthorize("hasRole('ROLE_VISA_MED_SESTRA')")
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<PatientResponse> deleteUser(@PathVariable("id") Long id){
+        return ResponseEntity.ok(patientService.deletePatient(id));
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
