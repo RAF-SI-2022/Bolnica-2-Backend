@@ -25,7 +25,7 @@ public class SchedMedExaminationImpl implements SchedMedExaminationService {
     private final SchedMedExamMapper schedMedExamMapper;
 
     /**
-        Duration of scheduled medical examination expressed in minutes
+     *  Duration of scheduled medical examination expressed in minutes
      */
     private final int DURRATION_OF_EXAM= 45;
 
