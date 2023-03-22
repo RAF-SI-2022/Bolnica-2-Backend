@@ -12,7 +12,7 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
-public class ScheduledExamination {
+public class ScheduledMedExamination {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +27,7 @@ public class ScheduledExamination {
     private UUID lbz_doctor;
 
     @Column(nullable = false)
-    private Date date;
+    private Date appointmentDate;
 
 
     @Column
@@ -35,7 +35,7 @@ public class ScheduledExamination {
 
 
     @Column
-    private  String note="";
+    private String note="";
 
 
     //FK
