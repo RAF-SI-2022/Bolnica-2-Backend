@@ -36,14 +36,28 @@ public class PatientServiceImpl implements PatientService {
             throw new BadRequestException(errMessage);
         });
 
-        Patient patient = patientMapper.patientRequestToPatient(patientRequest);
+        Patient patient = patientMapper.patientRequestToPatient(new Patient(), patientRequest);
         patientRepository.save(patient);
 
         HealthRecord healthRecord = new HealthRecord();
         patient.setHealthRecord(healthRecord);
         healthRecordRepository.save(healthRecord);
 
-        log.info(String.format("Pacijent sa jmbg-om '%s' uspesno sacuvan", patient.getJmbg()));
+        log.info(String.format("Pacijent sa lbp-om '%s' uspesno sacuvan", patient.getLbp()));
+        return patientMapper.patientToPatientResponse(patient);
+    }
+
+    @Override
+    public PatientResponse updatePatient(PatientRequest patientRequest) {
+        Patient patient = patientRepository.findByJmbg(patientRequest.getJmbg()).orElseThrow(() -> {
+            String errMessage = String.format("Pacijent sa jmbg-om '%s' ne postoji", patientRequest.getJmbg());
+            log.info(errMessage);
+            throw new BadRequestException(errMessage);
+        });
+
+        patient = patientMapper.patientRequestToPatient(patient, patientRequest);
+        patientRepository.save(patient);
+        log.info(String.format("Pacijent sa lbp-om '%s' uspesno sacuvan", patient.getLbp()));
         return patientMapper.patientToPatientResponse(patient);
     }
 }
