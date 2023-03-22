@@ -7,4 +7,5 @@ public interface PatientService {
 
     PatientResponse createPatient(PatientRequest patientRequest);
 
+    PatientResponse updatePatient(PatientRequest patientRequest);
 }
