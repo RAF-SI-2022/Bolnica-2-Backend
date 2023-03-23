@@ -13,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -53,10 +52,10 @@ public class PatientServiceImpl implements PatientService {
         });
 
         Patient patient = patientMapper.patientRequestToPatient(new Patient(), patientRequest);
-        patientRepository.save(patient);
-
         HealthRecord healthRecord = new HealthRecord();
         patient.setHealthRecord(healthRecord);
+
+        patientRepository.save(patient);
         healthRecordRepository.save(healthRecord);
 
         log.info(String.format("Pacijent sa lbp-om '%s' uspesno sacuvan", patient.getLbp()));
