@@ -1,6 +1,7 @@
 package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
+import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.mapper.SchedMedExamMapper;
@@ -88,6 +89,29 @@ public class SchedMedExaminationImpl implements SchedMedExaminationService {
 
 
         log.info("Pregled uspesno kreiran");
+        return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
+    }
+
+    @Override
+    public SchedMedExamResponse updateSchedMedExamination(UpdateSchedMedExamRequest updateSchedMedExamRequest) {
+
+        ScheduledMedExamination scheduledMedExamination=scheduledMedExamRepository.findById(updateSchedMedExamRequest.getId())
+                .orElseThrow(()->{
+            String errMessage = String.format("Zakazani pregled sa id-om '%s' ne postoji", updateSchedMedExamRequest.getId());
+            log.info(errMessage);
+            throw new BadRequestException(errMessage);
+        });
+
+        /**
+         * #TODO
+         * dodavanje push notifikacija
+         */
+        scheduledMedExamination= schedMedExamMapper.updateSchedMedExamRequestToScheduledMedExamination(scheduledMedExamination,
+                updateSchedMedExamRequest);
+
+        scheduledMedExamRepository.save(scheduledMedExamination);
+
+        log.info(String.format("Izmena statusa pregleda sa id '%d' uspesno sacuvan", updateSchedMedExamRequest.getId()));
         return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
     }
 }

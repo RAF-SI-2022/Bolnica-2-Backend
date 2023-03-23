@@ -1,8 +1,12 @@
 package com.raf.si.patientservice.mapper;
 
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
+import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
+import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.model.ScheduledMedExamination;
+import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
+import com.raf.si.patientservice.model.enums.examination.PatientArrivalStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -40,5 +44,40 @@ public class SchedMedExamMapper {
         schedMedExamResponse.setLbz_nurse(scheduledMedExamination.getLbz_nurse());
 
         return schedMedExamResponse;
+    }
+
+    public ScheduledMedExamination updateSchedMedExamRequestToScheduledMedExamination(ScheduledMedExamination scheduledMedExamination
+            , UpdateSchedMedExamRequest updateSchedMedExamRequest) {
+
+        ExaminationStatus examinationStatus= ExaminationStatus.valueOfNotation(updateSchedMedExamRequest.getExaminationStatus());
+
+        if(examinationStatus == null){
+            String errMessage = String.format("Nepoznat status pregleda '%s'", updateSchedMedExamRequest.getExaminationStatus());
+            log.info(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+
+        switch (examinationStatus) {
+            case ZAKAZANO:
+            case OTKAZANO:
+                String errMessage = String.format("Nije dozvoljeno izmeniti status pregleda  na '%s'"
+                            , updateSchedMedExamRequest.getExaminationStatus());
+                    log.info(errMessage);
+                    throw new BadRequestException(errMessage);
+
+            case U_TOKU:
+                scheduledMedExamination.setExaminationStatus(examinationStatus);
+                scheduledMedExamination.setPatientArrivalStatus(PatientArrivalStatus.PRIMLJEN);
+                break;
+            case ZAVRSENO:
+                scheduledMedExamination.setExaminationStatus(examinationStatus);
+                scheduledMedExamination.setPatientArrivalStatus(PatientArrivalStatus.ZAVRSIO);
+                break;
+
+        }
+
+
+
+        return scheduledMedExamination;
     }
 }

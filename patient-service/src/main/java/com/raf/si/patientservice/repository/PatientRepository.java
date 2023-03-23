@@ -11,5 +11,11 @@ import java.util.UUID;
 public interface PatientRepository extends JpaRepository<Patient, Long> {
 
     Optional<Patient> findByJmbg(String jmbg);
+
+    Optional<Patient> findByJmbgAndDeleted(String jmbg, Boolean deleted);
+
     Optional<Patient> findByLbp(UUID lbp);
+
+    Optional<Patient> findByLbpAndDeleted(UUID lbp, Boolean deleted);
+
 }
