@@ -8,5 +8,5 @@ public interface SchedMedExaminationService {
 
     SchedMedExamResponse createSchedMedExamination(SchedMedExamRequest schedMedExamRequest);
 
-    SchedMedExamResponse updateSchedMedExamination(UpdateSchedMedExamRequest updateSchedMedExamRequest);
+    SchedMedExamResponse updateSchedMedExaminationExamStatus(UpdateSchedMedExamRequest updateSchedMedExamRequest);
 }
