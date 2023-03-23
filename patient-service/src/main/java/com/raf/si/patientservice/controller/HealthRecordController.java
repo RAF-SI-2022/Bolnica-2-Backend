@@ -19,7 +19,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin
 @RequestMapping("/record")
-public class HealthRecordController {
+public class HealthRecordController{
 
     private final HealthRecordService healthRecordService;
 
