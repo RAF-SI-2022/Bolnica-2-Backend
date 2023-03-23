@@ -1,11 +1,15 @@
 package com.raf.si.patientservice.model.enums.examination;
 
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum PatientArrivalStatus {
-    NIJE_DOSAO("Nije dosao"),
+    NIJE_DOSAO("Nije došao"),
     OTKAZAO("Otkazao"),
-    CEKA("Ceka"),
+    CEKA("Čeka"),
     PRIMLJEN("Primljen"),
-    ZAVRSIO("Zavrsio");
+    ZAVRSIO("Završio");
 
 
 

@@ -1,13 +1,15 @@
 package com.raf.si.patientservice.model.enums.examination;
 
-import com.raf.si.patientservice.model.enums.patient.Education;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
+
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum ExaminationStatus {
 
     ZAKAZANO("Zakazano"),
     OTKAZANO("Otkazano"),
     U_TOKU("U toku"),
-    ZAVRSENO("Zavrseno");
+    ZAVRSENO("Završeno");
 
 
 
