@@ -18,15 +18,12 @@ public class ScheduledMedExamination {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     //FK
     @Column(nullable = false)
     private UUID lbp;
-
     //FK
     @Column(nullable = false)
     private UUID lbz_doctor;
-
     @Column(nullable = false)
     private Date appointmentDate;
     @Column
@@ -35,18 +32,7 @@ public class ScheduledMedExamination {
     private PatientArrivalStatus patientArrivalStatus= PatientArrivalStatus.NIJE_DOSAO;
     @Column
     private String note="";
-
     //FK
     @Column(nullable = false)
     private UUID lbz_nurse;
-
-
-
-
-
-
-
-
-
-
 }

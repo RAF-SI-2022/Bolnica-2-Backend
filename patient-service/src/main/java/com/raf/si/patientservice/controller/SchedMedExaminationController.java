@@ -33,9 +33,8 @@ public class SchedMedExaminationController {
     @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" +
             "or hasRole('ROLE_DR_SPEC')" +
             "or hasRole('ROLE_DR_SPEC_POV')")
-    @DeleteMapping("/update-exam-status")
+    @PutMapping("/update-exam-status")
     public ResponseEntity<SchedMedExamResponse> updateSchedMedExaminationStatus(@Valid @RequestBody UpdateSchedMedExamRequest updateSchedMedExamRequest){
         return ResponseEntity.ok(schedMedExaminationService.updateSchedMedExaminationExamStatus(updateSchedMedExamRequest));
     }
-
 }

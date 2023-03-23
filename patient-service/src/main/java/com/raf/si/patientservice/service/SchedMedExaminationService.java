@@ -7,6 +7,5 @@ import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 public interface SchedMedExaminationService {
 
     SchedMedExamResponse createSchedMedExamination(SchedMedExamRequest schedMedExamRequest);
-
     SchedMedExamResponse updateSchedMedExaminationExamStatus(UpdateSchedMedExamRequest updateSchedMedExamRequest);
 }

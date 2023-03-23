@@ -26,8 +26,6 @@ public class SchedMedExamMapper {
         if (schedMedExamRequest.getNote() != null)
             scheduledMedExamination.setNote(schedMedExamRequest.getNote());
 
-
-
         return  scheduledMedExamination;
     }
 
@@ -73,10 +71,7 @@ public class SchedMedExamMapper {
                 scheduledMedExamination.setExaminationStatus(examinationStatus);
                 scheduledMedExamination.setPatientArrivalStatus(PatientArrivalStatus.ZAVRSIO);
                 break;
-
         }
-
-
 
         return scheduledMedExamination;
     }
