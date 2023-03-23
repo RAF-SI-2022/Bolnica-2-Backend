@@ -16,5 +16,4 @@ public interface ScheduledMedExamRepository extends JpaRepository<ScheduledMedEx
     Optional<List<ScheduledMedExamination>> findByAppointmentDateBetweenAndLbz_doctor(Date betweenAppointments, Date appointment
             ,UUID lbz_doctor);
 
-
 }

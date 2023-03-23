@@ -11,8 +11,6 @@ public enum PatientArrivalStatus {
     PRIMLJEN("Primljen"),
     ZAVRSIO("Završio");
 
-
-
     private String notation;
 
     PatientArrivalStatus (String notation){this.notation= notation;}

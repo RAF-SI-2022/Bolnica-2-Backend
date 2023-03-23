@@ -18,9 +18,4 @@ public class SchedMedExamResponse {
     private UUID lbz_nurse;
     private ExaminationStatus examinationStatus;
     private PatientArrivalStatus patientArrivalStatus;
-
-
-
-
-
 }

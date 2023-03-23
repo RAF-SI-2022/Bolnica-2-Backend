@@ -11,8 +11,6 @@ public enum ExaminationStatus {
     U_TOKU("U toku"),
     ZAVRSENO("Završeno");
 
-
-
     private String notation;
 
     ExaminationStatus(String notation){
