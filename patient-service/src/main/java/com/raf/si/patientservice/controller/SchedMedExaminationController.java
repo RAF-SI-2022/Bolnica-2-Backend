@@ -15,7 +15,7 @@ import javax.validation.Valid;
 @Slf4j
 @RestController
 @CrossOrigin
-@RequestMapping("/schedMedExam")
+@RequestMapping("/sched-med-exam")
 public class SchedMedExaminationController {
 
     private final SchedMedExaminationService schedMedExaminationService;

@@ -18,6 +18,4 @@ public class SchedMedExamRequest {
     private String note;
     @NotNull(message = "ID zaposlenog koji je zakazao pregled ne sme biti prazan")
     private UUID lbz_nurse;
-
-
 }

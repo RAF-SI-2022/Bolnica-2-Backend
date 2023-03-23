@@ -58,8 +58,8 @@ public class SchedMedExaminationImpl implements SchedMedExaminationService {
                 .anyMatch(exam -> exam.getExaminationStatus() != ExaminationStatus.ZAVRSENO);
 
         if (hasUncompletedExams) {
-            String errMessage = String.format("Obustavljena zakazivanje, dolazi do preklapanja pregleda. Potrebno je imati ",
-                    DURATION_OF_EXAM ," minuta izmedju svakog zakazanog pregleda. Preklapa se sa id pregleda ",
+            String errMessage = String.format("Obustavljeno zakazivanje, dolazi do preklapanja pregleda. Potrebno je imati ",
+                    DURATION_OF_EXAM ," minuta između svakog zakazanog pregleda. Preklapa se sa pregledom id: %d",
                     exams.get(0).getId());
             log.info(errMessage);
             throw new BadRequestException(errMessage);
@@ -86,7 +86,7 @@ public class SchedMedExaminationImpl implements SchedMedExaminationService {
 
         scheduledMedExamRepository.save(scheduledMedExamination);
 
-        log.info("Pregled uspesno kreiran");
+        log.info("Pregled ušpesno kreiran");
         return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
     }
 
