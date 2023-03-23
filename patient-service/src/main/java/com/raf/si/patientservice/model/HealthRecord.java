@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.sql.Date;
+import java.util.Date;
 import java.util.Set;
 
 @Entity
@@ -32,7 +32,7 @@ public class HealthRecord {
     @Column
     private Boolean deleted = false;
 
-    @OneToOne(mappedBy = "healthRecord")
+    @OneToOne(mappedBy = "healthRecord", fetch = FetchType.LAZY)
     private Patient patient;
 
     @OneToMany(mappedBy = "healthRecord", fetch = FetchType.LAZY, cascade = CascadeType.ALL)

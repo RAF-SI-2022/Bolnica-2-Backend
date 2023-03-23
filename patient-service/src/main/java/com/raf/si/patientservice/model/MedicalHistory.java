@@ -1,5 +1,6 @@
 package com.raf.si.patientservice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.raf.si.patientservice.model.enums.medicalhistory.TreatmentResult;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,9 +45,14 @@ public class MedicalHistory {
     @Column
     private Boolean valid;
 
+    @JsonIgnore
+    @Column
+    private Boolean deleted = false;
+
     @ManyToOne
     private Diagnosis diagnosis;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "health_record_id", nullable = false)
     private HealthRecord healthRecord;

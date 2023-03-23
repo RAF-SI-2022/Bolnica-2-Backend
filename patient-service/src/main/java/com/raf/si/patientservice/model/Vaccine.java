@@ -1,5 +1,6 @@
 package com.raf.si.patientservice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,6 +25,7 @@ public class Vaccine {
     @Column(nullable = false)
     private String description;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "vaccine", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<Vaccination> vaccinations;
 }
