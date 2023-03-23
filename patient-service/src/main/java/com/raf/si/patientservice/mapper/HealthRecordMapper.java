@@ -3,16 +3,16 @@ package com.raf.si.patientservice.mapper;
 import com.raf.si.patientservice.dto.response.AllergyResponse;
 import com.raf.si.patientservice.dto.response.HealthRecordResponse;
 import com.raf.si.patientservice.dto.response.VaccinationResponse;
-import com.raf.si.patientservice.dto.response.http.UserResponse;
 import com.raf.si.patientservice.model.*;
-import com.raf.si.patientservice.utils.HttpUtils;
-import com.raf.si.patientservice.utils.TokenPayload;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Predicate;
 
+@Slf4j
+@Component
 public class HealthRecordMapper {
 
     public HealthRecordResponse healthRecordToHealthRecordResponse(Patient patient,
