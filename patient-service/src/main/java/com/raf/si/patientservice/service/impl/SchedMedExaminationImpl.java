@@ -110,4 +110,20 @@ public class SchedMedExaminationImpl implements SchedMedExaminationService {
         log.info(String.format("Izmena statusa pregleda sa id '%d' uspešno sacuvana", updateSchedMedExamRequest.getId()));
         return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
     }
+    @Override
+    public String deleteSchedMedExamination(Long id) {
+        /**
+         * Checking if there is an appointment in database with the passed id
+         */
+        ScheduledMedExamination scheduledMedExamination=scheduledMedExamRepository.findById(id)
+                .orElseThrow(()->{
+                    String errMessage = String.format("Zakazani pregled sa id-om '%s' ne postoji", id);
+                    log.info(errMessage);
+                    throw new BadRequestException(errMessage);
+                });
+
+        scheduledMedExamRepository.delete(scheduledMedExamination);
+
+        return String.format("Pregled sa id '%d'je ušpesno izbrisan");
+    }
 }
