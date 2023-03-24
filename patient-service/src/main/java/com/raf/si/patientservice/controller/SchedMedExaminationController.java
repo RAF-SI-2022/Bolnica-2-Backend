@@ -37,4 +37,10 @@ public class SchedMedExaminationController {
     public ResponseEntity<SchedMedExamResponse> updateSchedMedExaminationStatus(@Valid @RequestBody UpdateSchedMedExamRequest updateSchedMedExamRequest){
         return ResponseEntity.ok(schedMedExaminationService.updateSchedMedExaminationExamStatus(updateSchedMedExamRequest));
     }
+
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @PutMapping("/update-patient-arrival-status")
+    public ResponseEntity<SchedMedExamResponse> updateSchedMedExaminationPatientArrivalStatus(@Valid @RequestBody UpdateSchedMedExamRequest updateSchedMedExamRequest){
+        return ResponseEntity.ok(schedMedExaminationService.updateSchedMedExaminationPatientArrivalStatus(updateSchedMedExamRequest));
+    }
 }
