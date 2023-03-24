@@ -22,4 +22,7 @@ server:
     context-path: "/api"
 jwt.secret.key: "secret_key"
 
+# Duration of scheduled medical examination expressed in minutes
+duration.of.exam: 44
+
 user-service-url: "localhost:8081/api/users"
