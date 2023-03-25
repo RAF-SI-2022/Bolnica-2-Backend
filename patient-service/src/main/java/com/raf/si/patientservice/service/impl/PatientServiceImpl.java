@@ -1,19 +1,24 @@
 package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.PatientRequest;
-import com.raf.si.patientservice.dto.response.HealthRecordResponse;
+import com.raf.si.patientservice.dto.response.PatientListResponse;
 import com.raf.si.patientservice.dto.response.PatientResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
-import com.raf.si.patientservice.mapper.HealthRecordMapper;
 import com.raf.si.patientservice.mapper.PatientMapper;
 import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.repository.*;
+import com.raf.si.patientservice.repository.filtering.PatientSearchFilter;
+import com.raf.si.patientservice.repository.filtering.PatientSpecification;
 import com.raf.si.patientservice.service.PatientService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -29,7 +34,14 @@ public class PatientServiceImpl implements PatientService {
 
     private final PatientMapper patientMapper;
 
-    public PatientServiceImpl(PatientRepository patientRepository, HealthRecordRepository healthRecordRepository, VaccinationRepository vaccinationRepository, OperationRepository operationRepository, MedicalHistoryRepository medicalHistoryRepository, MedicalExaminationRepository medicalExaminationRepository, AllergyRepository allergyRepository, PatientMapper patientMapper, HealthRecordMapper healthRecordMapper) {
+    public PatientServiceImpl(PatientRepository patientRepository,
+                              HealthRecordRepository healthRecordRepository,
+                              VaccinationRepository vaccinationRepository,
+                              OperationRepository operationRepository,
+                              MedicalHistoryRepository medicalHistoryRepository,
+                              MedicalExaminationRepository medicalExaminationRepository,
+                              AllergyRepository allergyRepository,
+                              PatientMapper patientMapper) {
         this.patientRepository = patientRepository;
         this.healthRecordRepository = healthRecordRepository;
         this.vaccinationRepository = vaccinationRepository;
@@ -124,6 +136,25 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public PatientResponse getPatientByLbp(UUID lbp) {
         return patientMapper.patientToPatientResponse(findPatient(lbp));
+    }
+
+    @Override
+    public PatientListResponse getPatients(UUID lbp,
+                                           String firstName,
+                                           String lastName,
+                                           String jmbg,
+                                           Pageable pageable) {
+
+        PatientSearchFilter patientSearchFilter = new PatientSearchFilter(lbp, firstName, lastName, jmbg);
+        PatientSpecification spec = new PatientSpecification(patientSearchFilter);
+
+        Page<Patient> patientsPage = patientRepository.findAll(spec, pageable);
+        List<PatientResponse> patients = patientsPage.toList()
+                .stream()
+                .map(patientMapper::patientToPatientResponse)
+                .collect(Collectors.toList());
+
+        return new PatientListResponse(patients);
     }
 
 

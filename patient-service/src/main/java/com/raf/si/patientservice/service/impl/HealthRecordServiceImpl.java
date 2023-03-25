@@ -5,7 +5,6 @@ import com.raf.si.patientservice.dto.response.HealthRecordResponse;
 import com.raf.si.patientservice.dto.response.LightHealthRecordResponse;
 import com.raf.si.patientservice.dto.response.MedicalExaminationListResponse;
 import com.raf.si.patientservice.dto.response.MedicalHistoryListResponse;
-import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.mapper.HealthRecordMapper;
 import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.repository.*;
@@ -25,8 +24,6 @@ import java.util.UUID;
 @Service
 public class HealthRecordServiceImpl implements HealthRecordService {
 
-    private final PatientRepository patientRepository;
-    private final HealthRecordRepository healthRecordRepository;
     private final AllergyRepository allergyRepository;
     private final VaccinationRepository vaccinationRepository;
     private final MedicalExaminationRepository medicalExaminationRepository;
@@ -38,9 +35,14 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     private final HealthRecordMapper healthRecordMapper;
 
 
-    public HealthRecordServiceImpl(PatientRepository patientRepository, HealthRecordRepository healthRecordRepository, AllergyRepository allergyRepository, VaccinationRepository vaccinationRepository, MedicalExaminationRepository medicalExaminationRepository, MedicalHistoryRepository medicalHistoryRepository, OperationRepository operationRepository, PatientService patientService, HealthRecordMapper healthRecordMapper) {
-        this.patientRepository = patientRepository;
-        this.healthRecordRepository = healthRecordRepository;
+    public HealthRecordServiceImpl(HealthRecordRepository healthRecordRepository,
+                                   AllergyRepository allergyRepository,
+                                   VaccinationRepository vaccinationRepository,
+                                   MedicalExaminationRepository medicalExaminationRepository,
+                                   MedicalHistoryRepository medicalHistoryRepository,
+                                   OperationRepository operationRepository,
+                                   PatientService patientService,
+                                   HealthRecordMapper healthRecordMapper) {
         this.allergyRepository = allergyRepository;
         this.vaccinationRepository = vaccinationRepository;
         this.medicalExaminationRepository = medicalExaminationRepository;
