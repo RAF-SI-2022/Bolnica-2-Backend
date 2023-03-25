@@ -3,21 +3,28 @@ package com.raf.si.patientservice.service.impl;
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
 import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
+import com.raf.si.patientservice.dto.response.http.UserResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
+import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.mapper.SchedMedExamMapper;
 import com.raf.si.patientservice.model.ScheduledMedExamination;
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
 import com.raf.si.patientservice.repository.PatientRepository;
 import com.raf.si.patientservice.repository.ScheduledMedExamRepository;
 import com.raf.si.patientservice.service.SchedMedExaminationService;
+import com.raf.si.patientservice.utils.HttpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
 
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 
 @Slf4j
@@ -109,5 +116,50 @@ public class SchedMedExaminationImpl implements SchedMedExaminationService {
 
         log.info(String.format("Izmena statusa pregleda sa id '%d' uspešno sacuvana", updateSchedMedExamRequest.getId()));
         return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
+    }
+
+    @Override
+    public List<SchedMedExamResponse> getSchedMEdExaminationByLbz(UUID lbz, Date appointmentDate, String token) {
+
+        ResponseEntity<UserResponse> response = HttpUtils.findUserByLbz(token, lbz);
+        /**
+         * checking whether the employee is a doctor, as well as whether there is an
+         * employee with a forwarded lbz.
+         */
+        try{
+            if (response.getStatusCode() == HttpStatus.OK) {
+                UserResponse responseBody = response.getBody();
+
+
+                int isDoctor =max(responseBody.getPermissions().indexOf("ROLE_DR_SPEC_ODELJENJA")
+                                 ,responseBody.getPermissions().indexOf("ROLE_DR_SPEC")
+                                 ,responseBody.getPermissions().indexOf("ROLE_DR_SPEC_POV"));
+
+                if(isDoctor == -1){
+                    String errMessage = String.format("Zaposleni sa id-om '%s' nije doktor", lbz);
+                    log.info(errMessage);
+                    throw new BadRequestException(errMessage);
+                }
+
+            }else{
+                String errMessage = String.format("Zaposleni sa id-om '%s' ne postoji", lbz);
+                log.info(errMessage);
+                throw new BadRequestException(errMessage);
+            }
+        }catch (RestClientException e) {
+            throw  new InternalServerErrorException("Error calling other service: " + e.getMessage());
+        }
+
+        
+
+        return null;
+    }
+
+    private int max(int first, int... rest) {
+        int ret = first;
+        for (int val : rest) {
+            ret = Math.max(ret, val);
+        }
+        return ret;
     }
 }
