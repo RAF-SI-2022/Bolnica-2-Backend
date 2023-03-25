@@ -102,12 +102,33 @@ public class SchedMedExaminationImpl implements SchedMedExaminationService {
             throw new BadRequestException(errMessage);
         });
 
-        scheduledMedExamination= schedMedExamMapper.updateSchedMedExamRequestToScheduledMedExamination(scheduledMedExamination,
+        scheduledMedExamination= schedMedExamMapper.updateSchedMedExamRequestToScheduledMedExaminationExamStatus(scheduledMedExamination,
                 updateSchedMedExamRequest);
 
         scheduledMedExamRepository.save(scheduledMedExamination);
 
         log.info(String.format("Izmena statusa pregleda sa id '%d' uspešno sacuvana", updateSchedMedExamRequest.getId()));
+        return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
+    }
+
+    @Override
+    public SchedMedExamResponse updateSchedMedExaminationPatientArrivalStatus(UpdateSchedMedExamRequest updateSchedMedExamRequest) {
+        /**
+         * Checking if there is an appointment in database with the passed id
+         */
+        ScheduledMedExamination scheduledMedExamination=scheduledMedExamRepository.findById(updateSchedMedExamRequest.getId())
+                .orElseThrow(()->{
+                    String errMessage = String.format("Zakazani pregled sa id-om '%s' ne postoji", updateSchedMedExamRequest.getId());
+                    log.info(errMessage);
+                    throw new BadRequestException(errMessage);
+                });
+
+        scheduledMedExamination= schedMedExamMapper.updateSchedMedExamRequestToScheduledMedExaminationPatientArrivalStatus(
+                scheduledMedExamination, updateSchedMedExamRequest);
+
+        scheduledMedExamRepository.save(scheduledMedExamination);
+
+        log.info(String.format("Izmena statusa o prispeću pacijenta sa id '%d' uspešno sacuvana", updateSchedMedExamRequest.getId()));
         return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
     }
 }
