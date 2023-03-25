@@ -68,14 +68,6 @@ public class PatientController {
         return ResponseEntity.ok(patientService.getPatientByLbp(lbp));
     }
 
-    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" +
-            "or hasRole('ROLE_DR_SPEC')" +
-            "or hasRole('ROLE_DR_SPEC_POV')")
-    @GetMapping("/record/{lbp}")
-    public ResponseEntity<HealthRecordResponse> getHealthRecordForPatient(@PathVariable("lbp") UUID lbp){
-        return ResponseEntity.ok(patientService.getHealthRecordForPatient(lbp));
-    }
-
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/token")
     public ResponseEntity<?> getToken(){

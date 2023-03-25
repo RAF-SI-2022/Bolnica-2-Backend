@@ -17,6 +17,4 @@ public interface PatientService {
     PatientResponse deletePatient(UUID lbp);
 
     PatientResponse getPatientByLbp(UUID lbp);
-
-    HealthRecordResponse getHealthRecordForPatient(UUID lbp);
 }

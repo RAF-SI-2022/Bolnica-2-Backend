@@ -28,7 +28,6 @@ public class PatientServiceImpl implements PatientService {
     private final AllergyRepository allergyRepository;
 
     private final PatientMapper patientMapper;
-    private final HealthRecordMapper healthRecordMapper;
 
     public PatientServiceImpl(PatientRepository patientRepository, HealthRecordRepository healthRecordRepository, VaccinationRepository vaccinationRepository, OperationRepository operationRepository, MedicalHistoryRepository medicalHistoryRepository, MedicalExaminationRepository medicalExaminationRepository, AllergyRepository allergyRepository, PatientMapper patientMapper, HealthRecordMapper healthRecordMapper) {
         this.patientRepository = patientRepository;
@@ -39,7 +38,6 @@ public class PatientServiceImpl implements PatientService {
         this.medicalExaminationRepository = medicalExaminationRepository;
         this.allergyRepository = allergyRepository;
         this.patientMapper = patientMapper;
-        this.healthRecordMapper = healthRecordMapper;
     }
 
     @Transactional
@@ -148,26 +146,5 @@ public class PatientServiceImpl implements PatientService {
                 });
 
         return patientMapper.patientToPatientResponse(patient);
-    }
-
-    @Override
-    public HealthRecordResponse getHealthRecordForPatient(UUID lbp) {
-        Patient patient = patientRepository.findByLbpAndDeleted(lbp, false)
-                .orElseThrow(() -> {
-                    String errMessage = String.format("Pacijent sa lbp-om '%s' ne postoji", lbp);
-                    log.info(errMessage);
-                    throw new BadRequestException(errMessage);
-                });
-
-        HealthRecord healthRecord = patient.getHealthRecord();
-        HealthRecordResponse response = healthRecordMapper.healthRecordToHealthRecordResponse(patient,
-                healthRecord,
-                healthRecord.getAllergies(),
-                healthRecord.getVaccinations(),
-                healthRecord.getMedicalExaminations(),
-                healthRecord.getMedicalHistory(),
-                healthRecord.getOperations());
-
-        return response;
     }
 }
