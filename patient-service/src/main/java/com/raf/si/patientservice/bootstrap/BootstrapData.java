@@ -111,6 +111,7 @@ public class BootstrapData implements CommandLineRunner {
         medicalHistory.setValid(true);
         medicalHistory.setValidFrom(new Date());
         medicalHistory.setValidUntil(new Date());
+        medicalHistory.setConfidential(true);
 
         medicalHistory.setHealthRecord(healthRecord);
 

@@ -10,4 +10,6 @@ import java.util.List;
 public interface MedicalHistoryRepository extends JpaRepository<MedicalHistory, Long> {
 
     List<MedicalHistory> findByHealthRecord(HealthRecord healthRecord, Pageable pageable);
+
+    List<MedicalHistory> findByHealthRecordAndDiagnosis_code(HealthRecord healthRecord, String diagnosisCode, Pageable pageable);
 }

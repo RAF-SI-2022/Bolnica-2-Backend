@@ -1,14 +1,16 @@
 package com.raf.si.patientservice.service.impl;
 
-import com.raf.si.patientservice.dto.request.MedicalExaminationRequest;
+import com.raf.si.patientservice.dto.request.DateBetweenRequest;
 import com.raf.si.patientservice.dto.response.HealthRecordResponse;
 import com.raf.si.patientservice.dto.response.LightHealthRecordResponse;
 import com.raf.si.patientservice.dto.response.MedicalExaminationListResponse;
+import com.raf.si.patientservice.dto.response.MedicalHistoryListResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.mapper.HealthRecordMapper;
 import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.repository.*;
 import com.raf.si.patientservice.service.HealthRecordService;
+import com.raf.si.patientservice.service.PatientService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.data.domain.Pageable;
@@ -30,9 +32,13 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     private final MedicalExaminationRepository medicalExaminationRepository;
     private final MedicalHistoryRepository medicalHistoryRepository;
     private final OperationRepository operationRepository;
+
+    private final PatientService patientService;
+
     private final HealthRecordMapper healthRecordMapper;
 
-    public HealthRecordServiceImpl(PatientRepository patientRepository, HealthRecordRepository healthRecordRepository, AllergyRepository allergyRepository, VaccinationRepository vaccinationRepository, MedicalExaminationRepository medicalExaminationRepository, MedicalHistoryRepository medicalHistoryRepository, OperationRepository operationRepository, HealthRecordMapper healthRecordMapper) {
+
+    public HealthRecordServiceImpl(PatientRepository patientRepository, HealthRecordRepository healthRecordRepository, AllergyRepository allergyRepository, VaccinationRepository vaccinationRepository, MedicalExaminationRepository medicalExaminationRepository, MedicalHistoryRepository medicalHistoryRepository, OperationRepository operationRepository, PatientService patientService, HealthRecordMapper healthRecordMapper) {
         this.patientRepository = patientRepository;
         this.healthRecordRepository = healthRecordRepository;
         this.allergyRepository = allergyRepository;
@@ -40,18 +46,13 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         this.medicalExaminationRepository = medicalExaminationRepository;
         this.medicalHistoryRepository = medicalHistoryRepository;
         this.operationRepository = operationRepository;
+        this.patientService = patientService;
         this.healthRecordMapper = healthRecordMapper;
     }
 
     @Override
     public HealthRecordResponse getHealthRecordForPatient(UUID lbp, Pageable pageable) {
-        Patient patient = patientRepository.findByLbpAndDeleted(lbp, false)
-                .orElseThrow(() -> {
-                    String errMessage = String.format("Pacijent sa lbp-om '%s' ne postoji", lbp);
-                    log.info(errMessage);
-                    throw new BadRequestException(errMessage);
-                });
-
+        Patient patient = patientService.findPatient(lbp);
         HealthRecord healthRecord = patient.getHealthRecord();
         List<Allergy> allergies = allergyRepository.findByHealthRecord(healthRecord, pageable);
         List<Vaccination> vaccinations = vaccinationRepository.findByHealthRecord(healthRecord, pageable);
@@ -72,13 +73,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
 
     @Override
     public LightHealthRecordResponse getLightHealthRecordForPatient(UUID lbp, Pageable pageable) {
-        Patient patient = patientRepository.findByLbpAndDeleted(lbp, false)
-                .orElseThrow(() -> {
-                    String errMessage = String.format("Pacijent sa lbp-om '%s' ne postoji", lbp);
-                    log.info(errMessage);
-                    throw new BadRequestException(errMessage);
-                });
-
+        Patient patient = patientService.findPatient(lbp);
         HealthRecord healthRecord = patient.getHealthRecord();
         List<Allergy> allergies = allergyRepository.findByHealthRecord(healthRecord, pageable);
         List<Vaccination> vaccinations = vaccinationRepository.findByHealthRecord(healthRecord, pageable);
@@ -90,14 +85,8 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     }
 
     @Override
-    public MedicalExaminationListResponse findExaminations(MedicalExaminationRequest request, Pageable pageable) {
-        Patient patient = patientRepository.findByLbpAndDeleted(request.getLbp(), false)
-                .orElseThrow(() -> {
-                    String errMessage = String.format("Pacijent sa lbp-om '%s' ne postoji", request.getLbp());
-                    log.info(errMessage);
-                    throw new BadRequestException(errMessage);
-                });
-
+    public MedicalExaminationListResponse findExaminations(UUID lbp, DateBetweenRequest request, Pageable pageable) {
+        Patient patient = patientService.findPatient(lbp);
         HealthRecord healthRecord = patient.getHealthRecord();
         List<MedicalExamination> examinations;
 
@@ -112,5 +101,19 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         }
 
         return new MedicalExaminationListResponse(healthRecordMapper.getPermittedExaminations(examinations));
+    }
+
+    @Override
+    public MedicalHistoryListResponse findMedicalHistory(UUID lbp, String diagnosisCode, Pageable pageable) {
+        Patient patient = patientService.findPatient(lbp);
+        HealthRecord healthRecord = patient.getHealthRecord();
+        List<MedicalHistory> medicalHistory;
+
+        if(diagnosisCode == null || diagnosisCode.trim().isEmpty())
+            medicalHistory = medicalHistoryRepository.findByHealthRecord(healthRecord, pageable);
+        else
+            medicalHistory = medicalHistoryRepository.findByHealthRecordAndDiagnosis_code(healthRecord, diagnosisCode, pageable);
+
+        return new MedicalHistoryListResponse(healthRecordMapper.getPermittedMedicalHistory(medicalHistory));
     }
 }

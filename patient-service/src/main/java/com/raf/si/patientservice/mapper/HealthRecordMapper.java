@@ -18,6 +18,8 @@ import java.util.Set;
 @Component
 public class HealthRecordMapper {
 
+    private static final String PERMITTED_DOC = "ROLE_DR_SPEC_POV";
+
     public HealthRecordResponse healthRecordToHealthRecordResponse(Patient patient,
                                                                    HealthRecord healthRecord,
                                                                    List<Allergy> allergies,
@@ -81,6 +83,10 @@ public class HealthRecordMapper {
         return makeMedicalExaminationList(examinations);
     }
 
+    public List<MedicalHistory> getPermittedMedicalHistory(List<MedicalHistory> medicalHistory){
+        return makeMedicalHistoryList(medicalHistory);
+    }
+
 
 
     private List<VaccinationResponse> makeVaccinationResponse(List<Vaccination> vaccinations, HealthRecord healthRecord){
@@ -142,6 +148,6 @@ public class HealthRecordMapper {
         return TokenPayloadUtil.getTokenPayload()
                 .getPermissions()
                 .stream()
-                .anyMatch(perm -> perm.equals("ROLE_DR_SPEC_POV"));
+                .anyMatch(perm -> perm.equals(PERMITTED_DOC));
     }
 }

@@ -62,12 +62,7 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public PatientResponse updatePatientByJmbg(PatientRequest patientRequest) {
-        Patient patient = patientRepository.findByJmbgAndDeleted(patientRequest.getJmbg(), false)
-                .orElseThrow(() -> {
-                    String errMessage = String.format("Pacijent sa jmbg-om '%s' ne postoji", patientRequest.getJmbg());
-                    log.info(errMessage);
-                    throw new BadRequestException(errMessage);
-        });
+        Patient patient = findPatient(patientRequest.getJmbg());
 
         patient = patientMapper.patientRequestToPatient(patient, patientRequest);
         patientRepository.save(patient);
@@ -77,12 +72,7 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public PatientResponse updatePatientByLbp(PatientRequest patientRequest, UUID lbp) {
-        Patient patient = patientRepository.findByLbpAndDeleted(lbp, false)
-                .orElseThrow(() -> {
-                    String errMessage = String.format("Pacijent sa lbp-om '%s' ne postoji", lbp);
-                    log.info(errMessage);
-                    throw new BadRequestException(errMessage);
-                });
+        Patient patient = findPatient(lbp);
 
         patient = patientMapper.patientRequestToPatient(patient, patientRequest);
         patientRepository.save(patient);
@@ -93,12 +83,7 @@ public class PatientServiceImpl implements PatientService {
     @Transactional
     @Override
     public PatientResponse deletePatient(UUID lbp) {
-        Patient patient = patientRepository.findByLbp(lbp)
-                .orElseThrow(() -> {
-                    String errMessage = String.format("Pacijent sa lbp-om '%s' ne postoji", lbp);
-                    log.info(errMessage);
-                    throw new BadRequestException(errMessage);
-                });
+        Patient patient = findPatient(lbp);
 
         patient.setDeleted(true);
         patientRepository.save(patient);
@@ -138,13 +123,28 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public PatientResponse getPatientByLbp(UUID lbp) {
-        Patient patient = patientRepository.findByLbpAndDeleted(lbp, false)
+        return patientMapper.patientToPatientResponse(findPatient(lbp));
+    }
+
+
+
+    @Override
+    public Patient findPatient(UUID lbp){
+        return patientRepository.findByLbpAndDeleted(lbp, false)
                 .orElseThrow(() -> {
                     String errMessage = String.format("Pacijent sa lbp-om '%s' ne postoji", lbp);
                     log.info(errMessage);
                     throw new BadRequestException(errMessage);
                 });
+    }
 
-        return patientMapper.patientToPatientResponse(patient);
+    @Override
+    public Patient findPatient(String jmbg){
+        return patientRepository.findByJmbgAndDeleted(jmbg, false)
+                .orElseThrow(() -> {
+                    String errMessage = String.format("Pacijent sa jmbg-om '%s' ne postoji", jmbg);
+                    log.info(errMessage);
+                    throw new BadRequestException(errMessage);
+                });
     }
 }
