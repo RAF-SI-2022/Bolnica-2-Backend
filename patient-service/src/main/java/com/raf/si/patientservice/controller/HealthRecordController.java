@@ -1,8 +1,11 @@
 package com.raf.si.patientservice.controller;
 
 import com.raf.si.patientservice.dto.response.HealthRecordResponse;
+import com.raf.si.patientservice.dto.response.LightHealthRecordResponse;
 import com.raf.si.patientservice.service.HealthRecordService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Response;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +28,19 @@ public class HealthRecordController {
             "or hasRole('ROLE_DR_SPEC')" +
             "or hasRole('ROLE_DR_SPEC_POV')")
     @GetMapping("/{lbp}")
-    public ResponseEntity<HealthRecordResponse> getHealthRecordForPatient(@PathVariable("lbp") UUID lbp){
-        return ResponseEntity.ok(healthRecordService.getHealthRecordForPatient(lbp));
+    public ResponseEntity<HealthRecordResponse> getHealthRecordForPatient(@PathVariable("lbp") UUID lbp,
+                                                                          @RequestParam(defaultValue = "0") int page,
+                                                                          @RequestParam(defaultValue = "5") int size){
+        return ResponseEntity.ok(healthRecordService.getHealthRecordForPatient(lbp, PageRequest.of(page, size)));
+    }
+
+    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" +
+            "or hasRole('ROLE_DR_SPEC')" +
+            "or hasRole('ROLE_DR_SPEC_POV')")
+    @GetMapping("/light/{lbp}")
+    public ResponseEntity<LightHealthRecordResponse> getLightHealthRecordResponse(@PathVariable("lbp") UUID lbp,
+                                                                                  @RequestParam(defaultValue = "0") int page,
+                                                                                  @RequestParam(defaultValue = "5") int size){
+        return ResponseEntity.ok(healthRecordService.getLightHealthRecordForPatient(lbp, PageRequest.of(page, size)));
     }
 }

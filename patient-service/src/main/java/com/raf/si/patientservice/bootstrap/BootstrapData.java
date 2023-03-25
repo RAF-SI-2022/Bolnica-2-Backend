@@ -65,6 +65,7 @@ public class BootstrapData implements CommandLineRunner {
         patient.setBirthplace("Resnjak");
         patient.setCitizenshipCountry(CountryCode.SRB);
         patient.setCountryOfLiving(CountryCode.AFG);
+        patient.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
 
 
         HealthRecord healthRecord = new HealthRecord();
@@ -87,6 +88,13 @@ public class BootstrapData implements CommandLineRunner {
         examination.setObjectiveFinding("Nadjeno bla bla");
 
         examination.setHealthRecord(healthRecord);
+
+        MedicalExamination examination2 = new MedicalExamination();
+        examination2.setLbz(UUID.randomUUID());
+        examination2.setDate(new Date());
+        examination2.setObjectiveFinding("Nadjeno bla bla 2");
+
+        examination2.setHealthRecord(healthRecord);
 
 
         Diagnosis diagnosis = new Diagnosis();
@@ -112,6 +120,7 @@ public class BootstrapData implements CommandLineRunner {
         healthRecordRepository.save(healthRecord);
         operationRepository.save(operation);
         medicalExaminationRepository.save(examination);
+        medicalExaminationRepository.save(examination2);
         medicalHistoryRepository.save(medicalHistory);
 
 
@@ -125,6 +134,17 @@ public class BootstrapData implements CommandLineRunner {
         allergy.setAllergen(allergen);
 
         allergyRepository.save(allergy);
+
+        Allergen allergen2 = new Allergen();
+        allergen2.setName("alergija 2");
+
+        allergenRepository.save(allergen2);
+
+        Allergy allergy2 = new Allergy();
+        allergy2.setHealthRecord(healthRecord);
+        allergy2.setAllergen(allergen2);
+
+        allergyRepository.save(allergy2);
 
 
         Vaccine vaccine = new Vaccine();
