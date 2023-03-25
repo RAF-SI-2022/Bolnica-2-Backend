@@ -1,16 +1,21 @@
 package com.raf.si.patientservice.service.impl;
 
+import com.raf.si.patientservice.dto.request.MedicalExaminationRequest;
 import com.raf.si.patientservice.dto.response.HealthRecordResponse;
 import com.raf.si.patientservice.dto.response.LightHealthRecordResponse;
+import com.raf.si.patientservice.dto.response.MedicalExaminationListResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.mapper.HealthRecordMapper;
 import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.repository.*;
 import com.raf.si.patientservice.service.HealthRecordService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -82,5 +87,30 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                 healthRecord,
                 allergies,
                 vaccinations);
+    }
+
+    @Override
+    public MedicalExaminationListResponse findExaminations(MedicalExaminationRequest request, Pageable pageable) {
+        Patient patient = patientRepository.findByLbpAndDeleted(request.getLbp(), false)
+                .orElseThrow(() -> {
+                    String errMessage = String.format("Pacijent sa lbp-om '%s' ne postoji", request.getLbp());
+                    log.info(errMessage);
+                    throw new BadRequestException(errMessage);
+                });
+
+        HealthRecord healthRecord = patient.getHealthRecord();
+        List<MedicalExamination> examinations;
+
+        if(request.getStartDate() == null) {
+            examinations = medicalExaminationRepository.findByHealthRecord(healthRecord, pageable);
+        }else {
+            Date startDate = DateUtils.truncate(request.getStartDate(), Calendar.DAY_OF_MONTH);
+            Date endDate = request.getEndDate() == null ? DateUtils.addDays(startDate, 1) :
+                    DateUtils.truncate(request.getEndDate(), Calendar.DAY_OF_MONTH);
+
+            examinations = medicalExaminationRepository.findByHealthRecordAndDateBetween(healthRecord, startDate, endDate, pageable);
+        }
+
+        return new MedicalExaminationListResponse(healthRecordMapper.getPermittedExaminations(examinations));
     }
 }

@@ -77,6 +77,12 @@ public class HealthRecordMapper {
         return response;
     }
 
+    public List<MedicalExamination> getPermittedExaminations(List<MedicalExamination> examinations){
+        return makeMedicalExaminationList(examinations);
+    }
+
+
+
     private List<VaccinationResponse> makeVaccinationResponse(List<Vaccination> vaccinations, HealthRecord healthRecord){
         List<VaccinationResponse> vaccinationResponseList = new ArrayList<>();
 
