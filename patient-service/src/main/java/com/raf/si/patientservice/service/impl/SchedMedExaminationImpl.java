@@ -58,8 +58,8 @@ public class SchedMedExaminationImpl implements SchedMedExaminationService {
         Date appointmnet= schedMedExamRequest.getAppointmentDate();
         Date timeBetweenAppointmnets= new Date(appointmnet.getTime() -DURATION_OF_EXAM * 60 * 1000);
 
-        List<ScheduledMedExamination> exams= scheduledMedExamRepository.findByAppointmentDateBetweenAndLbz_doctor(timeBetweenAppointmnets,
-                appointmnet, schedMedExamRequest.getLbz_doctor()).orElse(Collections.emptyList());
+        List<ScheduledMedExamination> exams= scheduledMedExamRepository.findByAppointmentDateBetweenAndLbzDoctor(timeBetweenAppointmnets,
+                appointmnet, schedMedExamRequest.getLbzDoctor()).orElse(Collections.emptyList());
 
         boolean hasUncompletedExams = exams.stream()
                 .anyMatch(exam -> exam.getExaminationStatus() != ExaminationStatus.ZAVRSENO);
@@ -150,7 +150,7 @@ public class SchedMedExaminationImpl implements SchedMedExaminationService {
             throw  new InternalServerErrorException("Error calling other service: " + e.getMessage());
         }
 
-        
+
 
         return null;
     }

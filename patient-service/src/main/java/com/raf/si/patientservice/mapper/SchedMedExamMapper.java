@@ -18,9 +18,9 @@ public class SchedMedExamMapper {
     public ScheduledMedExamination schedMedExamRequestToScheduledMedExamination(ScheduledMedExamination scheduledMedExamination
             ,SchedMedExamRequest schedMedExamRequest){
         scheduledMedExamination.setLbp(schedMedExamRequest.getLbp());
-        scheduledMedExamination.setLbz_doctor(schedMedExamRequest.getLbz_doctor());
+        scheduledMedExamination.setLbzDoctor(schedMedExamRequest.getLbzDoctor());
         scheduledMedExamination.setAppointmentDate(schedMedExamRequest.getAppointmentDate());
-        scheduledMedExamination.setLbz_nurse(schedMedExamRequest.getLbz_nurse());
+        scheduledMedExamination.setLbzNurse(schedMedExamRequest.getLbzNurse());
 
 
         if (schedMedExamRequest.getNote() != null)
@@ -34,12 +34,12 @@ public class SchedMedExamMapper {
 
         schedMedExamResponse.setId(scheduledMedExamination.getId());
         schedMedExamResponse.setLbp(scheduledMedExamination.getLbp());
-        schedMedExamResponse.setLbz_doctor(scheduledMedExamination.getLbz_doctor());
+        schedMedExamResponse.setLbzDoctor(scheduledMedExamination.getLbzDoctor());
         schedMedExamResponse.setAppointmentDate(scheduledMedExamination.getAppointmentDate());
         schedMedExamResponse.setExaminationStatus(scheduledMedExamination.getExaminationStatus());
         schedMedExamResponse.setPatientArrivalStatus(scheduledMedExamination.getPatientArrivalStatus());
         schedMedExamResponse.setNote(scheduledMedExamination.getNote());
-        schedMedExamResponse.setLbz_nurse(scheduledMedExamination.getLbz_nurse());
+        schedMedExamResponse.setLbzNurse(scheduledMedExamination.getLbzNurse());
 
         return schedMedExamResponse;
     }

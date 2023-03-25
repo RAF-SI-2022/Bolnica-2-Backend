@@ -13,7 +13,7 @@ import java.util.UUID;
 public interface ScheduledMedExamRepository extends JpaRepository<ScheduledMedExamination,Long> {
 
     Optional<List<ScheduledMedExamination>> findByLbz_doctor(UUID lbz_doctor);
-    Optional<List<ScheduledMedExamination>> findByAppointmentDateBetweenAndLbz_doctor(Date betweenAppointments, Date appointment
-            ,UUID lbz_doctor);
+    Optional<List<ScheduledMedExamination>> findByAppointmentDateBetweenAndLbzDoctor(Date betweenAppointments, Date appointment
+            , UUID lbzDoctor);
     Optional<ScheduledMedExamination> findById(Long id);
 }

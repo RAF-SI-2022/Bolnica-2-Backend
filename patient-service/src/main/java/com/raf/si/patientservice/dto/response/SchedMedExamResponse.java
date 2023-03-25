@@ -12,10 +12,10 @@ import java.util.UUID;
 public class SchedMedExamResponse {
     private Long id;
     private UUID lbp;
-    private UUID lbz_doctor;
+    private UUID lbzDoctor;
     private Date appointmentDate;
     private String note;
-    private UUID lbz_nurse;
+    private UUID lbzNurse;
     private ExaminationStatus examinationStatus;
     private PatientArrivalStatus patientArrivalStatus;
 }

@@ -54,7 +54,7 @@ public class SchedMedExaminationController {
     @GetMapping("/search/{lbz}")
     public ResponseEntity<List<SchedMedExamResponse>> getSchedMedExam(@AuthenticationPrincipal Authentication authentication
             , @PathVariable("lbz") UUID lbz, @RequestParam(name = "appointmentDate", required = false)
-                                                                          @DateTimeFormat(pattern = "dd-MM-yyyy") Date appointmentDate){
+                                                                          @DateTimeFormat(pattern = "dd-MM-yyyy-HH:mm") Date appointmentDate){
         if (authentication == null) {
             log.error("Pokusan neautentifikovan zahtevn");
             throw new UnauthorizedException("Morate biti prijavljeni za ovu akciju");
