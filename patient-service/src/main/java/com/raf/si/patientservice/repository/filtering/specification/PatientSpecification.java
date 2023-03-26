@@ -1,7 +1,8 @@
-package com.raf.si.patientservice.repository.filtering;
+package com.raf.si.patientservice.repository.filtering.specification;
 
 
 import com.raf.si.patientservice.model.Patient;
+import com.raf.si.patientservice.repository.filtering.filter.PatientSearchFilter;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.*;
@@ -11,10 +12,10 @@ import java.util.UUID;
 
 public class PatientSpecification implements Specification<Patient> {
 
-    private final PatientSearchFilter patientSearchFilter;
+    private final PatientSearchFilter filter;
 
     public PatientSpecification(PatientSearchFilter patientSearchFilter) {
-        this.patientSearchFilter = patientSearchFilter;
+        this.filter = patientSearchFilter;
     }
 
     @Override
@@ -25,14 +26,14 @@ public class PatientSpecification implements Specification<Patient> {
         Path<String> jmbg = root.get("jmbg");
 
         final List<Predicate> predicates = new ArrayList<>();
-        if(patientSearchFilter.getLbp() != null)
-            predicates.add(criteriaBuilder.equal(lbp, patientSearchFilter.getLbp()));
-        if(patientSearchFilter.getFirstName() != null)
-            predicates.add(criteriaBuilder.like(firstName, "%" + patientSearchFilter.getFirstName() + "%"));
-        if(patientSearchFilter.getLastName() != null)
-            predicates.add(criteriaBuilder.like(lastName, "%" + patientSearchFilter.getLastName() + "%"));
-        if(patientSearchFilter.getJmbg() != null)
-            predicates.equals(criteriaBuilder.like(jmbg, patientSearchFilter.getJmbg()));
+        if(filter.getLbp() != null)
+            predicates.add(criteriaBuilder.equal(lbp, filter.getLbp()));
+        if(filter.getFirstName() != null)
+            predicates.add(criteriaBuilder.like(firstName, "%" + filter.getFirstName() + "%"));
+        if(filter.getLastName() != null)
+            predicates.add(criteriaBuilder.like(lastName, "%" + filter.getLastName() + "%"));
+        if(filter.getJmbg() != null)
+            predicates.equals(criteriaBuilder.like(jmbg, filter.getJmbg()));
 
         return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
     }

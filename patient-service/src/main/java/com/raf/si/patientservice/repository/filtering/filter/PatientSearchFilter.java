@@ -1,4 +1,4 @@
-package com.raf.si.patientservice.repository.filtering;
+package com.raf.si.patientservice.repository.filtering.filter;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

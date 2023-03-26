@@ -7,8 +7,8 @@ import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.mapper.PatientMapper;
 import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.repository.*;
-import com.raf.si.patientservice.repository.filtering.PatientSearchFilter;
-import com.raf.si.patientservice.repository.filtering.PatientSpecification;
+import com.raf.si.patientservice.repository.filtering.filter.PatientSearchFilter;
+import com.raf.si.patientservice.repository.filtering.specification.PatientSpecification;
 import com.raf.si.patientservice.service.PatientService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -16,9 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
