@@ -1,6 +1,6 @@
 package com.raf.si.patientservice.controller;
 
-import com.raf.si.patientservice.dto.request.DateBetweenRequest;
+import com.raf.si.patientservice.dto.request.MedicalExaminationFilterRequest;
 import com.raf.si.patientservice.dto.response.HealthRecordResponse;
 import com.raf.si.patientservice.dto.response.LightHealthRecordResponse;
 import com.raf.si.patientservice.dto.response.MedicalExaminationListResponse;
@@ -54,7 +54,7 @@ public class HealthRecordController {
             "or hasRole('ROLE_DR_SPEC_POV')")
     @PostMapping("/examinations/{lbp}")
     public ResponseEntity<MedicalExaminationListResponse> getExaminations(@PathVariable("lbp") UUID lbp,
-                                                                          @Valid @RequestBody DateBetweenRequest request,
+                                                                          @Valid @RequestBody MedicalExaminationFilterRequest request,
                                                                           @RequestParam(defaultValue = "0") int page,
                                                                           @RequestParam(defaultValue = "5") int size){
 

@@ -1,6 +1,6 @@
 package com.raf.si.patientservice.service.impl;
 
-import com.raf.si.patientservice.dto.request.DateBetweenRequest;
+import com.raf.si.patientservice.dto.request.MedicalExaminationFilterRequest;
 import com.raf.si.patientservice.dto.response.HealthRecordResponse;
 import com.raf.si.patientservice.dto.response.LightHealthRecordResponse;
 import com.raf.si.patientservice.dto.response.MedicalExaminationListResponse;
@@ -31,7 +31,6 @@ public class HealthRecordServiceImpl implements HealthRecordService {
 
     private static final String PERMITTED_DOC = "ROLE_DR_SPEC_POV";
 
-    private final HealthRecordRepository healthRecordRepository;
     private final AllergyRepository allergyRepository;
     private final VaccinationRepository vaccinationRepository;
     private final MedicalExaminationRepository medicalExaminationRepository;
@@ -43,15 +42,13 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     private final HealthRecordMapper healthRecordMapper;
 
 
-    public HealthRecordServiceImpl(HealthRecordRepository healthRecordRepository,
-                                   HealthRecordRepository healthRecordRepository1, AllergyRepository allergyRepository,
+    public HealthRecordServiceImpl(AllergyRepository allergyRepository,
                                    VaccinationRepository vaccinationRepository,
                                    MedicalExaminationRepository medicalExaminationRepository,
                                    MedicalHistoryRepository medicalHistoryRepository,
                                    OperationRepository operationRepository,
                                    PatientService patientService,
                                    HealthRecordMapper healthRecordMapper) {
-        this.healthRecordRepository = healthRecordRepository1;
         this.allergyRepository = allergyRepository;
         this.vaccinationRepository = vaccinationRepository;
         this.medicalExaminationRepository = medicalExaminationRepository;
@@ -102,7 +99,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     }
 
     @Override
-    public MedicalExaminationListResponse findExaminations(UUID lbp, DateBetweenRequest request, Pageable pageable) {
+    public MedicalExaminationListResponse findExaminations(UUID lbp, MedicalExaminationFilterRequest request, Pageable pageable) {
         Patient patient = patientService.findPatient(lbp);
         HealthRecord healthRecord = patient.getHealthRecord();
 

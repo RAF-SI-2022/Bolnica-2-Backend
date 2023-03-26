@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-public class DateBetweenRequest {
+public class MedicalExaminationFilterRequest {
     private Date startDate;
     private Date endDate;
 }
