@@ -1,4 +1,4 @@
-package com.raf.si.patientservice.utils;
+package com.raf.si.laboratoryservice.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

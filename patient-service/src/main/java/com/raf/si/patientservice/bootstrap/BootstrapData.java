@@ -35,7 +35,10 @@ public class BootstrapData implements CommandLineRunner {
                          OperationRepository operationRepository,
                          MedicalHistoryRepository medicalHistoryRepository,
                          MedicalExaminationRepository medicalExaminationRepository,
-                         AllergyRepository allergyRepository, DiagnosisRepository diagnosisRepository, AllergenRepository allergenRepository, VaccineRepository vaccineRepository) {
+                         AllergyRepository allergyRepository,
+                         DiagnosisRepository diagnosisRepository,
+                         AllergenRepository allergenRepository,
+                         VaccineRepository vaccineRepository) {
 
         this.patientRepository = patientRepository;
         this.healthRecordRepository = healthRecordRepository;
