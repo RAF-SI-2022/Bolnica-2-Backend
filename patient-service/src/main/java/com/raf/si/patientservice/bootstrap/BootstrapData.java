@@ -96,6 +96,7 @@ public class BootstrapData implements CommandLineRunner {
         examination2.setLbz(UUID.randomUUID());
         examination2.setDate(new Date());
         examination2.setObjectiveFinding("Nadjeno bla bla 2");
+        examination2.setConfidential(true);
 
         examination2.setHealthRecord(healthRecord);
 
@@ -114,7 +115,6 @@ public class BootstrapData implements CommandLineRunner {
         medicalHistory.setValid(true);
         medicalHistory.setValidFrom(new Date());
         medicalHistory.setValidUntil(new Date());
-        medicalHistory.setConfidential(true);
 
         medicalHistory.setHealthRecord(healthRecord);
 

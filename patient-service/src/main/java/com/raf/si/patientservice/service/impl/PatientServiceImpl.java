@@ -149,12 +149,7 @@ public class PatientServiceImpl implements PatientService {
         PatientSpecification spec = new PatientSpecification(patientSearchFilter);
 
         Page<Patient> patientsPage = patientRepository.findAll(spec, pageable);
-        List<PatientResponse> patients = patientsPage.toList()
-                .stream()
-                .map(patientMapper::patientToPatientResponse)
-                .collect(Collectors.toList());
-
-        return new PatientListResponse(patients);
+        return patientMapper.patientPageToPatientListResponse(patientsPage);
     }
 
 

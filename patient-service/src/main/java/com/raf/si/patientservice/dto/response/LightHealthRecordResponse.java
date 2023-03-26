@@ -12,7 +12,7 @@ public class LightHealthRecordResponse {
     private Long id;
     private BloodType bloodType;
     private RHFactor rhFactor;
-    private List<AllergyResponse> allergies;
-    private List<VaccinationResponse> vaccinations;
+    private AllergyListResponse allergies;
+    private VaccinationListResponse vaccinations;
     private UUID patientLbp;
 }

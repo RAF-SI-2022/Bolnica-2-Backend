@@ -17,10 +17,10 @@ public class HealthRecordResponse {
     private Date registrationDate;
     private BloodType bloodType;
     private RHFactor rhFactor;
-    private List<AllergyResponse> allergies;
-    private List<VaccinationResponse> vaccinations;
-    private List<Operation> operations;
-    private List<MedicalHistory> medicalHistory;
-    private List<MedicalExamination> medicalExaminations;
+    private AllergyListResponse allergies;
+    private VaccinationListResponse vaccinations;
+    private OperationListResponse operations;
+    private MedicalHistoryListResponse medicalHistory;
+    private MedicalExaminationListResponse medicalExaminations;
     private UUID patientLbp;
 }

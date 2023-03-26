@@ -8,5 +8,6 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class PatientListResponse {
-    List<PatientResponse> patients;
+    private List<PatientResponse> patients;
+    private Long count;
 }

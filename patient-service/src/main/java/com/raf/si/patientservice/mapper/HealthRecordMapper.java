@@ -1,12 +1,10 @@
 package com.raf.si.patientservice.mapper;
 
-import com.raf.si.patientservice.dto.response.AllergyResponse;
-import com.raf.si.patientservice.dto.response.HealthRecordResponse;
-import com.raf.si.patientservice.dto.response.LightHealthRecordResponse;
-import com.raf.si.patientservice.dto.response.VaccinationResponse;
+import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -18,15 +16,13 @@ import java.util.Set;
 @Component
 public class HealthRecordMapper {
 
-    private static final String PERMITTED_DOC = "ROLE_DR_SPEC_POV";
-
     public HealthRecordResponse healthRecordToHealthRecordResponse(Patient patient,
                                                                    HealthRecord healthRecord,
-                                                                   List<Allergy> allergies,
-                                                                   List<Vaccination> vaccinations,
-                                                                   List<MedicalExamination> examinations,
-                                                                   List<MedicalHistory> medicalHistory,
-                                                                   List<Operation> operations){
+                                                                   Page<Allergy> allergies,
+                                                                   Page<Vaccination> vaccinations,
+                                                                   Page<MedicalExamination> examinations,
+                                                                   Page<MedicalHistory> medicalHistory,
+                                                                   Page<Operation> operations){
 
         HealthRecordResponse response = new HealthRecordResponse();
         response.setPatientLbp(patient.getLbp());
@@ -35,32 +31,49 @@ public class HealthRecordMapper {
         response.setBloodType(healthRecord.getBloodType());
         response.setRegistrationDate(healthRecord.getRegistrationDate());
         response.setRhFactor(healthRecord.getRhFactor());
-        if(!operations.isEmpty())
-            response.setOperations(operations);
 
-        List<AllergyResponse> allergyResponseList = makeAllergyResponse(allergies, healthRecord);
-        if(!allergyResponseList.isEmpty())
-            response.setAllergies(allergyResponseList);
+        List<Operation> operationList = operations.toList();
+        if(!operationList.isEmpty()) {
+            OperationListResponse operationResponse = new OperationListResponse(operationList,
+                    operations.getTotalElements());
+            response.setOperations(operationResponse);
+        }
 
-        List<VaccinationResponse> vaccinationResponseList = makeVaccinationResponse(vaccinations, healthRecord);
-        if(!vaccinationResponseList.isEmpty())
-            response.setVaccinations(vaccinationResponseList);
+        List<AllergyResponse> allergyResponseList = makeAllergyResponse(allergies.toList(), healthRecord);
+        if(!allergyResponseList.isEmpty()) {
+            AllergyListResponse allergyResponse = new AllergyListResponse(allergyResponseList,
+                    allergies.getTotalElements());
+            response.setAllergies(allergyResponse);
+        }
 
-        List<MedicalHistory> medicalHistoryList = makeMedicalHistoryList(medicalHistory);
-        if(!medicalHistoryList.isEmpty())
-            response.setMedicalHistory(medicalHistoryList);
+        List<VaccinationResponse> vaccinationResponseList = makeVaccinationResponse(vaccinations.toList(), healthRecord);
+        if(!vaccinationResponseList.isEmpty()) {
+            VaccinationListResponse vaccinationResponse = new VaccinationListResponse(vaccinationResponseList,
+                    vaccinations.getTotalElements());
+            response.setVaccinations(vaccinationResponse);
+        }
 
-        List<MedicalExamination> medicalExaminationList = makeMedicalExaminationList(examinations);
-        if(!medicalExaminationList.isEmpty())
-            response.setMedicalExaminations(medicalExaminationList);
+        List<MedicalHistory> medicalHistoryList = medicalHistory.toList();
+        if(!medicalHistoryList.isEmpty()) {
+            MedicalHistoryListResponse historyResponse = new MedicalHistoryListResponse(medicalHistoryList,
+                    medicalHistory.getTotalElements());
+            response.setMedicalHistory(historyResponse);
+        }
+
+        List<MedicalExamination> medicalExaminationList = examinations.toList();
+        if(!medicalExaminationList.isEmpty()) {
+            MedicalExaminationListResponse examinationsResponse = new MedicalExaminationListResponse(medicalExaminationList,
+                    examinations.getTotalElements());
+            response.setMedicalExaminations(examinationsResponse);
+        }
 
         return response;
     }
 
     public LightHealthRecordResponse healthRecordToLightHealthRecordResponse(Patient patient,
                                                                              HealthRecord healthRecord,
-                                                                             List<Allergy> allergies,
-                                                                             List<Vaccination> vaccinations) {
+                                                                             Page<Allergy> allergies,
+                                                                             Page<Vaccination> vaccinations) {
 
         LightHealthRecordResponse response = new LightHealthRecordResponse();
         response.setId(healthRecord.getId());
@@ -68,23 +81,29 @@ public class HealthRecordMapper {
         response.setBloodType(healthRecord.getBloodType());
         response.setPatientLbp(patient.getLbp());
 
-        List<VaccinationResponse> vaccinationResponseList = makeVaccinationResponse(vaccinations, healthRecord);
-        if(!vaccinationResponseList.isEmpty())
-            response.setVaccinations(vaccinationResponseList);
+        List<VaccinationResponse> vaccinationResponseList = makeVaccinationResponse(vaccinations.toList(), healthRecord);
+        if(!vaccinationResponseList.isEmpty()) {
+            VaccinationListResponse vaccinationResponse = new VaccinationListResponse(vaccinationResponseList,
+                    vaccinations.getTotalElements());
+            response.setVaccinations(vaccinationResponse);
+        }
 
-        List<AllergyResponse> allergyResponseList = makeAllergyResponse(allergies, healthRecord);
-        if(!allergyResponseList.isEmpty())
-            response.setAllergies(allergyResponseList);
+        List<AllergyResponse> allergyResponseList = makeAllergyResponse(allergies.toList(), healthRecord);
+        if(!allergyResponseList.isEmpty()) {
+            AllergyListResponse allergyResponse = new AllergyListResponse(allergyResponseList,
+                    allergies.getTotalElements());
+            response.setAllergies(allergyResponse);
+        }
 
         return response;
     }
 
-    public List<MedicalExamination> getPermittedExaminations(List<MedicalExamination> examinations){
-        return makeMedicalExaminationList(examinations);
+    public MedicalExaminationListResponse getPermittedExaminations(Page<MedicalExamination> examinations){
+        return new MedicalExaminationListResponse(examinations.toList(), examinations.getTotalElements());
     }
 
-    public List<MedicalHistory> getPermittedMedicalHistory(List<MedicalHistory> medicalHistory){
-        return makeMedicalHistoryList(medicalHistory);
+    public MedicalHistoryListResponse getPermittedMedicalHistory(Page<MedicalHistory> medicalHistory){
+        return new MedicalHistoryListResponse(medicalHistory.toList(), medicalHistory.getTotalElements());
     }
 
 
@@ -114,40 +133,5 @@ public class HealthRecordMapper {
         }
 
         return allergyResponseList;
-    }
-
-    private List<MedicalHistory> makeMedicalHistoryList(List<MedicalHistory> medicalHistory){
-        boolean confidentialPermission = getConfidentialPermission();
-        List<MedicalHistory> medicalHistoryList = new ArrayList<>();
-
-        for(MedicalHistory history: medicalHistory){
-            if(history.getConfidential() && !confidentialPermission)
-                continue;
-
-            medicalHistoryList.add(history);
-        }
-
-        return medicalHistoryList;
-    }
-
-    private List<MedicalExamination> makeMedicalExaminationList(List<MedicalExamination> examinations){
-        boolean confidentialPermission = getConfidentialPermission();
-        List<MedicalExamination> medicalExaminationList = new ArrayList<>();
-
-        for(MedicalExamination examination: examinations){
-            if(examination.getConfidential() && !confidentialPermission)
-                continue;
-
-            medicalExaminationList.add(examination);
-        }
-
-        return medicalExaminationList;
-    }
-
-    private boolean getConfidentialPermission(){
-        return TokenPayloadUtil.getTokenPayload()
-                .getPermissions()
-                .stream()
-                .anyMatch(perm -> perm.equals(PERMITTED_DOC));
     }
 }

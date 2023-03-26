@@ -1,12 +1,17 @@
 package com.raf.si.patientservice.mapper;
 
 import com.raf.si.patientservice.dto.request.PatientRequest;
+import com.raf.si.patientservice.dto.response.PatientListResponse;
 import com.raf.si.patientservice.dto.response.PatientResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.model.Patient;
 import com.raf.si.patientservice.model.enums.patient.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -136,5 +141,14 @@ public class PatientMapper {
         patientResponse.setHealthRecordId(patient.getHealthRecord().getId());
 
         return patientResponse;
+    }
+
+    public PatientListResponse patientPageToPatientListResponse(Page<Patient> patientPage){
+        List<PatientResponse> patients = patientPage.toList()
+                .stream()
+                .map(this::patientToPatientResponse)
+                .collect(Collectors.toList());
+
+        return new PatientListResponse(patients, patientPage.getTotalElements());
     }
 }

@@ -10,8 +10,10 @@ import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.repository.*;
 import com.raf.si.patientservice.service.HealthRecordService;
 import com.raf.si.patientservice.service.PatientService;
+import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,8 @@ import java.util.UUID;
 @Slf4j
 @Service
 public class HealthRecordServiceImpl implements HealthRecordService {
+
+    private static final String PERMITTED_DOC = "ROLE_DR_SPEC_POV";
 
     private final AllergyRepository allergyRepository;
     private final VaccinationRepository vaccinationRepository;
@@ -56,11 +60,20 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     public HealthRecordResponse getHealthRecordForPatient(UUID lbp, Pageable pageable) {
         Patient patient = patientService.findPatient(lbp);
         HealthRecord healthRecord = patient.getHealthRecord();
-        List<Allergy> allergies = allergyRepository.findByHealthRecord(healthRecord, pageable);
-        List<Vaccination> vaccinations = vaccinationRepository.findByHealthRecord(healthRecord, pageable);
-        List<MedicalExamination> examinations = medicalExaminationRepository.findByHealthRecord(healthRecord, pageable);
-        List<MedicalHistory> medicalHistory = medicalHistoryRepository.findByHealthRecord(healthRecord, pageable);
-        List<Operation> operations = operationRepository.findByHealthRecord(healthRecord, pageable);
+        Page<Allergy> allergies = allergyRepository.findByHealthRecord(healthRecord, pageable);
+        Page<Vaccination> vaccinations = vaccinationRepository.findByHealthRecord(healthRecord, pageable);
+        Page<Operation> operations = operationRepository.findByHealthRecord(healthRecord, pageable);
+
+        Page<MedicalExamination> examinations;
+        Page<MedicalHistory> medicalHistory;
+
+        if(canGetConfidential()){
+            medicalHistory = medicalHistoryRepository.findByHealthRecord(healthRecord, pageable);
+             examinations = medicalExaminationRepository.findByHealthRecord(healthRecord, pageable);
+        }else{
+            medicalHistory = medicalHistoryRepository.findByHealthRecordAndConfidential(healthRecord, false, pageable);
+            examinations = medicalExaminationRepository.findByHealthRecordAndConfidential(healthRecord, false, pageable);
+        }
 
         HealthRecordResponse response = healthRecordMapper.healthRecordToHealthRecordResponse(patient,
                 healthRecord,
@@ -77,8 +90,8 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     public LightHealthRecordResponse getLightHealthRecordForPatient(UUID lbp, Pageable pageable) {
         Patient patient = patientService.findPatient(lbp);
         HealthRecord healthRecord = patient.getHealthRecord();
-        List<Allergy> allergies = allergyRepository.findByHealthRecord(healthRecord, pageable);
-        List<Vaccination> vaccinations = vaccinationRepository.findByHealthRecord(healthRecord, pageable);
+        Page<Allergy> allergies = allergyRepository.findByHealthRecord(healthRecord, pageable);
+        Page<Vaccination> vaccinations = vaccinationRepository.findByHealthRecord(healthRecord, pageable);
 
         return healthRecordMapper.healthRecordToLightHealthRecordResponse(patient,
                 healthRecord,
@@ -90,32 +103,65 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     public MedicalExaminationListResponse findExaminations(UUID lbp, DateBetweenRequest request, Pageable pageable) {
         Patient patient = patientService.findPatient(lbp);
         HealthRecord healthRecord = patient.getHealthRecord();
-        List<MedicalExamination> examinations;
+        Page<MedicalExamination> examinations;
 
         if(request.getStartDate() == null) {
-            examinations = medicalExaminationRepository.findByHealthRecord(healthRecord, pageable);
+            if(canGetConfidential())
+                examinations = medicalExaminationRepository.findByHealthRecord(healthRecord, pageable);
+            else
+                examinations = medicalExaminationRepository.findByHealthRecordAndConfidential(healthRecord, false, pageable);
         }else {
             Date startDate = DateUtils.truncate(request.getStartDate(), Calendar.DAY_OF_MONTH);
             Date endDate = request.getEndDate() == null ? DateUtils.addDays(startDate, 1) :
                     DateUtils.truncate(request.getEndDate(), Calendar.DAY_OF_MONTH);
 
-            examinations = medicalExaminationRepository.findByHealthRecordAndDateBetween(healthRecord, startDate, endDate, pageable);
+            if(canGetConfidential())
+                examinations = medicalExaminationRepository.findByHealthRecordAndDateBetween(healthRecord,
+                        startDate,
+                        endDate,
+                        pageable);
+            else
+                examinations = medicalExaminationRepository.findByHealthRecordAndConfidentialAndDateBetween(healthRecord,
+                        false,
+                        startDate,
+                        endDate,
+                        pageable);
         }
 
-        return new MedicalExaminationListResponse(healthRecordMapper.getPermittedExaminations(examinations));
+        return healthRecordMapper.getPermittedExaminations(examinations);
     }
 
     @Override
     public MedicalHistoryListResponse findMedicalHistory(UUID lbp, String diagnosisCode, Pageable pageable) {
         Patient patient = patientService.findPatient(lbp);
         HealthRecord healthRecord = patient.getHealthRecord();
-        List<MedicalHistory> medicalHistory;
+        Page<MedicalHistory> medicalHistory;
 
-        if(diagnosisCode == null || diagnosisCode.trim().isEmpty())
-            medicalHistory = medicalHistoryRepository.findByHealthRecord(healthRecord, pageable);
-        else
-            medicalHistory = medicalHistoryRepository.findByHealthRecordAndDiagnosis_code(healthRecord, diagnosisCode, pageable);
+        if(diagnosisCode == null || diagnosisCode.trim().isEmpty()) {
+            if(canGetConfidential())
+                medicalHistory = medicalHistoryRepository.findByHealthRecord(healthRecord, pageable);
+            else
+                medicalHistory = medicalHistoryRepository.findByHealthRecordAndConfidential(healthRecord, false, pageable);
+        }
+        else {
+            if(canGetConfidential())
+                medicalHistory = medicalHistoryRepository.findByHealthRecordAndDiagnosis_code(healthRecord, diagnosisCode, pageable);
+            else
+                medicalHistory = medicalHistoryRepository.findByHealthRecordAndConfidentialAndDiagnosis_code(healthRecord,
+                        false,
+                        diagnosisCode,
+                        pageable);
+        }
 
-        return new MedicalHistoryListResponse(healthRecordMapper.getPermittedMedicalHistory(medicalHistory));
+        return healthRecordMapper.getPermittedMedicalHistory(medicalHistory);
+    }
+
+
+
+    private boolean canGetConfidential(){
+        return TokenPayloadUtil.getTokenPayload()
+                .getPermissions()
+                .stream()
+                .anyMatch(permission -> permission.equals(PERMITTED_DOC));
     }
 }
