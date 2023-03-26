@@ -8,7 +8,7 @@ import com.raf.si.patientservice.model.enums.healthrecord.RHFactor;
 import lombok.Data;
 
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -17,10 +17,10 @@ public class HealthRecordResponse {
     private Date registrationDate;
     private BloodType bloodType;
     private RHFactor rhFactor;
-    private Set<AllergyResponse> allergies;
-    private Set<VaccinationResponse> vaccinations;
-    private Set<Operation> operations;
-    private Set<MedicalHistory> medicalHistory;
-    private Set<MedicalExamination> medicalExaminations;
+    private AllergyListResponse allergies;
+    private VaccinationListResponse vaccinations;
+    private OperationListResponse operations;
+    private MedicalHistoryListResponse medicalHistory;
+    private MedicalExaminationListResponse medicalExaminations;
     private UUID patientLbp;
 }

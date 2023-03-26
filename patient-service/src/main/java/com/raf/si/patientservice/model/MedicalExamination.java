@@ -55,7 +55,7 @@ public class MedicalExamination {
     @Column(nullable = false)
     private UUID lbz;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private Diagnosis diagnosis;
 
     @JsonIgnore

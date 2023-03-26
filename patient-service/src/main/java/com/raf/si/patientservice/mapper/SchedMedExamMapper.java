@@ -44,13 +44,13 @@ public class SchedMedExamMapper {
         return schedMedExamResponse;
     }
 
-    public ScheduledMedExamination updateSchedMedExamRequestToScheduledMedExamination(ScheduledMedExamination scheduledMedExamination
+    public ScheduledMedExamination updateSchedMedExamRequestToScheduledMedExaminationExamStatus(ScheduledMedExamination scheduledMedExamination
             , UpdateSchedMedExamRequest updateSchedMedExamRequest) {
 
-        ExaminationStatus examinationStatus= ExaminationStatus.valueOfNotation(updateSchedMedExamRequest.getExaminationStatus());
+        ExaminationStatus examinationStatus= ExaminationStatus.valueOfNotation(updateSchedMedExamRequest.getNewStatus());
 
         if(examinationStatus == null){
-            String errMessage = String.format("Nepoznat status pregleda '%s'", updateSchedMedExamRequest.getExaminationStatus());
+            String errMessage = String.format("Nepoznat status pregleda '%s'", updateSchedMedExamRequest.getNewStatus());
             log.info(errMessage);
             throw new BadRequestException(errMessage);
         }
@@ -59,7 +59,7 @@ public class SchedMedExamMapper {
             case ZAKAZANO:
             case OTKAZANO:
                 String errMessage = String.format("Nije dozvoljeno izmeniti status pregleda  na '%s'"
-                            , updateSchedMedExamRequest.getExaminationStatus());
+                            , updateSchedMedExamRequest.getNewStatus());
                     log.info(errMessage);
                     throw new BadRequestException(errMessage);
 
@@ -70,6 +70,33 @@ public class SchedMedExamMapper {
             case ZAVRSENO:
                 scheduledMedExamination.setExaminationStatus(examinationStatus);
                 scheduledMedExamination.setPatientArrivalStatus(PatientArrivalStatus.ZAVRSIO);
+                break;
+        }
+
+        return scheduledMedExamination;
+    }
+
+    public ScheduledMedExamination updateSchedMedExamRequestToScheduledMedExaminationPatientArrivalStatus(ScheduledMedExamination scheduledMedExamination
+            , UpdateSchedMedExamRequest updateSchedMedExamRequest) {
+
+        PatientArrivalStatus patientArrivalStatus= PatientArrivalStatus.valueOfNotation(updateSchedMedExamRequest.getNewStatus());
+
+        if(patientArrivalStatus == null){
+            String errMessage = String.format("Nepoznat status o prispeću pacijenta '%s'", updateSchedMedExamRequest.getNewStatus());
+            log.info(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+
+        switch (patientArrivalStatus) {
+            case CEKA:
+            case ZAVRSIO:
+            case PRIMLJEN:
+            case NIJE_DOSAO:
+                scheduledMedExamination.setPatientArrivalStatus(patientArrivalStatus);
+                break;
+            case OTKAZAO:
+                scheduledMedExamination.setExaminationStatus(ExaminationStatus.OTKAZANO);
+                scheduledMedExamination.setPatientArrivalStatus(patientArrivalStatus);
                 break;
         }
 

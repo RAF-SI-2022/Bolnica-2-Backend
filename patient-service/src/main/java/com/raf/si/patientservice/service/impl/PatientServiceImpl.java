@@ -1,19 +1,24 @@
 package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.PatientRequest;
-import com.raf.si.patientservice.dto.response.HealthRecordResponse;
+import com.raf.si.patientservice.dto.response.PatientListResponse;
 import com.raf.si.patientservice.dto.response.PatientResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
-import com.raf.si.patientservice.mapper.HealthRecordMapper;
 import com.raf.si.patientservice.mapper.PatientMapper;
 import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.repository.*;
+import com.raf.si.patientservice.repository.filtering.PatientSearchFilter;
+import com.raf.si.patientservice.repository.filtering.PatientSpecification;
 import com.raf.si.patientservice.service.PatientService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -28,9 +33,15 @@ public class PatientServiceImpl implements PatientService {
     private final AllergyRepository allergyRepository;
 
     private final PatientMapper patientMapper;
-    private final HealthRecordMapper healthRecordMapper;
 
-    public PatientServiceImpl(PatientRepository patientRepository, HealthRecordRepository healthRecordRepository, VaccinationRepository vaccinationRepository, OperationRepository operationRepository, MedicalHistoryRepository medicalHistoryRepository, MedicalExaminationRepository medicalExaminationRepository, AllergyRepository allergyRepository, PatientMapper patientMapper, HealthRecordMapper healthRecordMapper) {
+    public PatientServiceImpl(PatientRepository patientRepository,
+                              HealthRecordRepository healthRecordRepository,
+                              VaccinationRepository vaccinationRepository,
+                              OperationRepository operationRepository,
+                              MedicalHistoryRepository medicalHistoryRepository,
+                              MedicalExaminationRepository medicalExaminationRepository,
+                              AllergyRepository allergyRepository,
+                              PatientMapper patientMapper) {
         this.patientRepository = patientRepository;
         this.healthRecordRepository = healthRecordRepository;
         this.vaccinationRepository = vaccinationRepository;
@@ -39,7 +50,6 @@ public class PatientServiceImpl implements PatientService {
         this.medicalExaminationRepository = medicalExaminationRepository;
         this.allergyRepository = allergyRepository;
         this.patientMapper = patientMapper;
-        this.healthRecordMapper = healthRecordMapper;
     }
 
     @Transactional
@@ -64,12 +74,7 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public PatientResponse updatePatientByJmbg(PatientRequest patientRequest) {
-        Patient patient = patientRepository.findByJmbgAndDeleted(patientRequest.getJmbg(), false)
-                .orElseThrow(() -> {
-                    String errMessage = String.format("Pacijent sa jmbg-om '%s' ne postoji", patientRequest.getJmbg());
-                    log.info(errMessage);
-                    throw new BadRequestException(errMessage);
-        });
+        Patient patient = findPatient(patientRequest.getJmbg());
 
         patient = patientMapper.patientRequestToPatient(patient, patientRequest);
         patientRepository.save(patient);
@@ -79,12 +84,7 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public PatientResponse updatePatientByLbp(PatientRequest patientRequest, UUID lbp) {
-        Patient patient = patientRepository.findByLbpAndDeleted(lbp, false)
-                .orElseThrow(() -> {
-                    String errMessage = String.format("Pacijent sa lbp-om '%s' ne postoji", lbp);
-                    log.info(errMessage);
-                    throw new BadRequestException(errMessage);
-                });
+        Patient patient = findPatient(lbp);
 
         patient = patientMapper.patientRequestToPatient(patient, patientRequest);
         patientRepository.save(patient);
@@ -95,12 +95,7 @@ public class PatientServiceImpl implements PatientService {
     @Transactional
     @Override
     public PatientResponse deletePatient(UUID lbp) {
-        Patient patient = patientRepository.findByLbp(lbp)
-                .orElseThrow(() -> {
-                    String errMessage = String.format("Pacijent sa lbp-om '%s' ne postoji", lbp);
-                    log.info(errMessage);
-                    throw new BadRequestException(errMessage);
-                });
+        Patient patient = findPatient(lbp);
 
         patient.setDeleted(true);
         patientRepository.save(patient);
@@ -140,34 +135,42 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public PatientResponse getPatientByLbp(UUID lbp) {
-        Patient patient = patientRepository.findByLbpAndDeleted(lbp, false)
-                .orElseThrow(() -> {
-                    String errMessage = String.format("Pacijent sa lbp-om '%s' ne postoji", lbp);
-                    log.info(errMessage);
-                    throw new BadRequestException(errMessage);
-                });
-
-        return patientMapper.patientToPatientResponse(patient);
+        return patientMapper.patientToPatientResponse(findPatient(lbp));
     }
 
     @Override
-    public HealthRecordResponse getHealthRecordForPatient(UUID lbp) {
-        Patient patient = patientRepository.findByLbpAndDeleted(lbp, false)
+    public PatientListResponse getPatients(UUID lbp,
+                                           String firstName,
+                                           String lastName,
+                                           String jmbg,
+                                           Pageable pageable) {
+
+        PatientSearchFilter patientSearchFilter = new PatientSearchFilter(lbp, firstName, lastName, jmbg);
+        PatientSpecification spec = new PatientSpecification(patientSearchFilter);
+
+        Page<Patient> patientsPage = patientRepository.findAll(spec, pageable);
+        return patientMapper.patientPageToPatientListResponse(patientsPage);
+    }
+
+
+
+    @Override
+    public Patient findPatient(UUID lbp){
+        return patientRepository.findByLbpAndDeleted(lbp, false)
                 .orElseThrow(() -> {
                     String errMessage = String.format("Pacijent sa lbp-om '%s' ne postoji", lbp);
                     log.info(errMessage);
                     throw new BadRequestException(errMessage);
                 });
+    }
 
-        HealthRecord healthRecord = patient.getHealthRecord();
-        HealthRecordResponse response = healthRecordMapper.healthRecordToHealthRecordResponse(patient,
-                healthRecord,
-                healthRecord.getAllergies(),
-                healthRecord.getVaccinations(),
-                healthRecord.getMedicalExaminations(),
-                healthRecord.getMedicalHistory(),
-                healthRecord.getOperations());
-
-        return response;
+    @Override
+    public Patient findPatient(String jmbg){
+        return patientRepository.findByJmbgAndDeleted(jmbg, false)
+                .orElseThrow(() -> {
+                    String errMessage = String.format("Pacijent sa jmbg-om '%s' ne postoji", jmbg);
+                    log.info(errMessage);
+                    throw new BadRequestException(errMessage);
+                });
     }
 }

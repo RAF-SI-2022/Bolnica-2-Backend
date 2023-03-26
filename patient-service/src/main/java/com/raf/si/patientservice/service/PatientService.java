@@ -2,7 +2,10 @@ package com.raf.si.patientservice.service;
 
 import com.raf.si.patientservice.dto.request.PatientRequest;
 import com.raf.si.patientservice.dto.response.HealthRecordResponse;
+import com.raf.si.patientservice.dto.response.PatientListResponse;
 import com.raf.si.patientservice.dto.response.PatientResponse;
+import com.raf.si.patientservice.model.Patient;
+import org.springframework.data.domain.Pageable;
 
 import java.util.UUID;
 
@@ -18,5 +21,11 @@ public interface PatientService {
 
     PatientResponse getPatientByLbp(UUID lbp);
 
-    HealthRecordResponse getHealthRecordForPatient(UUID lbp);
+    PatientListResponse getPatients(UUID lbp, String firstName, String lastName, String jmbg, Pageable pageable);
+
+
+
+    Patient findPatient(UUID lbp);
+
+    Patient findPatient(String jmbg);
 }

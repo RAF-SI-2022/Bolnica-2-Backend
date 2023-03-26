@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Getter
@@ -27,5 +27,5 @@ public class Vaccine {
 
     @JsonIgnore
     @OneToMany(mappedBy = "vaccine", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<Vaccination> vaccinations;
+    private List<Vaccination> vaccinations;
 }

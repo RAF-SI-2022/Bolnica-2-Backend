@@ -49,7 +49,7 @@ public class MedicalHistory {
     @Column
     private Boolean deleted = false;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private Diagnosis diagnosis;
 
     @JsonIgnore

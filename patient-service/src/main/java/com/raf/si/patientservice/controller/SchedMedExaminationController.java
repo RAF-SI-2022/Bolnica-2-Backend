@@ -34,7 +34,7 @@ public class SchedMedExaminationController {
 
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @PostMapping("/create")
-    public ResponseEntity<?> createSchedMedExamination(@Valid @RequestBody SchedMedExamRequest schedMedExamRequest){
+    public ResponseEntity<?> createSchedMedExamination(@Valid @RequestBody SchedMedExamRequest schedMedExamRequest) {
         return ResponseEntity.ok(schedMedExaminationService.createSchedMedExamination(schedMedExamRequest));
     }
 
@@ -42,9 +42,10 @@ public class SchedMedExaminationController {
             "or hasRole('ROLE_DR_SPEC')" +
             "or hasRole('ROLE_DR_SPEC_POV')")
     @PutMapping("/update-exam-status")
-    public ResponseEntity<SchedMedExamResponse> updateSchedMedExaminationStatus(@Valid @RequestBody UpdateSchedMedExamRequest updateSchedMedExamRequest){
+    public ResponseEntity<SchedMedExamResponse> updateSchedMedExaminationStatus(@Valid @RequestBody UpdateSchedMedExamRequest updateSchedMedExamRequest) {
         return ResponseEntity.ok(schedMedExaminationService.updateSchedMedExaminationExamStatus(updateSchedMedExamRequest));
     }
+
 
     @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" +
             "or hasRole('ROLE_DR_SPEC')" +
@@ -54,7 +55,7 @@ public class SchedMedExaminationController {
     @GetMapping("/search/{lbz}")
     public ResponseEntity<List<SchedMedExamResponse>> getSchedMedExam(@AuthenticationPrincipal Authentication authentication
             , @PathVariable("lbz") UUID lbz, @RequestParam(name = "appointmentDate", required = false)
-                                                                          @DateTimeFormat(pattern = "dd-MM-yyyy-HH:mm") Date appointmentDate){
+                                                                      @DateTimeFormat(pattern = "dd-MM-yyyy-HH:mm") Date appointmentDate) {
         if (authentication == null) {
             log.error("Pokusan neautentifikovan zahtevn");
             throw new UnauthorizedException("Morate biti prijavljeni za ovu akciju");
@@ -63,4 +64,12 @@ public class SchedMedExaminationController {
         String token = authentication.getCredentials().toString();
         return ResponseEntity.ok(schedMedExaminationService.getSchedMEdExaminationByLbz(lbz, appointmentDate, token));
     }
+        @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+        @PutMapping("/update-patient-arrival-status")
+        public ResponseEntity<SchedMedExamResponse> updateSchedMedExaminationPatientArrivalStatus
+        (@Valid @RequestBody UpdateSchedMedExamRequest updateSchedMedExamRequest){
+            return ResponseEntity.ok(schedMedExaminationService.updateSchedMedExaminationPatientArrivalStatus(updateSchedMedExamRequest));
+
+        }
+
 }
