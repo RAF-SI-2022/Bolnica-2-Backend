@@ -16,7 +16,7 @@ public class AddVaccinationRequest {
     private String vaccine;
 
     @NotEmpty(message = "Polje datum vakcinacije ne sme da bude prazno")
-    private Date allergen;
+    private Date date;
 
 
 }
