@@ -12,7 +12,6 @@ public interface SchedMedExaminationService {
 
     SchedMedExamResponse createSchedMedExamination(SchedMedExamRequest schedMedExamRequest);
     SchedMedExamResponse updateSchedMedExaminationExamStatus(UpdateSchedMedExamRequest updateSchedMedExamRequest);
-
-    List<SchedMedExamResponse> getSchedMEdExaminationByLbz(UUID lbz, Date appointmentDate, String token);
+    List<SchedMedExamResponse> getSchedMedExaminationByLbz(UUID lbz, Date appointmentDate, String token);
     SchedMedExamResponse updateSchedMedExaminationPatientArrivalStatus(UpdateSchedMedExamRequest updateSchedMedExamRequest);
 }

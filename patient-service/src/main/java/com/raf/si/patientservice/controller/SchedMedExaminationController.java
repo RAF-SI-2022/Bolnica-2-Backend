@@ -8,13 +8,13 @@ import com.raf.si.patientservice.exception.UnauthorizedException;
 import com.raf.si.patientservice.service.SchedMedExaminationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Date;
@@ -52,24 +52,17 @@ public class SchedMedExaminationController {
             "or hasRole('ROLE_DR_SPEC_POV')" +
             "or hasRole('ROLE_MED_SESTRA')" +
             "or hasRole('ROLE_VISA_MED_SESTRA')")
-    @GetMapping("/search/{lbz}")
-    public ResponseEntity<List<SchedMedExamResponse>> getSchedMedExam(@AuthenticationPrincipal Authentication authentication
-            , @PathVariable("lbz") UUID lbz, @RequestParam(name = "appointmentDate", required = false)
-                                                                      @DateTimeFormat(pattern = "dd-MM-yyyy-HH:mm") Date appointmentDate) {
-        if (authentication == null) {
-            log.error("Pokusan neautentifikovan zahtevn");
-            throw new UnauthorizedException("Morate biti prijavljeni za ovu akciju");
-        }
-
-        String token = authentication.getCredentials().toString();
-        return ResponseEntity.ok(schedMedExaminationService.getSchedMEdExaminationByLbz(lbz, appointmentDate, token));
+    @GetMapping("/search")
+    public ResponseEntity<List<SchedMedExamResponse>> getSchedMedExam(@RequestHeader("Authorization") String authorizationHeader
+    , @RequestParam("lbz") UUID lbz, @RequestParam(name = "appointmentDate", required = false)
+                                                                     @DateTimeFormat(pattern = "dd-MM-yyyy") Date appointmentDate) {
+        return ResponseEntity.ok(schedMedExaminationService.getSchedMedExaminationByLbz(lbz, appointmentDate, authorizationHeader));
     }
-        @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
-        @PutMapping("/update-patient-arrival-status")
-        public ResponseEntity<SchedMedExamResponse> updateSchedMedExaminationPatientArrivalStatus
-        (@Valid @RequestBody UpdateSchedMedExamRequest updateSchedMedExamRequest){
-            return ResponseEntity.ok(schedMedExaminationService.updateSchedMedExaminationPatientArrivalStatus(updateSchedMedExamRequest));
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @PutMapping("/update-patient-arrival-status")
+    public ResponseEntity<SchedMedExamResponse> updateSchedMedExaminationPatientArrivalStatus
+    (@Valid @RequestBody UpdateSchedMedExamRequest updateSchedMedExamRequest){
+        return ResponseEntity.ok(schedMedExaminationService.updateSchedMedExaminationPatientArrivalStatus(updateSchedMedExamRequest));
 
-        }
-
+    }
 }

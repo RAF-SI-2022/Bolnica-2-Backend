@@ -21,10 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 
 @Slf4j
@@ -119,13 +116,14 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
     }
 
     @Override
-    public List<SchedMedExamResponse> getSchedMEdExaminationByLbz(UUID lbz, Date appointmentDate, String token) {
+    public List<SchedMedExamResponse> getSchedMedExaminationByLbz(UUID lbz, Date appointmentDate, String token) {
 
         ResponseEntity<UserResponse> response = HttpUtils.findUserByLbz(token, lbz);
         /**
          * checking whether the employee is a doctor, as well as whether there is an
          * employee with a forwarded lbz.
          */
+        List<ScheduledMedExamination> medExaminationList;
         try {
             if (response.getStatusCode() == HttpStatus.OK) {
                 UserResponse responseBody = response.getBody();
@@ -141,6 +139,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
                     throw new BadRequestException(errMessage);
                 }
 
+                medExaminationList= scheduledMedExamRepository.findByLbzDoctor(responseBody.getLbz()).orElse( new ArrayList<>());
             } else {
                 String errMessage = String.format("Zaposleni sa id-om '%s' ne postoji", lbz);
                 log.info(errMessage);
@@ -150,8 +149,13 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
             throw new InternalServerErrorException("Error calling other service: " + e.getMessage());
         }
 
+        List<SchedMedExamResponse> medExaminationResponseList=new ArrayList<>();
+        if(!medExaminationList.isEmpty()){
+            medExaminationList.stream().map( medExam -> schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(medExam))
+                    .forEach(medExamResp -> medExaminationResponseList.add(medExamResp));
+        }
 
-        return null;
+        return medExaminationResponseList;
     }
 
     @Override
