@@ -62,8 +62,8 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
                 .anyMatch(exam -> exam.getExaminationStatus() != ExaminationStatus.ZAVRSENO);
 
         if (hasUncompletedExams) {
-            String errMessage = String.format("Obustavljeno zakazivanje, dolazi do preklapanja pregleda. Potrebno je imati ",
-                    DURATION_OF_EXAM, " minuta između svakog zakazanog pregleda. Preklapa se sa pregledom id: %d",
+            String errMessage = String.format("Obustavljeno zakazivanje, dolazi do preklapanja pregleda. Potrebno je imati %d minuta " +
+                            "između svakog zakazanog pregleda. Preklapa se sa pregledom id: %d", DURATION_OF_EXAM,
                     exams.get(0).getId());
             log.info(errMessage);
             throw new BadRequestException(errMessage);
@@ -116,7 +116,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
     }
 
     @Override
-    public List<SchedMedExamResponse> getSchedMedExaminationByLbz(UUID lbz, Date appointmentDate, String token) {
+    public List<SchedMedExamResponse> getSchedMedExaminationByLbz(UUID lbz, Optional<Date> appointmentDate, String token) {
 
         ResponseEntity<UserResponse> response = HttpUtils.findUserByLbz(token, lbz);
         /**
@@ -138,8 +138,25 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
                     log.info(errMessage);
                     throw new BadRequestException(errMessage);
                 }
+                /**
+                 * Checking if appointment date is passed if so then service should return all med exams for appointmentDate
+                 * date for doctor with given lbz
+                 */
 
-                medExaminationList= scheduledMedExamRepository.findByLbzDoctor(responseBody.getLbz()).orElse( new ArrayList<>());
+                if(appointmentDate.isPresent()) {
+                    /**
+                     * Very Hacky way to get schedMedExams for passed day.
+                     */
+                    Calendar calendar=Calendar.getInstance();
+                    calendar.setTime(appointmentDate.get());
+                    calendar.add(Calendar.DAY_OF_MONTH, 1);
+                    Date endDate = calendar.getTime();
+
+                    medExaminationList = scheduledMedExamRepository.findByAppointmentDateBetweenAndLbzDoctor(appointmentDate.get(),endDate, responseBody.getLbz())
+                            .orElse(new ArrayList<>());
+                }else
+                    medExaminationList=scheduledMedExamRepository.findByLbzDoctor(responseBody.getLbz()).orElse( new ArrayList<>());
+
             } else {
                 String errMessage = String.format("Zaposleni sa id-om '%s' ne postoji", lbz);
                 log.info(errMessage);

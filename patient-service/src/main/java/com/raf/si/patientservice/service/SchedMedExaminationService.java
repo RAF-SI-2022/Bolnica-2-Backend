@@ -6,12 +6,13 @@ import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface SchedMedExaminationService {
 
     SchedMedExamResponse createSchedMedExamination(SchedMedExamRequest schedMedExamRequest);
     SchedMedExamResponse updateSchedMedExaminationExamStatus(UpdateSchedMedExamRequest updateSchedMedExamRequest);
-    List<SchedMedExamResponse> getSchedMedExaminationByLbz(UUID lbz, Date appointmentDate, String token);
+    List<SchedMedExamResponse> getSchedMedExaminationByLbz(UUID lbz, Optional<Date> appointmentDate, String token);
     SchedMedExamResponse updateSchedMedExaminationPatientArrivalStatus(UpdateSchedMedExamRequest updateSchedMedExamRequest);
 }

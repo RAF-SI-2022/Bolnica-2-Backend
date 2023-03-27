@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -55,7 +56,8 @@ public class SchedMedExaminationController {
     @GetMapping("/search")
     public ResponseEntity<List<SchedMedExamResponse>> getSchedMedExam(@RequestHeader("Authorization") String authorizationHeader
     , @RequestParam("lbz") UUID lbz, @RequestParam(name = "appointmentDate", required = false)
-                                                                     @DateTimeFormat(pattern = "dd-MM-yyyy") Date appointmentDate) {
+                                                                     @DateTimeFormat(pattern = "dd/MM/yyyy") Optional<Date> appointmentDate) {
+        log.info("dobijen datum '{}'",appointmentDate);
         return ResponseEntity.ok(schedMedExaminationService.getSchedMedExaminationByLbz(lbz, appointmentDate, authorizationHeader));
     }
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
