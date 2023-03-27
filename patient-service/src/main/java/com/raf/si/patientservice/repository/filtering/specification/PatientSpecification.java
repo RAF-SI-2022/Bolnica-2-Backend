@@ -24,6 +24,7 @@ public class PatientSpecification implements Specification<Patient> {
         Path<String> firstName = root.get("firstName");
         Path<String> lastName = root.get("lastName");
         Path<String> jmbg = root.get("jmbg");
+        Path<Boolean> deleted = root.get("deleted");
 
         final List<Predicate> predicates = new ArrayList<>();
         if(filter.getLbp() != null)
@@ -33,7 +34,9 @@ public class PatientSpecification implements Specification<Patient> {
         if(filter.getLastName() != null)
             predicates.add(criteriaBuilder.like(lastName, "%" + filter.getLastName() + "%"));
         if(filter.getJmbg() != null)
-            predicates.equals(criteriaBuilder.like(jmbg, filter.getJmbg()));
+            predicates.add(criteriaBuilder.equal(jmbg, filter.getJmbg()));
+        if(filter.getDeleted() == null || filter.getDeleted() == false)
+            predicates.add(criteriaBuilder.isFalse(deleted));
 
         return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
     }

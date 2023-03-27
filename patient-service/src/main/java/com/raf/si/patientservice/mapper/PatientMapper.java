@@ -138,6 +138,7 @@ public class PatientMapper {
         patientResponse.setChildrenNum(patient.getChildrenNum());
         patientResponse.setEducation(patient.getEducation());
         patientResponse.setProfession(patient.getProfession());
+        patientResponse.setDeleted(patient.getDeleted());
         patientResponse.setHealthRecordId(patient.getHealthRecord().getId());
 
         return patientResponse;

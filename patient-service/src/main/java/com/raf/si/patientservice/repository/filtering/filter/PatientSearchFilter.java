@@ -14,4 +14,5 @@ public class PatientSearchFilter {
     private String firstName;
     private String lastName;
     private String jmbg;
+    private Boolean deleted;
 }
