@@ -141,10 +141,10 @@ public class PatientServiceImpl implements PatientService {
                                            String firstName,
                                            String lastName,
                                            String jmbg,
-                                           Boolean deleted,
+                                           Boolean includeDeleted,
                                            Pageable pageable) {
 
-        PatientSearchFilter patientSearchFilter = new PatientSearchFilter(lbp, firstName, lastName, jmbg, deleted);
+        PatientSearchFilter patientSearchFilter = new PatientSearchFilter(lbp, firstName, lastName, jmbg, includeDeleted);
         PatientSpecification spec = new PatientSpecification(patientSearchFilter);
 
         Page<Patient> patientsPage = patientRepository.findAll(spec, pageable);

@@ -35,7 +35,7 @@ public class PatientSpecification implements Specification<Patient> {
             predicates.add(criteriaBuilder.like(lastName, "%" + filter.getLastName() + "%"));
         if(filter.getJmbg() != null)
             predicates.add(criteriaBuilder.equal(jmbg, filter.getJmbg()));
-        if(filter.getDeleted() == null || filter.getDeleted() == false)
+        if(filter.getIncludeDeleted() == null || filter.getIncludeDeleted() == false)
             predicates.add(criteriaBuilder.isFalse(deleted));
 
         return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
