@@ -4,17 +4,13 @@ package com.raf.si.patientservice.controller;
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
 import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
-import com.raf.si.patientservice.exception.UnauthorizedException;
 import com.raf.si.patientservice.service.SchedMedExaminationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Date;
@@ -57,7 +53,6 @@ public class SchedMedExaminationController {
     public ResponseEntity<List<SchedMedExamResponse>> getSchedMedExam(@RequestHeader("Authorization") String authorizationHeader
     , @RequestParam("lbz") UUID lbz, @RequestParam(name = "appointmentDate", required = false)
                                                                      @DateTimeFormat(pattern = "dd/MM/yyyy") Optional<Date> appointmentDate) {
-        log.info("dobijen datum '{}'",appointmentDate);
         return ResponseEntity.ok(schedMedExaminationService.getSchedMedExaminationByLbz(lbz, appointmentDate, authorizationHeader));
     }
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")

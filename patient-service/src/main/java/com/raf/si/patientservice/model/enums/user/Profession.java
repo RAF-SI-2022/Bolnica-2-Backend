@@ -2,7 +2,6 @@ package com.raf.si.patientservice.model.enums.user;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum Profession {
