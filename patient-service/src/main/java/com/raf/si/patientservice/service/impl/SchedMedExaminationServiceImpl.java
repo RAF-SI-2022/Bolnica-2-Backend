@@ -15,6 +15,9 @@ import com.raf.si.patientservice.service.SchedMedExaminationService;
 import com.raf.si.patientservice.utils.HttpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -116,14 +119,16 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
     }
 
     @Override
-    public List<SchedMedExamResponse> getSchedMedExaminationByLbz(UUID lbz, Optional<Date> appointmentDate, String token) {
+    public Page<SchedMedExamResponse> getSchedMedExaminationByLbz(UUID lbz, Optional<Date> appointmentDate
+            , String token, int pageNumber, int pageSize) {
 
         ResponseEntity<UserResponse> response = HttpUtils.findUserByLbz(token, lbz);
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
         /**
          * checking whether the employee is a doctor, as well as whether there is an
          * employee with a forwarded lbz.
          */
-        List<ScheduledMedExamination> medExaminationList;
+        Page<ScheduledMedExamination> medExaminationList;
         try {
             if (response.getStatusCode() == HttpStatus.OK) {
                 UserResponse responseBody = response.getBody();
@@ -152,10 +157,11 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
                     calendar.add(Calendar.DAY_OF_MONTH, 1);
                     Date endDate = calendar.getTime();
 
-                    medExaminationList = scheduledMedExamRepository.findByAppointmentDateBetweenAndLbzDoctor(appointmentDate.get(),endDate, responseBody.getLbz())
-                            .orElse(new ArrayList<>());
+                    medExaminationList = scheduledMedExamRepository.findByAppointmentDateBetweenAndLbzDoctor(appointmentDate.get(),endDate
+                                    , responseBody.getLbz(),pageable)
+                            .orElse(Page.empty(pageable));
                 }else
-                    medExaminationList=scheduledMedExamRepository.findByLbzDoctor(responseBody.getLbz()).orElse( new ArrayList<>());
+                    medExaminationList=scheduledMedExamRepository.findByLbzDoctor(responseBody.getLbz(), pageable).orElse( Page.empty(pageable));
 
             } else {
                 String errMessage = String.format("Zaposleni sa id-om '%s' ne postoji", lbz);
@@ -166,10 +172,9 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
             throw new InternalServerErrorException("Error calling other service: " + e.getMessage());
         }
 
-        List<SchedMedExamResponse> medExaminationResponseList=new ArrayList<>();
-        if(!medExaminationList.isEmpty()){
-            medExaminationList.stream().map( medExam -> schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(medExam))
-                    .forEach(medExamResp -> medExaminationResponseList.add(medExamResp));
+        Page<SchedMedExamResponse> medExaminationResponseList=Page.empty(pageable);
+        if(medExaminationList.hasContent()){
+            medExaminationResponseList=medExaminationList.map(medExam -> schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(medExam));
         }
 
         return medExaminationResponseList;
