@@ -111,7 +111,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
         return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
     }
 
-
+    @Transactional
     @Override
     public String deleteSchedMedExamination(Long id) {
         /**
