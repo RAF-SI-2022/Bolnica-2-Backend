@@ -122,14 +122,16 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
     public Page<SchedMedExamResponse> getSchedMedExaminationByLbz(UUID lbz, Optional<Date> appointmentDate
             , String token, int pageNumber, int pageSize) {
 
-        ResponseEntity<UserResponse> response = HttpUtils.findUserByLbz(token, lbz);
+        ResponseEntity<UserResponse> response;
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<ScheduledMedExamination> medExaminationList;
         /**
          * checking whether the employee is a doctor, as well as whether there is an
          * employee with a forwarded lbz.
          */
-        Page<ScheduledMedExamination> medExaminationList;
         try {
+           response = HttpUtils.findUserByLbz(token, lbz);
+
             if (response.getStatusCode() == HttpStatus.OK) {
                 UserResponse responseBody = response.getBody();
 
@@ -169,7 +171,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
                 throw new BadRequestException(errMessage);
             }
         } catch (RestClientException e) {
-            throw new InternalServerErrorException("Error calling other service: " + e.getMessage());
+            throw new InternalServerErrorException("Error calling user service: " + e.getMessage());
         }
 
         Page<SchedMedExamResponse> medExaminationResponseList=Page.empty(pageable);
