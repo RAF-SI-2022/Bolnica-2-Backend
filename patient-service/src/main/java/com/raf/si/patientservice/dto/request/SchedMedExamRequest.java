@@ -1,5 +1,6 @@
 package com.raf.si.patientservice.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -12,10 +13,11 @@ public class SchedMedExamRequest {
     @NotNull(message = "ID pacijenta ne sme biti prazan")
     private UUID lbp;
     @NotNull(message = "ID doktora kog koga je zakazano ne sme biti prazano")
-    private UUID lbz_doctor;
+    private UUID lbzDoctor;
     @NotNull(message = "Datum zakazanog pregleda ne sme biti prazan")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy-HH:mm")
     private Date appointmentDate;
     private String note;
     @NotNull(message = "ID zaposlenog koji je zakazao pregled ne sme biti prazan")
-    private UUID lbz_nurse;
+    private UUID lbzNurse;
 }

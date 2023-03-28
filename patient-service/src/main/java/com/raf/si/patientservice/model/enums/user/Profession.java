@@ -1,5 +1,6 @@
 package com.raf.si.patientservice.model.enums.user;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
@@ -24,6 +25,7 @@ public enum Profession {
         this.notation = notation;
     }
 
+    @JsonCreator
     public static Profession valueOfNotation(String notation) {
         for (Profession p : values()) {
             if (p.notation.equals(notation)) {

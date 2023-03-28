@@ -2,11 +2,9 @@ package com.raf.si.patientservice.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.AllArgsConstructor;
 
 import java.util.Date;
-import java.util.Map;
 
 @AllArgsConstructor
 public class JwtUtil {

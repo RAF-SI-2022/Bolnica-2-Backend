@@ -44,5 +44,13 @@ public class SchedMedExaminationController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteSchedMedExamination(@PathVariable("id") Long id){
         return ResponseEntity.ok(schedMedExaminationService.deleteSchedMedExamination(id));
+
+    }
+
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @PutMapping("/update-patient-arrival-status")
+    public ResponseEntity<SchedMedExamResponse> updateSchedMedExaminationPatientArrivalStatus(@Valid @RequestBody UpdateSchedMedExamRequest updateSchedMedExamRequest){
+        return ResponseEntity.ok(schedMedExaminationService.updateSchedMedExaminationPatientArrivalStatus(updateSchedMedExamRequest));
+
     }
 }

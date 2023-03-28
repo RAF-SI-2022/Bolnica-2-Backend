@@ -23,7 +23,7 @@ public class ScheduledMedExamination {
     private UUID lbp;
     //FK
     @Column(nullable = false)
-    private UUID lbz_doctor;
+    private UUID lbzDoctor;
     @Column(nullable = false)
     private Date appointmentDate;
     @Column
@@ -34,5 +34,5 @@ public class ScheduledMedExamination {
     private String note="";
     //FK
     @Column(nullable = false)
-    private UUID lbz_nurse;
+    private UUID lbzNurse;
 }

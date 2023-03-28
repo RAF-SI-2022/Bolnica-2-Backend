@@ -7,7 +7,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Getter
@@ -36,17 +36,17 @@ public class HealthRecord {
     private Patient patient;
 
     @OneToMany(mappedBy = "healthRecord", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<Allergy> allergies;
+    private List<Allergy> allergies;
 
     @OneToMany(mappedBy = "healthRecord", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<Vaccination> vaccinations;
+    private List<Vaccination> vaccinations;
 
     @OneToMany(mappedBy = "healthRecord", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<Operation> operations;
+    private List<Operation> operations;
 
     @OneToMany(mappedBy = "healthRecord", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<MedicalExamination> medicalExaminations;
+    private List<MedicalExamination> medicalExaminations;
 
     @OneToMany(mappedBy = "healthRecord", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<MedicalHistory> medicalHistory;
+    private List<MedicalHistory> medicalHistory;
 }

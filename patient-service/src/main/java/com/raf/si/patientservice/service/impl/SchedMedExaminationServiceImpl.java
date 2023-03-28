@@ -22,7 +22,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class SchedMedExaminationImpl implements SchedMedExaminationService {
+public class SchedMedExaminationServiceImpl implements SchedMedExaminationService {
 
     private final ScheduledMedExamRepository scheduledMedExamRepository;
     private final PatientRepository patientRepository;
@@ -30,7 +30,7 @@ public class SchedMedExaminationImpl implements SchedMedExaminationService {
     @Value("${duration.of.exam}")
     private int DURATION_OF_EXAM;
 
-    public SchedMedExaminationImpl(ScheduledMedExamRepository scheduledMedExamRepository, PatientRepository patientRepository, SchedMedExamMapper schedMedExamMapper) {
+    public SchedMedExaminationServiceImpl(ScheduledMedExamRepository scheduledMedExamRepository, PatientRepository patientRepository, SchedMedExamMapper schedMedExamMapper) {
         this.scheduledMedExamRepository = scheduledMedExamRepository;
         this.patientRepository = patientRepository;
         this.schedMedExamMapper = schedMedExamMapper;
@@ -51,8 +51,8 @@ public class SchedMedExaminationImpl implements SchedMedExaminationService {
         Date appointmnet= schedMedExamRequest.getAppointmentDate();
         Date timeBetweenAppointmnets= new Date(appointmnet.getTime() -DURATION_OF_EXAM * 60 * 1000);
 
-        List<ScheduledMedExamination> exams= scheduledMedExamRepository.findByAppointmentDateBetweenAndLbz_doctor(timeBetweenAppointmnets,
-                appointmnet, schedMedExamRequest.getLbz_doctor()).orElse(Collections.emptyList());
+        List<ScheduledMedExamination> exams= scheduledMedExamRepository.findByAppointmentDateBetweenAndLbzDoctor(timeBetweenAppointmnets,
+                appointmnet, schedMedExamRequest.getLbzDoctor()).orElse(Collections.emptyList());
 
         boolean hasUncompletedExams = exams.stream()
                 .anyMatch(exam -> exam.getExaminationStatus() != ExaminationStatus.ZAVRSENO);
@@ -102,7 +102,7 @@ public class SchedMedExaminationImpl implements SchedMedExaminationService {
             throw new BadRequestException(errMessage);
         });
 
-        scheduledMedExamination= schedMedExamMapper.updateSchedMedExamRequestToScheduledMedExamination(scheduledMedExamination,
+        scheduledMedExamination= schedMedExamMapper.updateSchedMedExamRequestToScheduledMedExaminationExamStatus(scheduledMedExamination,
                 updateSchedMedExamRequest);
 
         scheduledMedExamRepository.save(scheduledMedExamination);
@@ -110,6 +110,8 @@ public class SchedMedExaminationImpl implements SchedMedExaminationService {
         log.info(String.format("Izmena statusa pregleda sa id '%d' uspešno sacuvana", updateSchedMedExamRequest.getId()));
         return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
     }
+
+
     @Override
     public String deleteSchedMedExamination(Long id) {
         /**
@@ -118,12 +120,40 @@ public class SchedMedExaminationImpl implements SchedMedExaminationService {
         ScheduledMedExamination scheduledMedExamination=scheduledMedExamRepository.findById(id)
                 .orElseThrow(()->{
                     String errMessage = String.format("Zakazani pregled sa id-om '%s' ne postoji", id);
+
                     log.info(errMessage);
                     throw new BadRequestException(errMessage);
                 });
 
+
         scheduledMedExamRepository.delete(scheduledMedExamination);
 
-        return String.format("Pregled sa id '%d'je ušpesno izbrisan");
+        return String.format("Pregled sa id '%d'je ušpesno izbrisan",id);
     }
+
+
+
+    @Override
+    public SchedMedExamResponse updateSchedMedExaminationPatientArrivalStatus(UpdateSchedMedExamRequest updateSchedMedExamRequest) {
+        /**
+         * Checking if there is an appointment in database with the passed id
+         */
+        ScheduledMedExamination scheduledMedExamination=scheduledMedExamRepository.findById(updateSchedMedExamRequest.getId())
+                .orElseThrow(()->{
+                    String errMessage = String.format("Zakazani pregled sa id-om '%s' ne postoji", updateSchedMedExamRequest.getId());
+                    log.info(errMessage);
+                    throw new BadRequestException(errMessage);
+                });
+
+        scheduledMedExamination= schedMedExamMapper.updateSchedMedExamRequestToScheduledMedExaminationPatientArrivalStatus(
+                scheduledMedExamination, updateSchedMedExamRequest);
+
+        scheduledMedExamRepository.save(scheduledMedExamination);
+
+        log.info(String.format("Izmena statusa o prispeću pacijenta sa id '%d' uspešno sacuvana", updateSchedMedExamRequest.getId()));
+        return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
+
+    }
+
 }
+
