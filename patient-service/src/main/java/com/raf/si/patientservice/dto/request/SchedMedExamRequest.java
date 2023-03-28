@@ -15,7 +15,6 @@ public class SchedMedExamRequest {
     @NotNull(message = "ID doktora kog koga je zakazano ne sme biti prazano")
     private UUID lbzDoctor;
     @NotNull(message = "Datum zakazanog pregleda ne sme biti prazan")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy-HH:mm")
     private Date appointmentDate;
     private String note;
     @NotNull(message = "ID zaposlenog koji je zakazao pregled ne sme biti prazan")

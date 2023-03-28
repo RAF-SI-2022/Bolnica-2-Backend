@@ -113,7 +113,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
 
     @Transactional
     @Override
-    public String deleteSchedMedExamination(Long id) {
+    public SchedMedExamResponse deleteSchedMedExamination(Long id) {
         /**
          * Checking if there is an appointment in database with the passed id
          */
@@ -128,7 +128,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
 
         scheduledMedExamRepository.delete(scheduledMedExamination);
 
-        return String.format("Pregled sa id '%d'je ušpesno izbrisan",id);
+        return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
     }
 
 

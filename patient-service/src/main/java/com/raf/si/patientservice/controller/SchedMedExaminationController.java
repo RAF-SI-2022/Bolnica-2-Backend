@@ -42,7 +42,7 @@ public class SchedMedExaminationController {
 
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA') or hasRole('ROLE_RECEPCIONER')")
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteSchedMedExamination(@PathVariable("id") Long id){
+    public ResponseEntity<SchedMedExamResponse> deleteSchedMedExamination(@PathVariable("id") Long id){
         return ResponseEntity.ok(schedMedExaminationService.deleteSchedMedExamination(id));
 
     }
