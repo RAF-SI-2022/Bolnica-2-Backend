@@ -2,6 +2,7 @@ package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
 import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
+import com.raf.si.patientservice.dto.response.SchedMedExamListResponse;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 import com.raf.si.patientservice.dto.response.http.UserResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
@@ -11,12 +12,13 @@ import com.raf.si.patientservice.model.ScheduledMedExamination;
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
 import com.raf.si.patientservice.repository.PatientRepository;
 import com.raf.si.patientservice.repository.ScheduledMedExamRepository;
+import com.raf.si.patientservice.repository.filtering.filter.ScheduledMedExamFilter;
+import com.raf.si.patientservice.repository.filtering.specification.ScheduledMedExamSpecification;
 import com.raf.si.patientservice.service.SchedMedExaminationService;
 import com.raf.si.patientservice.utils.HttpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -119,11 +121,10 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
     }
 
     @Override
-    public Page<SchedMedExamResponse> getSchedMedExaminationByLbz(UUID lbz, Optional<Date> appointmentDate
-            , String token, int pageNumber, int pageSize) {
+    public SchedMedExamListResponse getSchedMedExaminationByLbz(UUID lbz, Date appointmentDate
+            , String token, Pageable pageable) {
 
         ResponseEntity<UserResponse> response;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
         Page<ScheduledMedExamination> medExaminationList;
         /**
          * checking whether the employee is a doctor, as well as whether there is an
@@ -135,7 +136,6 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
             if (response.getStatusCode() == HttpStatus.OK) {
                 UserResponse responseBody = response.getBody();
 
-
                 int isDoctor = max(responseBody.getPermissions().indexOf("ROLE_DR_SPEC_ODELJENJA")
                         , responseBody.getPermissions().indexOf("ROLE_DR_SPEC")
                         , responseBody.getPermissions().indexOf("ROLE_DR_SPEC_POV"));
@@ -145,25 +145,6 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
                     log.info(errMessage);
                     throw new BadRequestException(errMessage);
                 }
-                /**
-                 * Checking if appointment date is passed if so then service should return all med exams for appointmentDate
-                 * date for doctor with given lbz
-                 */
-
-                if(appointmentDate.isPresent()) {
-                    /**
-                     * Very Hacky way to get schedMedExams for passed day.
-                     */
-                    Calendar calendar=Calendar.getInstance();
-                    calendar.setTime(appointmentDate.get());
-                    calendar.add(Calendar.DAY_OF_MONTH, 1);
-                    Date endDate = calendar.getTime();
-
-                    medExaminationList = scheduledMedExamRepository.findByAppointmentDateBetweenAndLbzDoctor(appointmentDate.get(),endDate
-                                    , responseBody.getLbz(),pageable)
-                            .orElse(Page.empty(pageable));
-                }else
-                    medExaminationList=scheduledMedExamRepository.findByLbzDoctor(responseBody.getLbz(), pageable).orElse( Page.empty(pageable));
 
             } else {
                 String errMessage = String.format("Zaposleni sa id-om '%s' ne postoji", lbz);
@@ -174,12 +155,12 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
             throw new InternalServerErrorException("Error calling user service: " + e.getMessage());
         }
 
-        Page<SchedMedExamResponse> medExaminationResponseList=Page.empty(pageable);
-        if(medExaminationList.hasContent()){
-            medExaminationResponseList=medExaminationList.map(medExam -> schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(medExam));
-        }
+        ScheduledMedExamFilter scheduledMedExamFilter= new ScheduledMedExamFilter(lbz, appointmentDate);
+        ScheduledMedExamSpecification specification= new ScheduledMedExamSpecification(scheduledMedExamFilter);
 
-        return medExaminationResponseList;
+        Page<ScheduledMedExamination> medExaminationPage= scheduledMedExamRepository.findAll(specification, pageable);
+
+        return schedMedExamMapper.schedMedExamPageToSchedMedExamListResponse(medExaminationPage);
     }
 
     @Override

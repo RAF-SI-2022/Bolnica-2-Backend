@@ -2,13 +2,18 @@ package com.raf.si.patientservice.mapper;
 
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
 import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
+import com.raf.si.patientservice.dto.response.SchedMedExamListResponse;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.model.ScheduledMedExamination;
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
 import com.raf.si.patientservice.model.enums.examination.PatientArrivalStatus;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -101,5 +106,14 @@ public class SchedMedExamMapper {
         }
 
         return scheduledMedExamination;
+    }
+
+    public SchedMedExamListResponse schedMedExamPageToSchedMedExamListResponse(Page<ScheduledMedExamination> schedMedExaminationPage) {
+        List<SchedMedExamResponse> schedMedExamResponses= schedMedExaminationPage.toList()
+                .stream()
+                .map(this::scheduledMedExaminationToSchedMedExamResponse)
+                .collect(Collectors.toList());
+
+        return new SchedMedExamListResponse(schedMedExamResponses,schedMedExaminationPage.getTotalElements());
     }
 }
