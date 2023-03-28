@@ -31,5 +31,6 @@ public class PatientResponse {
     private Integer childrenNum;
     private Education education;
     private String profession;
+    private Boolean deleted;
     private Long healthRecordId;
 }

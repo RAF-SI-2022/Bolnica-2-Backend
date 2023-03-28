@@ -9,6 +9,6 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class MedicalHistoryListResponse {
-    private List<MedicalHistory> medicalHistory;
+    private List<MedicalHistory> history;
     private Long count;
 }

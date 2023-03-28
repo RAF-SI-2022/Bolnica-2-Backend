@@ -70,9 +70,10 @@ public class PatientController {
                                                            @RequestParam(required = false) String firstName,
                                                            @RequestParam(required = false) String lastName,
                                                            @RequestParam(required = false) String jmbg,
+                                                           @RequestParam(required = false) Boolean includeDeleted,
                                                            @RequestParam(defaultValue = "0") int page,
                                                            @RequestParam(defaultValue = "5") int size){
 
-        return ResponseEntity.ok(patientService.getPatients(lbp, firstName, lastName, jmbg, PageRequest.of(page, size)));
+        return ResponseEntity.ok(patientService.getPatients(lbp, firstName, lastName, jmbg, includeDeleted, PageRequest.of(page, size)));
     }
 }

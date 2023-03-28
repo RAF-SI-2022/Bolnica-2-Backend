@@ -1,4 +1,4 @@
-package com.raf.si.patientservice.repository.filtering;
+package com.raf.si.patientservice.repository.filtering.filter;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,4 +14,5 @@ public class PatientSearchFilter {
     private String firstName;
     private String lastName;
     private String jmbg;
+    private Boolean includeDeleted;
 }

@@ -1,6 +1,6 @@
 package com.raf.si.patientservice.service.impl;
 
-import com.raf.si.patientservice.dto.request.DateBetweenRequest;
+import com.raf.si.patientservice.dto.request.MedicalExaminationFilterRequest;
 import com.raf.si.patientservice.dto.response.HealthRecordResponse;
 import com.raf.si.patientservice.dto.response.LightHealthRecordResponse;
 import com.raf.si.patientservice.dto.response.MedicalExaminationListResponse;
@@ -8,6 +8,10 @@ import com.raf.si.patientservice.dto.response.MedicalHistoryListResponse;
 import com.raf.si.patientservice.mapper.HealthRecordMapper;
 import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.repository.*;
+import com.raf.si.patientservice.repository.filtering.filter.MedicalExaminationFilter;
+import com.raf.si.patientservice.repository.filtering.filter.MedicalHistoryFilter;
+import com.raf.si.patientservice.repository.filtering.specification.MedicalExaminationSpecification;
+import com.raf.si.patientservice.repository.filtering.specification.MedicalHistorySpecification;
 import com.raf.si.patientservice.service.HealthRecordService;
 import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
@@ -19,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -39,8 +42,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     private final HealthRecordMapper healthRecordMapper;
 
 
-    public HealthRecordServiceImpl(HealthRecordRepository healthRecordRepository,
-                                   AllergyRepository allergyRepository,
+    public HealthRecordServiceImpl(AllergyRepository allergyRepository,
                                    VaccinationRepository vaccinationRepository,
                                    MedicalExaminationRepository medicalExaminationRepository,
                                    MedicalHistoryRepository medicalHistoryRepository,
@@ -64,16 +66,13 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         Page<Vaccination> vaccinations = vaccinationRepository.findByHealthRecord(healthRecord, pageable);
         Page<Operation> operations = operationRepository.findByHealthRecord(healthRecord, pageable);
 
-        Page<MedicalExamination> examinations;
-        Page<MedicalHistory> medicalHistory;
-
-        if(canGetConfidential()){
-            medicalHistory = medicalHistoryRepository.findByHealthRecord(healthRecord, pageable);
-             examinations = medicalExaminationRepository.findByHealthRecord(healthRecord, pageable);
-        }else{
-            medicalHistory = medicalHistoryRepository.findByHealthRecordAndConfidential(healthRecord, false, pageable);
-            examinations = medicalExaminationRepository.findByHealthRecordAndConfidential(healthRecord, false, pageable);
-        }
+        Page<MedicalExamination> examinations = getMedicalExaminationPage(healthRecord,
+                null,
+                null,
+                pageable);
+        Page<MedicalHistory> medicalHistory = getMedicalHistoryPage(healthRecord,
+                null,
+                pageable);
 
         HealthRecordResponse response = healthRecordMapper.healthRecordToHealthRecordResponse(patient,
                 healthRecord,
@@ -100,33 +99,14 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     }
 
     @Override
-    public MedicalExaminationListResponse findExaminations(UUID lbp, DateBetweenRequest request, Pageable pageable) {
+    public MedicalExaminationListResponse findExaminations(UUID lbp, MedicalExaminationFilterRequest request, Pageable pageable) {
         Patient patient = patientService.findPatient(lbp);
         HealthRecord healthRecord = patient.getHealthRecord();
-        Page<MedicalExamination> examinations;
 
-        if(request.getStartDate() == null) {
-            if(canGetConfidential())
-                examinations = medicalExaminationRepository.findByHealthRecord(healthRecord, pageable);
-            else
-                examinations = medicalExaminationRepository.findByHealthRecordAndConfidential(healthRecord, false, pageable);
-        }else {
-            Date startDate = DateUtils.truncate(request.getStartDate(), Calendar.DAY_OF_MONTH);
-            Date endDate = request.getEndDate() == null ? DateUtils.addDays(startDate, 1) :
-                    DateUtils.truncate(request.getEndDate(), Calendar.DAY_OF_MONTH);
-
-            if(canGetConfidential())
-                examinations = medicalExaminationRepository.findByHealthRecordAndDateBetween(healthRecord,
-                        startDate,
-                        endDate,
-                        pageable);
-            else
-                examinations = medicalExaminationRepository.findByHealthRecordAndConfidentialAndDateBetween(healthRecord,
-                        false,
-                        startDate,
-                        endDate,
-                        pageable);
-        }
+        Page<MedicalExamination> examinations = getMedicalExaminationPage(healthRecord,
+                request.getStartDate(),
+                request.getEndDate(),
+                pageable);
 
         return healthRecordMapper.getPermittedExaminations(examinations);
     }
@@ -135,28 +115,47 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     public MedicalHistoryListResponse findMedicalHistory(UUID lbp, String diagnosisCode, Pageable pageable) {
         Patient patient = patientService.findPatient(lbp);
         HealthRecord healthRecord = patient.getHealthRecord();
-        Page<MedicalHistory> medicalHistory;
 
-        if(diagnosisCode == null || diagnosisCode.trim().isEmpty()) {
-            if(canGetConfidential())
-                medicalHistory = medicalHistoryRepository.findByHealthRecord(healthRecord, pageable);
-            else
-                medicalHistory = medicalHistoryRepository.findByHealthRecordAndConfidential(healthRecord, false, pageable);
-        }
-        else {
-            if(canGetConfidential())
-                medicalHistory = medicalHistoryRepository.findByHealthRecordAndDiagnosis_code(healthRecord, diagnosisCode, pageable);
-            else
-                medicalHistory = medicalHistoryRepository.findByHealthRecordAndConfidentialAndDiagnosis_code(healthRecord,
-                        false,
-                        diagnosisCode,
-                        pageable);
-        }
+        Page<MedicalHistory> medicalHistory = getMedicalHistoryPage(healthRecord,
+                diagnosisCode,
+                pageable);
 
         return healthRecordMapper.getPermittedMedicalHistory(medicalHistory);
     }
 
 
+
+    private Page<MedicalExamination> getMedicalExaminationPage(HealthRecord healthRecord,
+                                                               Date startDate,
+                                                               Date endDate,
+                                                               Pageable pageable){
+
+        if(startDate != null){
+            startDate = DateUtils.truncate(startDate, Calendar.DAY_OF_MONTH);
+            if(endDate == null)
+                DateUtils.addDays(startDate, 1);
+            else{
+                endDate = DateUtils.truncate(endDate, Calendar.DAY_OF_MONTH);
+                endDate = DateUtils.addDays(endDate, 1);
+            }
+        }
+
+        MedicalExaminationFilter filter = new MedicalExaminationFilter(healthRecord,
+                startDate,
+                endDate,
+                canGetConfidential());
+        MedicalExaminationSpecification spec = new MedicalExaminationSpecification(filter);
+        return medicalExaminationRepository.findAll(spec, pageable);
+    }
+
+    private Page<MedicalHistory> getMedicalHistoryPage(HealthRecord healthRecord,
+                                                       String diagnosisCode,
+                                                       Pageable pageable){
+
+        MedicalHistoryFilter filter = new MedicalHistoryFilter(healthRecord, diagnosisCode, canGetConfidential());
+        MedicalHistorySpecification spec = new MedicalHistorySpecification(filter);
+        return medicalHistoryRepository.findAll(spec, pageable);
+    }
 
     private boolean canGetConfidential(){
         return TokenPayloadUtil.getTokenPayload()

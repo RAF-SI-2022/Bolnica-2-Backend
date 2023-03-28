@@ -21,7 +21,7 @@ public interface PatientService {
 
     PatientResponse getPatientByLbp(UUID lbp);
 
-    PatientListResponse getPatients(UUID lbp, String firstName, String lastName, String jmbg, Pageable pageable);
+    PatientListResponse getPatients(UUID lbp, String firstName, String lastName, String jmbg, Boolean includeDeleted, Pageable pageable);
 
 
 

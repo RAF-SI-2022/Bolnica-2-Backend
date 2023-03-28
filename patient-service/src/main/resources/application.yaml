@@ -12,7 +12,7 @@ spring:
       ddl-auto: create
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   datasource:
-    url: "jdbc:postgresql://postgresDb:5432/postgresDB"
+    url: "jdbc:postgresql://patient-db:5433/postgresDB"
     username: "student"
     password: "student"
     driver-class-name: org.postgresql.Driver
