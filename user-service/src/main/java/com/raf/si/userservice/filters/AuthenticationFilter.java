@@ -96,7 +96,6 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         AntPathMatcher matcher = new AntPathMatcher();
         String path = request.getRequestURI();
-        log.info(request.getRequestURI());
         return matcher.match("/**/auth/**", path)
                 || matcher.match("/**/v3/api-docs/**", path)
                 || matcher.match("/**/swagger-resources/**", path)
