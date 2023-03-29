@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class SchedMEdExaminationControllerTest {
+public class SchedMedExaminationControllerTest {
 
     private SchedMedExaminationController schedMedExaminationController;
     private SchedMedExaminationService schedMedExaminationService;
