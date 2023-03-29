@@ -59,7 +59,7 @@ public class BootstrapData implements CommandLineRunner {
         Department laboratoryDepartment = new Department();
         laboratoryDepartment.setName("Laboratorija");
         laboratoryDepartment.setHospital(hospital);
-        laboratoryDepartment.setPbo(UUID.randomUUID());
+        laboratoryDepartment.setPbo(UUID.fromString("4e5911c8-ce7a-11ed-afa1-0242ac120002"));
 
         Department diagnosticDepartment = new Department();
         diagnosticDepartment.setName("Dijagnostika");
@@ -88,6 +88,18 @@ public class BootstrapData implements CommandLineRunner {
         Permission medSestraPermission = new Permission();
         medSestraPermission.setName("ROLE_MED_SESTRA");
 
+        Permission visiLabTehnicar = new Permission();
+        visiLabTehnicar.setName("ROLE_VISI_LAB_TEHNICAR");
+
+        Permission labTehnicar = new Permission();
+        labTehnicar.setName("ROLE_LAB_TEHNICAR");
+
+        Permission medBiohemicar = new Permission();
+        medBiohemicar.setName("ROLE_MED_BIOHEMICAR");
+
+        Permission specMedBiohemije = new Permission();
+        specMedBiohemije.setName("ROLE_SPEC_MED_BIOHEMIJE");
+
         List<Permission> adminPermissions = new ArrayList<>();
         List<Permission> medSestraPermissions = new ArrayList<>();
         visaMedSestraPermission = permissionsRepository.save(visaMedSestraPermission);
@@ -98,6 +110,10 @@ public class BootstrapData implements CommandLineRunner {
         adminPermissions.add(permissionsRepository.save(drSpecOdeljenjaPermission));
         adminPermissions.add(permissionsRepository.save(drSpecPermission));
         adminPermissions.add(permissionsRepository.save(drSpecPovPermission));
+        adminPermissions.add(permissionsRepository.save(visiLabTehnicar));
+        adminPermissions.add(permissionsRepository.save(labTehnicar));
+        adminPermissions.add(permissionsRepository.save(medBiohemicar));
+        adminPermissions.add(permissionsRepository.save(specMedBiohemije));
         adminPermissions.add(visaMedSestraPermission);
         adminPermissions.add(medSestraPermission);
 
