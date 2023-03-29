@@ -223,7 +223,6 @@ public class UserServiceTest {
         String lastName = "lastName";
         String departmentName = "departmentName";
         String hospitalName = "hospitalName";
-        boolean includeDeleted = true;
         Pageable pageable = PageRequest.of(0, 5);
 
         List<User> users = new ArrayList<>();
@@ -235,7 +234,7 @@ public class UserServiceTest {
 
         UserListAndCountResponse userListAndCountResponse = userMapper.modelToUserListAndCountResponse(pages);
 
-        assertEquals(userService.listUsers(firstName, lastName, departmentName, hospitalName, includeDeleted, pageable),
+        assertEquals(userService.listUsers(firstName, lastName, departmentName, hospitalName, true, pageable),
                 userListAndCountResponse);
     }
 

@@ -1,13 +1,11 @@
 package com.raf.si.userservice.dto.response;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-@Data
-@EqualsAndHashCode
+@Getter
 public class LoginUserResponse {
 
-    private String token;
+    private final String token;
 
     public LoginUserResponse(String token) {
         this.token = token;
