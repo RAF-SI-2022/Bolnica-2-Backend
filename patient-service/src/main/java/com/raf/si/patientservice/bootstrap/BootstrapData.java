@@ -27,6 +27,7 @@ public class BootstrapData implements CommandLineRunner {
 
     private final AllergenRepository allergenRepository;
     private final VaccineRepository vaccineRepository;
+    private final ScheduledMedExamRepository scheduledMedExamRepository;
 
     public BootstrapData(PatientRepository patientRepository,
                          HealthRecordRepository healthRecordRepository,
@@ -37,7 +38,7 @@ public class BootstrapData implements CommandLineRunner {
                          AllergyRepository allergyRepository,
                          DiagnosisRepository diagnosisRepository,
                          AllergenRepository allergenRepository,
-                         VaccineRepository vaccineRepository) {
+                         VaccineRepository vaccineRepository, ScheduledMedExamRepository scheduledMedExamRepository) {
 
         this.patientRepository = patientRepository;
         this.healthRecordRepository = healthRecordRepository;
@@ -49,11 +50,13 @@ public class BootstrapData implements CommandLineRunner {
         this.diagnosisRepository = diagnosisRepository;
         this.allergenRepository = allergenRepository;
         this.vaccineRepository = vaccineRepository;
+        this.scheduledMedExamRepository = scheduledMedExamRepository;
     }
 
     @Override
     public void run(String... args) {
         makePatient();
+        makeSchedExam();
     }
 
     private void makePatient(){
@@ -183,5 +186,17 @@ public class BootstrapData implements CommandLineRunner {
         vaccination.setVaccinationDate(new Date());
 
         vaccinationRepository.save(vaccination);
+    }
+
+    private  void makeSchedExam(){
+        ScheduledMedExamination scheduledMedExamination= new ScheduledMedExamination();
+        scheduledMedExamination.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+        //                                                          5a2e71bb-e4ee-43dd-a3ad-28e043f8b435
+        scheduledMedExamination.setLbzDoctor(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        scheduledMedExamination.setAppointmentDate(new Date());
+        scheduledMedExamination.setNote("Pacijent ima bol u zuci");
+        scheduledMedExamination.setLbzNurse(UUID.fromString("5a2e71bb-e4ee-43dd-55a3-28e043f8b435"));
+
+        scheduledMedExamRepository.save(scheduledMedExamination);
     }
 }
