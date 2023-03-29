@@ -75,9 +75,21 @@ public class UserControllerTest {
     }
 
     @Test
+    public void getEmployeeInfo_Success() {
+        UUID lbz = UUID.randomUUID();
+        UserResponse userResponse = createUserResponse();
+
+        when(userService.getUserByLbz(lbz)).thenReturn(userResponse);
+
+        assertEquals(userController.getEmployeeInfo(lbz),
+                ResponseEntity.of(Optional.of(userResponse)));
+    }
+
+    @Test
     public void deleteUser_Success() {
         Long id = 1L;
         UserResponse userResponse = createUserResponse();
+        when(authentication.getPrincipal()).thenReturn(getTokenPayload(false));
         when(userService.deleteUser(id)).thenReturn(userResponse);
         assertEquals(userController.deleteUser(id),
                 ResponseEntity.of(Optional.of(userResponse)));

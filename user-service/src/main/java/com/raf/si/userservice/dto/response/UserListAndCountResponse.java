@@ -5,11 +5,10 @@ import lombok.*;
 import java.util.List;
 
 @Getter
-@Setter
 @AllArgsConstructor
 @EqualsAndHashCode
 public class UserListAndCountResponse {
 
-    private List<UserListResponse> userList;
-    private Long count;
+    private final List<UserListResponse> userList;
+    private final Long count;
 }

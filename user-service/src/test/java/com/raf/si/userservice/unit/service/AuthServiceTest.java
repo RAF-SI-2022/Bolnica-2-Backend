@@ -13,8 +13,6 @@ import com.raf.si.userservice.repository.UserRepository;
 import com.raf.si.userservice.service.AuthService;
 import com.raf.si.userservice.service.impl.AuthServiceImpl;
 import com.raf.si.userservice.utils.JwtUtil;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,13 +32,12 @@ public class AuthServiceTest {
 
     private AuthService authService;
     private UserRepository userRepository;
-    private JwtUtil jwtUtil;
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     public void setUp() {
         userRepository = mock(UserRepository.class);
-        jwtUtil = new JwtUtil("secret key");
+        JwtUtil jwtUtil = new JwtUtil("secret key");
         passwordEncoder = mock(PasswordEncoder.class);
         authService = new AuthServiceImpl(userRepository, jwtUtil, passwordEncoder);
     }
@@ -95,8 +92,6 @@ public class AuthServiceTest {
         when(userRepository.findUserByUsername(loginUserRequest.getUsername())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(loginUserRequest.getPassword(), user.getPassword())).thenReturn(true);
 
-        LoginUserResponse loginUserResponse = new LoginUserResponse(jwtUtil.generateToken(setClaims(user), user.getLbz().toString()));
-
         assertThat(authService.login(loginUserRequest), instanceOf(LoginUserResponse.class));
     }
 
@@ -142,21 +137,5 @@ public class AuthServiceTest {
         user.setPermissions(Collections.singletonList(permission));
 
         return user;
-    }
-
-    private Claims setClaims(User user) {
-        Claims claims = Jwts.claims();
-        claims.put("firstName", user.getFirstName());
-        claims.put("lastName", user.getLastName());
-        claims.put("title", user.getTitle().getNotation());
-        claims.put("profession", user.getProfession().getNotation());
-        claims.put("pbo", user.getDepartment().getPbo());
-        claims.put("departmentName", user.getDepartment().getName());
-        claims.put("pbb", user.getDepartment().getHospital().getPbb());
-        claims.put("hospitalName", user.getDepartment().getHospital().getFullName());
-        String[] roles = user.getPermissions().stream().map(Permission::getName).toArray(String[]::new);
-        claims.put("permissions", roles);
-
-        return claims;
     }
 }
