@@ -59,7 +59,7 @@ public class BootstrapData implements CommandLineRunner {
         Department laboratoryDepartment = new Department();
         laboratoryDepartment.setName("Laboratorija");
         laboratoryDepartment.setHospital(hospital);
-        laboratoryDepartment.setPbo(UUID.randomUUID());
+        laboratoryDepartment.setPbo(UUID.fromString("4e5911c8-ce7a-11ed-afa1-0242ac120002"));
 
         Department diagnosticDepartment = new Department();
         diagnosticDepartment.setName("Dijagnostika");
@@ -88,6 +88,18 @@ public class BootstrapData implements CommandLineRunner {
         Permission medSestraPermission = new Permission();
         medSestraPermission.setName("ROLE_MED_SESTRA");
 
+        Permission visiLabTehnicar = new Permission();
+        visiLabTehnicar.setName("ROLE_VISI_LAB_TEHNICAR");
+
+        Permission labTehnicar = new Permission();
+        labTehnicar.setName("ROLE_LAB_TEHNICAR");
+
+        Permission medBiohemicar = new Permission();
+        medBiohemicar.setName("ROLE_MED_BIOHEMICAR");
+
+        Permission specMedBiohemije = new Permission();
+        specMedBiohemije.setName("ROLE_SPEC_MED_BIOHEMIJE");
+
         List<Permission> permissions = new ArrayList<>();
         permissions.add(permissionsRepository.save(adminPermission));
         permissions.add(permissionsRepository.save(drSpecOdeljenjaPermission));
@@ -95,6 +107,10 @@ public class BootstrapData implements CommandLineRunner {
         permissions.add(permissionsRepository.save(drSpecPovPermission));
         permissions.add(permissionsRepository.save(visaMedSestraPermission));
         permissions.add(permissionsRepository.save(medSestraPermission));
+        permissions.add(permissionsRepository.save(visiLabTehnicar));
+        permissions.add(permissionsRepository.save(labTehnicar));
+        permissions.add(permissionsRepository.save(medBiohemicar));
+        permissions.add(permissionsRepository.save(specMedBiohemije));
 
         User user = new User();
         user.setEmail("balkan.medic2023@outlook.com");
