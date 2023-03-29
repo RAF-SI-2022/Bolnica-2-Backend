@@ -120,6 +120,28 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
         return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
     }
 
+    @Transactional
+    @Override
+    public SchedMedExamResponse deleteSchedMedExamination(Long id) {
+        /**
+         * Checking if there is an appointment in database with the passed id
+         */
+        ScheduledMedExamination scheduledMedExamination=scheduledMedExamRepository.findById(id)
+                .orElseThrow(()->{
+                    String errMessage = String.format("Zakazani pregled sa id-om '%s' ne postoji", id);
+
+                    log.info(errMessage);
+                    throw new BadRequestException(errMessage);
+                });
+
+
+        scheduledMedExamRepository.delete(scheduledMedExamination);
+
+        return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
+    }
+
+
+
     @Override
     public SchedMedExamListResponse getSchedMedExaminationByLbz(UUID lbz, Date appointmentDate
             , String token, Pageable pageable) {
@@ -182,7 +204,10 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
 
         log.info(String.format("Izmena statusa o prispeću pacijenta sa id '%d' uspešno sacuvana", updateSchedMedExamRequest.getId()));
         return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
+
     }
+    
+    
 
     private int max(int first, int... rest) {
         int ret = first;
@@ -190,6 +215,6 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
             ret = Math.max(ret, val);
         }
         return ret;
-
     }
 }
+

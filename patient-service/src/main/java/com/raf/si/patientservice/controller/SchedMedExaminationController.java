@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
+
 @Slf4j
 @RestController
 @CrossOrigin
@@ -47,6 +48,12 @@ public class SchedMedExaminationController {
         return ResponseEntity.ok(schedMedExaminationService.updateSchedMedExaminationExamStatus(updateSchedMedExamRequest));
     }
 
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA') or hasRole('ROLE_RECEPCIONER')")
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<SchedMedExamResponse> deleteSchedMedExamination(@PathVariable("id") Long id){
+        return ResponseEntity.ok(schedMedExaminationService.deleteSchedMedExamination(id));
+
+    }
 
     @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" +
             "or hasRole('ROLE_DR_SPEC')" +
@@ -54,12 +61,14 @@ public class SchedMedExaminationController {
             "or hasRole('ROLE_MED_SESTRA')" +
             "or hasRole('ROLE_VISA_MED_SESTRA')")
     @GetMapping("/search")
-    public ResponseEntity<SchedMedExamListResponse> getSchedMedExam(@RequestHeader("Authorization") String authorizationHeader
-    , @RequestParam("lbz") UUID lbz, @RequestParam(defaultValue = "0") int page,
-                                                                    @RequestParam(defaultValue = "5") int size
-            , @RequestParam(name = "appointmentDate", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date appointmentDate) {
+    public ResponseEntity<SchedMedExamListResponse> getSchedMedExam(@RequestHeader("Authorization") String authorizationHeader,
+                                                                    @RequestParam("lbz") UUID lbz,
+                                                                    @RequestParam(defaultValue = "0") int page,
+                                                                    @RequestParam(defaultValue = "5") int size,
+                                                                    @RequestParam(name = "appointmentDate", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date appointmentDate) {
         return ResponseEntity.ok(schedMedExaminationService.getSchedMedExaminationByLbz(lbz, appointmentDate, authorizationHeader, PageRequest.of(page,size) ));
     }
+
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @PutMapping("/update-patient-arrival-status")
     public ResponseEntity<SchedMedExamResponse> updateSchedMedExaminationPatientArrivalStatus
