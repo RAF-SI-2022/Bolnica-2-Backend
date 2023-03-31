@@ -2,6 +2,7 @@ package com.raf.si.laboratoryservice.service.impl;
 
 import com.raf.si.laboratoryservice.dto.request.CreateReferralRequest;
 import com.raf.si.laboratoryservice.dto.response.ReferralResponse;
+import com.raf.si.laboratoryservice.exception.NotFoundException;
 import com.raf.si.laboratoryservice.mapper.ReferralMapper;
 import com.raf.si.laboratoryservice.model.Referral;
 import com.raf.si.laboratoryservice.repository.ReferralRepository;
@@ -25,6 +26,15 @@ public class ReferralServiceImpl implements ReferralService {
     @Override
     public ReferralResponse createReferral(CreateReferralRequest createReferralRequest) {
         Referral referral = referralRepository.save(referralMapper.requestToModel(createReferralRequest));
+        return referralMapper.modelToResponse(referral);
+    }
+
+    @Override
+    public ReferralResponse getReferral(Long id) {
+        Referral referral = referralRepository.findById(id).orElseThrow(() -> {
+            log.error("Ne postoji uput sa id-ijem '{}'", id);
+            throw new NotFoundException("Uput sa datim id-ijem ne postoji");
+        });
         return referralMapper.modelToResponse(referral);
     }
 }

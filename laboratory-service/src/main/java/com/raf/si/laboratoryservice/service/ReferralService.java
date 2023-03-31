@@ -5,4 +5,6 @@ import com.raf.si.laboratoryservice.dto.response.ReferralResponse;
 
 public interface ReferralService {
     ReferralResponse createReferral(CreateReferralRequest createReferralRequest);
+
+    ReferralResponse getReferral(Long id);
 }

@@ -25,4 +25,10 @@ public class ReferralController {
         return ResponseEntity.ok(referralService.createReferral(createReferralRequest));
     }
 
+    //    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" + "or hasRole('ROLE_DR_SPEC')" + "or hasRole('ROLE_DR_SPEC_POV')")
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<ReferralResponse> getReferral(@PathVariable Long id) {
+        return ResponseEntity.ok(referralService.getReferral(id));
+    }
+
 }
