@@ -150,42 +150,56 @@ public class BootstrapData implements CommandLineRunner {
         medicalHistoryRepository.save(medicalHistory);
 
 
-        Allergen allergen = new Allergen();
-        allergen.setName("polen");
+        // dodaj sve alergije
+        String[] allergenNames = {"mleko", "jaja", "orasasti plodovi", "plodovi mora", "psenica",
+                        "soja", "riba", "penicilin"};
+        for(int i=0;i<allergenNames.length; i+=1) {
+            Allergen allergen= new Allergen();
+            allergen.setName(allergenNames[i]);
+            allergenRepository.save(allergen);
 
-        allergenRepository.save(allergen);
+            if(i<=1){
+                // dodaj jednu alergiju
+                Allergy allergy = new Allergy();
+                allergy.setHealthRecord(healthRecord);
+                allergy.setAllergen(allergen);
+                allergyRepository.save(allergy);
+            }
+        }
 
-        Allergy allergy = new Allergy();
-        allergy.setHealthRecord(healthRecord);
-        allergy.setAllergen(allergen);
+        // dodaj sve vakcine
+        String[] vaccineNames = {"PRIORIX", "HIBERIX", "INFLUVAC", "SYNFLORIX", "BCG VAKCINA"};
+        String[] vaccineType = {"Virusne vakcine", "Bakterijske vakcine","Virusne vakcine", "Bakterijske vakcine", "Bakterijske vakcine"};
+        String[] vaccineDescription = {
+                "Vakcina protiv morbila (malih boginja)",
+                "Kapsulirani antigen hemofilus influence tip B",
+                "Virusne vakcine protiv influence (grip)",
+                "Vakcine protiv pneumokoka",
+                "Vakcine protiv tuberkuloze"};
+        String[] vaccineProducer = {
+                "GlaxoSmithKline Biologicals S.A., Belgija",
+                "GlaxoSmithKline Biologicals S.A., Belgija",
+                "Abbott Biologicals B.V., Holandija",
+                "GlaxoSmithKline Biologicals S.A., Belgija",
+                "Institut za virusologiju, vakcine i serume \"Torlak\", Republika Srbija"};
 
-        allergyRepository.save(allergy);
+        for(int i=0;i<vaccineNames.length;i+=1) {
+            Vaccine vaccine = new Vaccine();
+            vaccine.setName(vaccineNames[i]);
+            vaccine.setType(vaccineType[i]);
+            vaccine.setDescription(vaccineDescription[i]);
+            vaccine.setProducer(vaccineProducer[i]);
+            vaccineRepository.save(vaccine);
 
-        Allergen allergen2 = new Allergen();
-        allergen2.setName("lipa");
-
-        allergenRepository.save(allergen2);
-
-        Allergy allergy2 = new Allergy();
-        allergy2.setHealthRecord(healthRecord);
-        allergy2.setAllergen(allergen2);
-
-        allergyRepository.save(allergy2);
-
-
-        Vaccine vaccine = new Vaccine();
-        vaccine.setName("PRIORIX");
-        vaccine.setType("Virusne vakcine");
-        vaccine.setDescription("Vakcina protiv malih boginja");
-
-        vaccineRepository.save(vaccine);
-
-        Vaccination vaccination = new Vaccination();
-        vaccination.setHealthRecord(healthRecord);
-        vaccination.setVaccine(vaccine);
-        vaccination.setVaccinationDate(new Date());
-
-        vaccinationRepository.save(vaccination);
+            if(i<=1){
+                // dodaj prve dve vakcine kao vakcinacije u karton
+                Vaccination vaccination = new Vaccination();
+                vaccination.setHealthRecord(healthRecord);
+                vaccination.setVaccine(vaccine);
+                vaccination.setVaccinationDate(new Date());
+                vaccinationRepository.save(vaccination);
+            }
+        }
     }
 
     private  void makeSchedExam(){

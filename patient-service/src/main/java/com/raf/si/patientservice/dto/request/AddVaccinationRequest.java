@@ -1,5 +1,6 @@
 package com.raf.si.patientservice.dto.request;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,12 +11,12 @@ import java.util.Date;
 @Getter
 @Setter
 @NoArgsConstructor
+@Data
 public class AddVaccinationRequest {
 
     @NotEmpty(message = "Polje ime vakcine ne sme da bude prazno")
     private String vaccine;
 
-    @NotEmpty(message = "Polje datum vakcinacije ne sme da bude prazno")
     private Date date;
 
 
