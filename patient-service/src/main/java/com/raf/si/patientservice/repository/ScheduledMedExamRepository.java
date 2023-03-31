@@ -16,10 +16,8 @@ import java.util.UUID;
 @Repository
 public interface ScheduledMedExamRepository extends JpaRepository<ScheduledMedExamination,Long>, JpaSpecificationExecutor<ScheduledMedExamination> {
 
-    Optional<Page<ScheduledMedExamination>> findByLbzDoctor(UUID lbzDoctor, Pageable pageable);
+    Optional<ScheduledMedExamination> findByLbzDoctor(UUID lbzDoctor);
     Optional<List<ScheduledMedExamination>> findByAppointmentDateBetweenAndLbzDoctor(Date betweenAppointments, Date appointment
             , UUID lbzDoctor);
-    Optional<Page<ScheduledMedExamination>> findByAppointmentDateBetweenAndLbzDoctor(Date betweenAppointments, Date appointment
-            , UUID lbzDoctor, Pageable pageable);
     Optional<ScheduledMedExamination> findById(Long id);
 }
