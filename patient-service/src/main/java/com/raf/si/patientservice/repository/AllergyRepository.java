@@ -11,6 +11,6 @@ import java.util.List;
 
 @Repository
 public interface AllergyRepository extends JpaRepository<Allergy, Long> {
-
     Page<Allergy> findByHealthRecord(HealthRecord healthRecord, Pageable pageable);
+    List<Allergy> findByHealthRecord(HealthRecord healthRecord);
 }

@@ -10,7 +10,6 @@ import java.util.UUID;
 
 @Repository
 public interface PatientRepository extends JpaRepository<Patient, Long>, JpaSpecificationExecutor<Patient> {
-
     Optional<Patient> findByJmbg(String jmbg);
 
     Optional<Patient> findByJmbgAndDeleted(String jmbg, Boolean deleted);
