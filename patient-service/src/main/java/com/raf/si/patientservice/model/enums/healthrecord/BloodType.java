@@ -5,22 +5,14 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum BloodType {
 
-    A("A"),
-    B("B"),
-    AB("AB"),
-    O("0");
+    A,B,AB,O;
 
-    private String notation;
+    private static final BloodType[] copyOfValues = values();
 
-    BloodType(String notation) {
-        this.notation = notation;
-    }
-
-    public static BloodType valueOfNotation(String notation) {
-        for (BloodType g : values()) {
-            if (g.notation.equals(notation)) {
-                return g;
-            }
+    public static BloodType forName(String name){
+        for(BloodType bt: copyOfValues){
+            if(bt.name().equals(name))
+                return bt;
         }
         return null;
     }
