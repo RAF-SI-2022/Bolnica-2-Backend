@@ -7,4 +7,6 @@ public interface ReferralService {
     ReferralResponse createReferral(CreateReferralRequest createReferralRequest);
 
     ReferralResponse getReferral(Long id);
+
+    ReferralResponse deleteReferral(Long id);
 }

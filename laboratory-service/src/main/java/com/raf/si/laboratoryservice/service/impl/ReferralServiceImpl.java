@@ -37,4 +37,16 @@ public class ReferralServiceImpl implements ReferralService {
         });
         return referralMapper.modelToResponse(referral);
     }
+
+    public ReferralResponse deleteReferral(Long id) {
+        Referral referral = referralRepository.findById(id).orElseThrow(() -> {
+            log.error("Ne postoji uput sa id-ijem '{}'", id);
+            throw new NotFoundException("Korisnik sa datim id-ijem ne postoji");
+        });
+
+        referral.setDeleted(true);
+        referral = referralRepository.save(referral);
+        log.info("Korisnicki nalog sa id-ijem '{}' je uspesno obrisan", id);
+        return referralMapper.modelToResponse(referral);
+    }
 }

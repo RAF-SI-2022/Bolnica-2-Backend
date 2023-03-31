@@ -31,4 +31,10 @@ public class ReferralController {
         return ResponseEntity.ok(referralService.getReferral(id));
     }
 
+    //    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" + "or hasRole('ROLE_DR_SPEC')" + "or hasRole('ROLE_DR_SPEC_POV')")
+    @DeleteMapping(value = "/delete/{id}")
+    public ResponseEntity<ReferralResponse> deleteReferral(@PathVariable Long id) {
+        return ResponseEntity.ok(referralService.deleteReferral(id));
+    }
+
 }
