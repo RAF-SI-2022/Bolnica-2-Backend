@@ -1,7 +1,12 @@
 package com.raf.si.patientservice.mapper;
 
+import com.raf.si.patientservice.dto.request.AddAllergyRequest;
+import com.raf.si.patientservice.dto.request.AddVaccinationRequest;
+import com.raf.si.patientservice.dto.request.UpdateHealthRecordRequest;
 import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.model.*;
+import com.raf.si.patientservice.model.enums.healthrecord.BloodType;
+import com.raf.si.patientservice.model.enums.healthrecord.RHFactor;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -134,4 +139,53 @@ public class HealthRecordMapper {
 
         return allergyResponseList;
     }
+
+    public VaccineListResponse vaccineListToVaccineListResponse(List<Vaccine> vaccines) {
+        List<VaccineResponse> vaccineResponses = new ArrayList<>();
+        for(Vaccine vaccine : vaccines) {
+            VaccineResponse vaccineResponse = new VaccineResponse(
+                    vaccine.getId(),
+                    vaccine.getName(),
+                    vaccine.getType(),
+                    vaccine.getDescription(),
+                    vaccine.getProducer());
+            vaccineResponses.add(vaccineResponse);
+        }
+        return new VaccineListResponse(vaccineResponses);
+    }
+
+    public AllergenListResponse allergenListToVaccineListResponse(List<Allergen> allergens) {
+        List<AllergenResponse> allergenResponses = new ArrayList<>();
+        for(Allergen allergen : allergens) {
+            AllergenResponse allergenResponse = new AllergenResponse(
+                    allergen.getId(),
+                    allergen.getName());
+            allergenResponses.add(allergenResponse);
+        }
+        return new AllergenListResponse(allergenResponses);
+    }
+
+    public Vaccination addVaccinationRequestToVaccinatin(AddVaccinationRequest addVaccinationRequest, HealthRecord healthRecord, Vaccine vaccine) {
+        Vaccination vaccination = new Vaccination();
+        vaccination.setVaccine(vaccine);
+        vaccination.setDeleted(false);
+        vaccination.setVaccinationDate(addVaccinationRequest.getDate());
+        vaccination.setHealthRecord(healthRecord);
+        return vaccination;
+    }
+
+    public Allergy addAllergyRequestToVaccinatin(AddAllergyRequest addAllergyRequest, HealthRecord healthRecord, Allergen allergen) {
+        Allergy allergy = new Allergy();
+        allergy.setAllergen(allergen);
+        allergy.setDeleted(false);
+        allergy.setHealthRecord(healthRecord);
+        return allergy;
+    }
+
+    public HealthRecord updateHealthRecordRequestToHealthRecord(BloodType bloodType, RHFactor rhFactor, HealthRecord healthRecord) {
+        healthRecord.setBloodType(bloodType);
+        healthRecord.setRhFactor(rhFactor);
+        return healthRecord;
+    }
+
 }
