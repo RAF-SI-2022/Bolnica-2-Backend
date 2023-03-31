@@ -2,7 +2,7 @@ package com.raf.si.patientservice.model.enums.healthrecord;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-@JsonFormat(shape = JsonFormat.Shape.OBJECT)
+
 public enum BloodType {
 
     A,B,AB,O;
