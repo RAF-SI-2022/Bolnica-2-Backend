@@ -25,6 +25,9 @@ public class Vaccine {
     @Column(nullable = false)
     private String description;
 
+    @Column(nullable = false)
+    private String producer;
+
     @JsonIgnore
     @OneToMany(mappedBy = "vaccine", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Vaccination> vaccinations;
