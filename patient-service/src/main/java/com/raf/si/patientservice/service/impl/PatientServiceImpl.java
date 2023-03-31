@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -63,7 +64,7 @@ public class PatientServiceImpl implements PatientService {
         HealthRecord healthRecord = new HealthRecord();
         patient.setHealthRecord(healthRecord);
 
-        patientRepository.save(patient);
+        patient = patientRepository.save(patient);
         healthRecordRepository.save(healthRecord);
 
         log.info(String.format("Pacijent sa lbp-om '%s' uspesno sacuvan", patient.getLbp()));
@@ -75,7 +76,7 @@ public class PatientServiceImpl implements PatientService {
         Patient patient = findPatient(patientRequest.getJmbg());
 
         patient = patientMapper.patientRequestToPatient(patient, patientRequest);
-        patientRepository.save(patient);
+        patient = patientRepository.save(patient);
         log.info(String.format("Pacijent sa lbp-om '%s' uspesno sacuvan", patient.getLbp()));
         return patientMapper.patientToPatientResponse(patient);
     }
@@ -85,7 +86,7 @@ public class PatientServiceImpl implements PatientService {
         Patient patient = findPatient(lbp);
 
         patient = patientMapper.patientRequestToPatient(patient, patientRequest);
-        patientRepository.save(patient);
+        patient = patientRepository.save(patient);
         log.info(String.format("Pacijent sa lbp-om '%s' uspesno sacuvan", lbp));
         return patientMapper.patientToPatientResponse(patient);
     }
@@ -96,33 +97,38 @@ public class PatientServiceImpl implements PatientService {
         Patient patient = findPatient(lbp);
 
         patient.setDeleted(true);
-        patientRepository.save(patient);
+        patient = patientRepository.save(patient);
 
         HealthRecord healthRecord = patient.getHealthRecord();
         healthRecord.setDeleted(true);
         healthRecordRepository.save(healthRecord);
 
-        for(Allergy allergy: healthRecord.getAllergies()){
+        List<Allergy> allergies = allergyRepository.findByHealthRecord(healthRecord);
+        for(Allergy allergy: allergies){
             allergy.setDeleted(true);
             allergyRepository.save(allergy);
         }
 
-        for(MedicalExamination medicalExamination: healthRecord.getMedicalExaminations()){
+        List<MedicalExamination> examinations = medicalExaminationRepository.findByHealthRecord(healthRecord);
+        for(MedicalExamination medicalExamination: examinations){
             medicalExamination.setDeleted(true);
             medicalExaminationRepository.save(medicalExamination);
         }
 
-        for(MedicalHistory medicalHistory: healthRecord.getMedicalHistory()){
+        List<MedicalHistory> medicalHistoryList = medicalHistoryRepository.findByHealthRecord(healthRecord);
+        for(MedicalHistory medicalHistory: medicalHistoryList){
             medicalHistory.setDeleted(true);
             medicalHistoryRepository.save(medicalHistory);
         }
 
-        for(Operation operation: healthRecord.getOperations()){
+        List<Operation> operations = operationRepository.findByHealthRecord(healthRecord);
+        for(Operation operation: operations){
             operation.setDeleted(true);
             operationRepository.save(operation);
         }
 
-        for(Vaccination vaccination: healthRecord.getVaccinations()){
+        List<Vaccination> vaccinations = vaccinationRepository.findByHealthRecord(healthRecord);
+        for(Vaccination vaccination: vaccinations){
             vaccination.setDeleted(true);
             vaccinationRepository.save(vaccination);
         }

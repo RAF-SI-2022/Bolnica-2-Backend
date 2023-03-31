@@ -13,4 +13,5 @@ import java.util.List;
 
 @Repository
 public interface MedicalHistoryRepository extends JpaRepository<MedicalHistory, Long>, JpaSpecificationExecutor<MedicalHistory> {
+    List<MedicalHistory> findByHealthRecord(HealthRecord healthRecord);
 }

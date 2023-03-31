@@ -11,6 +11,7 @@ import java.util.List;
 
 @Repository
 public interface OperationRepository extends CrudRepository<Operation, Long> {
-
     Page<Operation> findByHealthRecord(HealthRecord healthRecord, Pageable pageable);
+
+    List<Operation> findByHealthRecord(HealthRecord healthRecord);
 }
