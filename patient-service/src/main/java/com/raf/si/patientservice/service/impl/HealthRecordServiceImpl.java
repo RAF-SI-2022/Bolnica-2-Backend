@@ -353,7 +353,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
             if(createExaminationReportRequest.getExistingDiagnosis()) {
 
                 // nadji stari
-                List<MedicalHistory> oldMedicalHistoryList = medicalHistoryRepository.findByHealthRecord(healthRecord).get();
+                List<MedicalHistory> oldMedicalHistoryList = medicalHistoryRepository.findByHealthRecord(healthRecord);
                 if(oldMedicalHistoryList == null ) {
                     String errMessage = String.format("nije uspeo da dohvati istoriju bolesti za korisnika '%s'", lbp);
                     log.info(errMessage);

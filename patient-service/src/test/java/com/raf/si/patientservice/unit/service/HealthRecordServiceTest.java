@@ -2,8 +2,10 @@ package com.raf.si.patientservice.unit.service;
 
 import com.raf.si.patientservice.dto.request.MedicalExaminationFilterRequest;
 import com.raf.si.patientservice.dto.request.PatientRequest;
+import com.raf.si.patientservice.dto.response.AllergenResponse;
 import com.raf.si.patientservice.dto.response.HealthRecordResponse;
 import com.raf.si.patientservice.dto.response.LightHealthRecordResponse;
+import com.raf.si.patientservice.dto.response.VaccineResponse;
 import com.raf.si.patientservice.mapper.HealthRecordMapper;
 import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.model.enums.healthrecord.BloodType;
@@ -46,6 +48,13 @@ public class HealthRecordServiceTest {
     private PatientService patientService;
     private HealthRecordMapper healthRecordMapper;
 
+    private DiagnosisRepository diagnosisRepository;
+
+    private VaccineRepository vaccineRepository;
+
+    private AllergenRepository allergenRepository;
+    private HealthRecordRepository healthRecordRepository;
+
     @BeforeEach
     public void setUp(){
         allergyRepository = mock(AllergyRepository.class);
@@ -59,6 +68,11 @@ public class HealthRecordServiceTest {
         healthRecordRepository = mock(HealthRecordRepository.class);
         patientService = mock(PatientService.class);
         healthRecordMapper = new HealthRecordMapper();
+        diagnosisRepository = mock(DiagnosisRepository.class);
+        allergenRepository = mock(AllergenRepository.class);
+        diagnosisRepository = mock(DiagnosisRepository.class);
+        healthRecordRepository = mock(HealthRecordRepository.class);
+
 
         healthRecordService = new HealthRecordServiceImpl(allergyRepository,
                 diagnosisRepository,
