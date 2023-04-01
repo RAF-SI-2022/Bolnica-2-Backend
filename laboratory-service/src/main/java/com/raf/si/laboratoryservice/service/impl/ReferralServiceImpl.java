@@ -8,20 +8,14 @@ import com.raf.si.laboratoryservice.mapper.ReferralMapper;
 import com.raf.si.laboratoryservice.model.Referral;
 import com.raf.si.laboratoryservice.repository.ReferralRepository;
 import com.raf.si.laboratoryservice.service.ReferralService;
-import com.raf.si.laboratoryservice.utils.TokenPayload;
 import com.raf.si.laboratoryservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -45,7 +39,6 @@ public class ReferralServiceImpl implements ReferralService {
     @Override
     public ReferralListResponse referralHistory(UUID lbp, Timestamp dateFrom, Timestamp dateTo, Pageable pageable) {
         Page<Referral> referralPage = referralRepository.findByLbpAndCreationTimeBetweenAndDeletedFalse(lbp, dateFrom, dateTo, pageable);
-//        Page<Referral> referralPage = referralRepository.findByPatientIdAndCreationTimeBetween(lbp, dateFrom, dateTo, pageable);
         return referralMapper.referralPageToReferralListResponse(referralPage);
     }
     @Override

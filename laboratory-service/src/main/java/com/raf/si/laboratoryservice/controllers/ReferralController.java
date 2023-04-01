@@ -6,12 +6,11 @@ import com.raf.si.laboratoryservice.dto.response.ReferralResponse;
 import com.raf.si.laboratoryservice.service.ReferralService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
 import java.util.UUID;
-
-import static org.springframework.http.ResponseEntity.ok;
 
 
 @RestController
@@ -24,13 +23,13 @@ public class ReferralController {
         this.referralService = referralService;
     }
 
-//    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" + "or hasRole('ROLE_DR_SPEC')" + "or hasRole('ROLE_DR_SPEC_POV')")
+    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" + "or hasRole('ROLE_DR_SPEC')" + "or hasRole('ROLE_DR_SPEC_POV')")
     @PostMapping(path = "/create")
     public ResponseEntity<ReferralResponse> createReferral(@RequestBody CreateReferralRequest createReferralRequest) {
         return ResponseEntity.ok(referralService.createReferral(createReferralRequest));
     }
 
-    //    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" + "or hasRole('ROLE_DR_SPEC')" + "or hasRole('ROLE_DR_SPEC_POV')")
+    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" + "or hasRole('ROLE_DR_SPEC')" + "or hasRole('ROLE_DR_SPEC_POV')")
     @GetMapping(value = "/history")
     public ResponseEntity<ReferralListResponse> referralHistory(@RequestParam UUID lbp,
                                                                 @RequestParam Timestamp dateFrom,
@@ -39,13 +38,13 @@ public class ReferralController {
         return ResponseEntity.ok(referralService.referralHistory(lbp, dateFrom, dateTo, PageRequest.of(page, size)));
     }
 
-    //    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" + "or hasRole('ROLE_DR_SPEC')" + "or hasRole('ROLE_DR_SPEC_POV')")
+    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" + "or hasRole('ROLE_DR_SPEC')" + "or hasRole('ROLE_DR_SPEC_POV')")
     @GetMapping(value = "/{id}")
     public ResponseEntity<ReferralResponse> getReferral(@PathVariable Long id) {
         return ResponseEntity.ok(referralService.getReferral(id));
     }
 
-    //    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" + "or hasRole('ROLE_DR_SPEC')" + "or hasRole('ROLE_DR_SPEC_POV')")
+    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" + "or hasRole('ROLE_DR_SPEC')" + "or hasRole('ROLE_DR_SPEC_POV')")
     @DeleteMapping(value = "/delete/{id}")
     public ResponseEntity<ReferralResponse> deleteReferral(@PathVariable Long id) {
         return ResponseEntity.ok(referralService.deleteReferral(id));
