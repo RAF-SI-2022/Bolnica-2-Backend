@@ -17,6 +17,7 @@ import java.util.Optional;
 
 @Repository
 public interface MedicalHistoryRepository extends JpaRepository<MedicalHistory, Long>, JpaSpecificationExecutor<MedicalHistory> {
+    
     Optional<List<MedicalHistory>> findByHealthRecord(HealthRecord healthRecord);
 
     @Modifying
