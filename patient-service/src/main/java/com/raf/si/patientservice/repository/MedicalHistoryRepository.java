@@ -13,9 +13,12 @@ import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MedicalHistoryRepository extends JpaRepository<MedicalHistory, Long>, JpaSpecificationExecutor<MedicalHistory> {
+    Optional<List<MedicalHistory>> findByHealthRecord(HealthRecord healthRecord);
+
     @Modifying
     @Query("update MedicalHistory m set m.deleted=true where m.healthRecord=:hr")
     Integer updateDeletedByHealthRecord(@PathVariable HealthRecord hr);
