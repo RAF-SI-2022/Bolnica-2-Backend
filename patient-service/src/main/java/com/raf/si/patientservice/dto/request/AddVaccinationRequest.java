@@ -8,8 +8,7 @@ import lombok.Setter;
 import javax.validation.constraints.NotEmpty;
 import java.util.Date;
 
-@Getter
-@Setter
+
 @NoArgsConstructor
 @Data
 public class AddVaccinationRequest {
