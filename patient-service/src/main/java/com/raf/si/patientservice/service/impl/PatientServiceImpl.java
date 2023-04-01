@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -63,7 +64,7 @@ public class PatientServiceImpl implements PatientService {
         HealthRecord healthRecord = new HealthRecord();
         patient.setHealthRecord(healthRecord);
 
-        patientRepository.save(patient);
+        patient = patientRepository.save(patient);
         healthRecordRepository.save(healthRecord);
 
         log.info(String.format("Pacijent sa lbp-om '%s' uspesno sacuvan", patient.getLbp()));
@@ -75,7 +76,7 @@ public class PatientServiceImpl implements PatientService {
         Patient patient = findPatient(patientRequest.getJmbg());
 
         patient = patientMapper.patientRequestToPatient(patient, patientRequest);
-        patientRepository.save(patient);
+        patient = patientRepository.save(patient);
         log.info(String.format("Pacijent sa lbp-om '%s' uspesno sacuvan", patient.getLbp()));
         return patientMapper.patientToPatientResponse(patient);
     }
@@ -85,7 +86,7 @@ public class PatientServiceImpl implements PatientService {
         Patient patient = findPatient(lbp);
 
         patient = patientMapper.patientRequestToPatient(patient, patientRequest);
-        patientRepository.save(patient);
+        patient = patientRepository.save(patient);
         log.info(String.format("Pacijent sa lbp-om '%s' uspesno sacuvan", lbp));
         return patientMapper.patientToPatientResponse(patient);
     }
@@ -96,36 +97,17 @@ public class PatientServiceImpl implements PatientService {
         Patient patient = findPatient(lbp);
 
         patient.setDeleted(true);
-        patientRepository.save(patient);
+        patient = patientRepository.save(patient);
 
         HealthRecord healthRecord = patient.getHealthRecord();
         healthRecord.setDeleted(true);
         healthRecordRepository.save(healthRecord);
 
-        for(Allergy allergy: healthRecord.getAllergies()){
-            allergy.setDeleted(true);
-            allergyRepository.save(allergy);
-        }
-
-        for(MedicalExamination medicalExamination: healthRecord.getMedicalExaminations()){
-            medicalExamination.setDeleted(true);
-            medicalExaminationRepository.save(medicalExamination);
-        }
-
-        for(MedicalHistory medicalHistory: healthRecord.getMedicalHistory()){
-            medicalHistory.setDeleted(true);
-            medicalHistoryRepository.save(medicalHistory);
-        }
-
-        for(Operation operation: healthRecord.getOperations()){
-            operation.setDeleted(true);
-            operationRepository.save(operation);
-        }
-
-        for(Vaccination vaccination: healthRecord.getVaccinations()){
-            vaccination.setDeleted(true);
-            vaccinationRepository.save(vaccination);
-        }
+        allergyRepository.updateDeletedByHealthRecord(healthRecord);
+        operationRepository.updateDeletedByHealthRecord(healthRecord);
+        medicalHistoryRepository.updateDeletedByHealthRecord(healthRecord);
+        medicalExaminationRepository.updateDeletedByHealthRecord(healthRecord);
+        vaccinationRepository.updateDeletedByHealthRecord(healthRecord);
 
         log.info(String.format("Pacijent sa lbp-om '%s' uspesno obrisan", lbp));
         return patientMapper.patientToPatientResponse(patient);

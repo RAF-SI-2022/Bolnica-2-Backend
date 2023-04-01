@@ -6,4 +6,4 @@ RUN mvn -f /usr/src/app/pom.xml clean package -DskipTests
 FROM openjdk:11
 COPY --from=build /usr/src/app/target/laboratory-service-0.0.1-SNAPSHOT.jar /usr/app/laboratory-service-0.0.1-SNAPSHOT.jar
 EXPOSE 8083
-CMD ["java","-jar","/usr/app/laboratory-service-0.0.1-SNAPSHOT.jar"]
+CMD ["java","-Dspring.profiles.active=prod","-jar","/usr/app/laboratory-service-0.0.1-SNAPSHOT.jar"]

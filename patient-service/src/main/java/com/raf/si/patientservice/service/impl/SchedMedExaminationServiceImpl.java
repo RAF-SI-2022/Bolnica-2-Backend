@@ -137,17 +137,17 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
 
         scheduledMedExamRepository.delete(scheduledMedExamination);
 
+        log.info(String.format("Zakazani pregled sa id '%d' uspešno izbrisan", id));
         return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
     }
 
 
-
+    @Transactional
     @Override
     public SchedMedExamListResponse getSchedMedExaminationByLbz(UUID lbz, Date appointmentDate
             , String token, Pageable pageable) {
 
         ResponseEntity<UserResponse> response;
-        Page<ScheduledMedExamination> medExaminationList;
         /**
          * checking whether the employee is a doctor, as well as whether there is an
          * employee with a forwarded lbz.
@@ -174,7 +174,13 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
                 throw new BadRequestException(errMessage);
             }
         } catch (RestClientException e) {
-            throw new InternalServerErrorException("Error calling user service: " + e.getMessage());
+            String errMessage = String.format("Error when calling user service: " + e.getMessage());
+            log.info(errMessage);
+            throw new InternalServerErrorException("Error when calling user service: " + e.getMessage());
+        } catch (IllegalArgumentException e){
+            String errMessage = String.format("Error when calling user service: " + e.getMessage());
+            log.info(errMessage);
+            throw  new InternalServerErrorException("Error when calling user service "+ e.getMessage());
         }
 
         ScheduledMedExamFilter scheduledMedExamFilter= new ScheduledMedExamFilter(lbz, appointmentDate);
@@ -182,6 +188,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
 
         Page<ScheduledMedExamination> medExaminationPage= scheduledMedExamRepository.findAll(specification, pageable);
 
+        log.info(String.format("Uspesno pronadjeni zakazani pregledi za docu lbza '%s'", lbz));
         return schedMedExamMapper.schedMedExamPageToSchedMedExamListResponse(medExaminationPage);
     }
 
@@ -207,8 +214,6 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
 
     }
     
-    
-
     private int max(int first, int... rest) {
         int ret = first;
         for (int val : rest) {

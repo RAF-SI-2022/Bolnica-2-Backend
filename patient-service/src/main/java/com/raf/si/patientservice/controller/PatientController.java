@@ -39,7 +39,7 @@ public class PatientController {
 
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @PutMapping("/update/{lbp}")
-    public ResponseEntity<PatientResponse> updatePatientByJmbg(@Valid @RequestBody PatientRequest patientRequest,
+    public ResponseEntity<PatientResponse> updatePatientByLbp(@Valid @RequestBody PatientRequest patientRequest,
                                                                @PathVariable("lbp") UUID lbp){
         return ResponseEntity.ok(patientService.updatePatientByLbp(patientRequest, lbp));
     }
