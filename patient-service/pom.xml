@@ -22,7 +22,6 @@
         <spring-boot-autoconfigure.version>2.7.9</spring-boot-autoconfigure.version>
         <junit-jupiter.version>5.9.2</junit-jupiter.version>
         <mockito-inline.version>3.8.0</mockito-inline.version>
-        <testcontainers.version>1.17.3</testcontainers.version>
         <cucumber.version>7.11.1</cucumber.version>
     </properties>
     <dependencies>
@@ -131,23 +130,32 @@
             <artifactId>junit-platform-suite</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-java</artifactId>
             <version>${cucumber.version}</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-spring</artifactId>
             <version>${cucumber.version}</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-junit-platform-engine</artifactId>
             <version>${cucumber.version}</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-core</artifactId>
+            <version>${cucumber.version}</version>
         </dependency>
     </dependencies>
 
