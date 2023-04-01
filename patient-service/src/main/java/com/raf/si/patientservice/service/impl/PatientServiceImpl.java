@@ -103,35 +103,11 @@ public class PatientServiceImpl implements PatientService {
         healthRecord.setDeleted(true);
         healthRecordRepository.save(healthRecord);
 
-        List<Allergy> allergies = allergyRepository.findByHealthRecord(healthRecord);
-        for(Allergy allergy: allergies){
-            allergy.setDeleted(true);
-            allergyRepository.save(allergy);
-        }
-
-        List<MedicalExamination> examinations = medicalExaminationRepository.findByHealthRecord(healthRecord);
-        for(MedicalExamination medicalExamination: examinations){
-            medicalExamination.setDeleted(true);
-            medicalExaminationRepository.save(medicalExamination);
-        }
-
-        List<MedicalHistory> medicalHistoryList = medicalHistoryRepository.findByHealthRecord(healthRecord);
-        for(MedicalHistory medicalHistory: medicalHistoryList){
-            medicalHistory.setDeleted(true);
-            medicalHistoryRepository.save(medicalHistory);
-        }
-
-        List<Operation> operations = operationRepository.findByHealthRecord(healthRecord);
-        for(Operation operation: operations){
-            operation.setDeleted(true);
-            operationRepository.save(operation);
-        }
-
-        List<Vaccination> vaccinations = vaccinationRepository.findByHealthRecord(healthRecord);
-        for(Vaccination vaccination: vaccinations){
-            vaccination.setDeleted(true);
-            vaccinationRepository.save(vaccination);
-        }
+        allergyRepository.updateDeletedByHealthRecord(healthRecord);
+        operationRepository.updateDeletedByHealthRecord(healthRecord);
+        medicalHistoryRepository.updateDeletedByHealthRecord(healthRecord);
+        medicalExaminationRepository.updateDeletedByHealthRecord(healthRecord);
+        vaccinationRepository.updateDeletedByHealthRecord(healthRecord);
 
         log.info(String.format("Pacijent sa lbp-om '%s' uspesno obrisan", lbp));
         return patientMapper.patientToPatientResponse(patient);
