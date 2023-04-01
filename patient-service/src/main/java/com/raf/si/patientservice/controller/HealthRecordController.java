@@ -1,9 +1,6 @@
 package com.raf.si.patientservice.controller;
 
-import com.raf.si.patientservice.dto.request.AddAllergyRequest;
-import com.raf.si.patientservice.dto.request.AddVaccinationRequest;
-import com.raf.si.patientservice.dto.request.MedicalExaminationFilterRequest;
-import com.raf.si.patientservice.dto.request.UpdateHealthRecordRequest;
+import com.raf.si.patientservice.dto.request.*;
 import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.service.HealthRecordService;
 import lombok.extern.slf4j.Slf4j;
@@ -60,17 +57,17 @@ public class HealthRecordController{
             "or hasRole('ROLE_DR_SPEC')" +
             "or hasRole('ROLE_DR_SPEC_POV')")
     @PutMapping("/{lbp}")
-    public ResponseEntity<MessageResponse> updateHealthRecord(@PathVariable("lbp") UUID lbp,
+    public ResponseEntity<BasicHealthRecordResponse> updateHealthRecord(@PathVariable("lbp") UUID lbp,
                                                               @Valid @RequestBody UpdateHealthRecordRequest updateHealthRecordRequest){
 
-        return ResponseEntity.ok(healthRecordService.updateHealthrecord(updateHealthRecordRequest, lbp));
+        return ResponseEntity.ok(healthRecordService.updateHealthRecord(updateHealthRecordRequest, lbp));
     }
 
     @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" +
             "or hasRole('ROLE_DR_SPEC')" +
             "or hasRole('ROLE_DR_SPEC_POV')")
-    @PutMapping("add_alergy/{lbp}")
-    public ResponseEntity<MessageResponse> addAlergy(@PathVariable("lbp") UUID lbp,
+    @PutMapping("add-alergy/{lbp}")
+    public ResponseEntity<ExtendedAllergyResponse> addAlergy(@PathVariable("lbp") UUID lbp,
                                                      @Valid @RequestBody AddAllergyRequest addAllergyRequest){
 
         return ResponseEntity.ok(healthRecordService.addAllergy(addAllergyRequest, lbp));
@@ -80,11 +77,22 @@ public class HealthRecordController{
     @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" +
             "or hasRole('ROLE_DR_SPEC')" +
             "or hasRole('ROLE_DR_SPEC_POV')")
-    @PutMapping("add_vaccination/{lbp}")
-    public ResponseEntity<MessageResponse> addVaccination(@PathVariable("lbp") UUID lbp,
-                                                     @Valid @RequestBody AddVaccinationRequest addVaccinationRequest){
+    @PutMapping("add-vaccination/{lbp}")
+    public ResponseEntity<ExtendedVaccinationResponse> addVaccination(@PathVariable("lbp") UUID lbp,
+                                                                      @Valid @RequestBody AddVaccinationRequest addVaccinationRequest){
 
         return ResponseEntity.ok(healthRecordService.addVaccination(addVaccinationRequest, lbp));
+    }
+
+    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" +
+            "or hasRole('ROLE_DR_SPEC')" +
+            "or hasRole('ROLE_DR_SPEC_POV')")
+    @PostMapping("create-examination-report/{lbp}")
+    public ResponseEntity<MessageResponse> createExaminationReport(@PathVariable("lbp") UUID lbp,
+                                                          @RequestParam UUID lbz,
+                                                          @Valid @RequestBody CreateExaminationReportRequest createExaminationReportRequest){
+
+        return ResponseEntity.ok(healthRecordService.createExaminationReportRequest(lbp, lbz, createExaminationReportRequest));
     }
 
     @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" +
@@ -121,4 +129,7 @@ public class HealthRecordController{
 
         return ResponseEntity.ok(healthRecordService.findMedicalHistory(lbp, mkb10, PageRequest.of(page, size)));
     }
+
+
+
 }

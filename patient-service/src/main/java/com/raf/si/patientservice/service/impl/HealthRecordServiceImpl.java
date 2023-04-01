@@ -1,16 +1,11 @@
 package com.raf.si.patientservice.service.impl;
 
-import com.raf.si.patientservice.dto.request.AddAllergyRequest;
-import com.raf.si.patientservice.dto.request.AddVaccinationRequest;
-import com.raf.si.patientservice.dto.request.MedicalExaminationFilterRequest;
-import com.raf.si.patientservice.dto.request.UpdateHealthRecordRequest;
+import com.raf.si.patientservice.dto.request.*;
 import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.mapper.HealthRecordMapper;
 import com.raf.si.patientservice.model.*;
-import com.raf.si.patientservice.model.enums.healthrecord.BloodType;
-import com.raf.si.patientservice.model.enums.healthrecord.RHFactor;
 import com.raf.si.patientservice.repository.*;
 import com.raf.si.patientservice.repository.filtering.filter.MedicalExaminationFilter;
 import com.raf.si.patientservice.repository.filtering.filter.MedicalHistoryFilter;
@@ -19,12 +14,14 @@ import com.raf.si.patientservice.repository.filtering.specification.MedicalHisto
 import com.raf.si.patientservice.service.HealthRecordService;
 import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import javax.mail.Message;
 import java.util.*;
 
 @Slf4j
@@ -45,12 +42,15 @@ public class HealthRecordServiceImpl implements HealthRecordService {
 
     private final HealthRecordRepository healthRecordRepository;
 
+    private final DiagnosisRepository diagnosisRepository;
+
     private final PatientService patientService;
 
     private final HealthRecordMapper healthRecordMapper;
 
 
     public HealthRecordServiceImpl(AllergyRepository allergyRepository,
+                                   DiagnosisRepository diagnosisRepository,
                                    AllergenRepository allergenRepository,
                                    VaccineRepository vaccineRepository,
                                    VaccinationRepository vaccinationRepository,
@@ -60,6 +60,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                                    HealthRecordRepository healthRecordRepository,
                                    PatientService patientService,
                                    HealthRecordMapper healthRecordMapper) {
+        this.diagnosisRepository = diagnosisRepository;
         this.allergyRepository = allergyRepository;
         this.allergenRepository = allergenRepository;
         this.vaccineRepository = vaccineRepository;
@@ -191,37 +192,24 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     }
 
     @Override
-    public MessageResponse updateHealthrecord(UpdateHealthRecordRequest updateHealthRecordRequest, UUID lbp) {
-
-        // proveri da li su vrednosti koje je korisnik poslao dobre
-        BloodType bt = BloodType.forName(updateHealthRecordRequest.getBlodtype());
-        //log.info(bt.toString());
-        if(bt == null) {
-            String errMessage = String.format("Nepoznata krvna grupa '%s'", updateHealthRecordRequest.getBlodtype());
-            log.info(errMessage);
-            throw new BadRequestException(errMessage);
-        }
-        RHFactor rhf = RHFactor.valueOfNotation(updateHealthRecordRequest.getRhfactor());
-        if (rhf == null) {
-            String errMessage = String.format("Nepoznat rh faktor '%s'", updateHealthRecordRequest.getRhfactor());
-            log.info(errMessage);
-            throw new BadRequestException(errMessage);
-        }
+    public BasicHealthRecordResponse updateHealthRecord(UpdateHealthRecordRequest updateHealthRecordRequest, UUID lbp) {
 
         // getrecordbylbp
         HealthRecord healthRecord = getRecordByLbp(lbp);
 
         //update podatke
-        healthRecord = healthRecordMapper.updateHealthRecordRequestToHealthRecord(bt,rhf, healthRecord);
+        healthRecord = healthRecordMapper.updateHealthRecordRequestToHealthRecord( updateHealthRecordRequest, healthRecord);
 
         // update podatke u bazi
-        healthRecordRepository.save(healthRecord);
+        healthRecord = healthRecordRepository.save(healthRecord);
 
-        return new MessageResponse("uspesno azurirani podaci zdravstvenog kartona");
+        BasicHealthRecordResponse basicHealthRecordResponse = healthRecordMapper.healthRecordToBasicHealthRecordResponse(lbp, healthRecord);
+
+        return basicHealthRecordResponse;
     }
 
     @Override
-    public MessageResponse addAllergy(AddAllergyRequest addAllergyRequest, UUID lbp) {
+    public ExtendedAllergyResponse addAllergy(AddAllergyRequest addAllergyRequest, UUID lbp) {
 
         // proveri da li su vrednosti koje je korisnik poslao dobre
         Allergen allergen = allergenRepository.findByName(addAllergyRequest.getAllergen())
@@ -244,16 +232,20 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         }
 
         //update podatke
-        Allergy allergy = healthRecordMapper.addAllergyRequestToVaccinatin(addAllergyRequest, healthRecord, allergen);
+        Allergy allergy = healthRecordMapper.addAllergyRequestToAllergy(addAllergyRequest, healthRecord, allergen);
+
+        healthRecord.getAllergies().add(allergy);
 
         // update podatke u bazi
-        allergyRepository.save(allergy);
+        allergy = allergyRepository.save(allergy);
 
-        return new MessageResponse("uspesno dodata alergija");
+        ExtendedAllergyResponse extendedAllergyResponse = healthRecordMapper.allergyToExtendedAllergyResponse(healthRecord, allergy);
+        return extendedAllergyResponse;
     }
 
     @Override
-    public MessageResponse addVaccination(AddVaccinationRequest addVaccinationRequest, UUID lbp) {
+    public ExtendedVaccinationResponse addVaccination(AddVaccinationRequest addVaccinationRequest, UUID lbp) {
+
 
         // proveri da li su vrednosti koje je korisnik poslao dobre
         Vaccine vaccine = vaccineRepository.findByName(addVaccinationRequest.getVaccine())
@@ -265,6 +257,12 @@ public class HealthRecordServiceImpl implements HealthRecordService {
 
         // proveri da li je datum manji od trenutnog vremena
         Date vaccinationDate = addVaccinationRequest.getDate();
+        if (vaccinationDate==null) {
+            String errMessage = String.format("polje 'date' ne sme da bude prazno", addVaccinationRequest.getVaccine());
+            log.info(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+
         if(vaccinationDate.compareTo(new Date(System.currentTimeMillis())) < 0){
             String errMessage = String.format("nije moguce upisati buducu vakcinaciju");
             log.info(errMessage);
@@ -294,13 +292,14 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         //update podatke
         Vaccination vaccination = healthRecordMapper.addVaccinationRequestToVaccinatin(addVaccinationRequest, healthRecord, vaccine);
 
-        // update podatke u bazi
-        vaccinationRepository.save(vaccination);
+        healthRecord.getVaccinations().add(vaccination);
 
         // update podatke u bazi
-        healthRecordRepository.save(healthRecord);
+        vaccination = vaccinationRepository.save(vaccination);
 
-        return new MessageResponse("uspesno dodata vakcinacija");
+        ExtendedVaccinationResponse extendedVaccinationResponse = healthRecordMapper.vaccinationToExtendedVaccinationResponse(healthRecord, vaccination);
+
+        return extendedVaccinationResponse;
     }
 
     @Override
@@ -312,7 +311,87 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     @Override
     public AllergenListResponse getAvailableAllergens() {
         List<Allergen> vaccines = allergenRepository.findAll();
-        return healthRecordMapper.allergenListToVaccineListResponse(vaccines);
+        return healthRecordMapper.allergenListToAllergenListResponse(vaccines);
+    }
+
+    @Override
+    public MessageResponse createExaminationReportRequest(UUID lbp, UUID lbz, CreateExaminationReportRequest createExaminationReportRequest) {
+
+        // ako ima confidential, onda proveriti da je auth doktor specijalista
+        if(createExaminationReportRequest.getConfidential()!=null && createExaminationReportRequest.getConfidential().equals(Boolean.TRUE) && !canGetConfidential()){
+            String errMessage = String.format("ovaj korisnik ne moze kreirati confidential examination");
+            log.info(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+
+        HealthRecord healthRecord = getRecordByLbp(lbp);
+        Diagnosis diagnosis = null;
+        if(createExaminationReportRequest.getDiagnosis() != null) {
+            diagnosis = diagnosisRepository.findByCode(createExaminationReportRequest.getDiagnosis()).orElseThrow(() -> {
+                String errMessage = String.format("diagnosis mkb10 code '%s' not found in database", createExaminationReportRequest.getDiagnosis());
+                log.info(errMessage);
+                throw new BadRequestException(errMessage);
+            });
+        }
+
+        MedicalExamination medicalExamination = healthRecordMapper.createExaminationReportRequestToExamination(lbp,
+                lbz,healthRecord,
+                createExaminationReportRequest,
+                diagnosis);
+
+        medicalExamination = medicalExaminationRepository.save(medicalExamination);
+
+        // ako ima dijagnozu
+        if(medicalExamination.getDiagnosis() != null) {
+
+            if(createExaminationReportRequest.getExistingDiagnosis() == null) {
+                String errMessage = String.format("polje 'existingDiagnosis' ne sme biti prazno");
+                log.info(errMessage);
+                throw new BadRequestException(errMessage);
+            }
+
+            if(createExaminationReportRequest.getExistingDiagnosis()) {
+
+                // nadji stari
+                List<MedicalHistory> oldMedicalHistoryList = medicalHistoryRepository.findByHealthRecord(healthRecord).get();
+                if(oldMedicalHistoryList == null ) {
+                    String errMessage = String.format("nije uspeo da dohvati istoriju bolesti za korisnika '%s'", lbp);
+                    log.info(errMessage);
+                    throw new InternalServerErrorException(errMessage);
+                }
+                MedicalHistory oldMedicalHistory = null;
+                for(MedicalHistory medicalHistory : oldMedicalHistoryList) {
+                    if( medicalHistory.getDiagnosis().getCode().equals(medicalExamination.getDiagnosis().getCode())){
+                        oldMedicalHistory = medicalHistory;
+                    }
+                }
+                if(oldMedicalHistory==null) {
+                    String errMessage = String.format("korisnik '%s' nema postojecu dijagnozu '%s'", lbp, medicalExamination.getDiagnosis().getCode());
+                    log.info(errMessage);
+                    throw new BadRequestException(errMessage);
+                }
+
+                // kreiraj novi
+                MedicalHistory medicalHistory = healthRecordMapper.medicalExaminationToMedicalHistory(medicalExamination, healthRecord, oldMedicalHistory, createExaminationReportRequest);
+
+                // izmeni validnost starog record-a
+                oldMedicalHistory.setValid(false);
+                oldMedicalHistory.setValidUntil(new Date());
+
+                // zapamti novi i stari
+                medicalHistoryRepository.save(oldMedicalHistory);
+                medicalHistoryRepository.save(medicalHistory);
+            }
+            else {
+                // kreiraj novi
+                MedicalHistory medicalHistory = healthRecordMapper.medicalExaminationToMedicalHistory(medicalExamination, healthRecord, null, createExaminationReportRequest);
+
+                // zapamti novi
+                medicalHistoryRepository.save(medicalHistory);
+            }
+        }
+
+        return new MessageResponse("uspesno upisan pregled");
     }
 
 }
