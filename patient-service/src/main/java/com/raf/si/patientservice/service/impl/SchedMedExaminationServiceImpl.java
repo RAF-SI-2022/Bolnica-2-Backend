@@ -2,11 +2,15 @@ package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
 import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
+import com.raf.si.patientservice.dto.response.PatientResponse;
+import com.raf.si.patientservice.dto.response.SchedMedExamExtendedResponse;
 import com.raf.si.patientservice.dto.response.SchedMedExamListResponse;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 import com.raf.si.patientservice.dto.response.http.UserResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
+import com.raf.si.patientservice.exception.NotFoundException;
+import com.raf.si.patientservice.mapper.PatientMapper;
 import com.raf.si.patientservice.mapper.SchedMedExamMapper;
 import com.raf.si.patientservice.model.ScheduledMedExamination;
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
@@ -24,9 +28,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -36,19 +41,21 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
     private final ScheduledMedExamRepository scheduledMedExamRepository;
     private final PatientRepository patientRepository;
     private final SchedMedExamMapper schedMedExamMapper;
+    private  final PatientMapper patientMapper;
     @Value("${duration.of.exam}")
     private int DURATION_OF_EXAM;
 
-    public SchedMedExaminationServiceImpl(ScheduledMedExamRepository scheduledMedExamRepository, PatientRepository patientRepository, SchedMedExamMapper schedMedExamMapper) {
+    public SchedMedExaminationServiceImpl(ScheduledMedExamRepository scheduledMedExamRepository, PatientRepository patientRepository, SchedMedExamMapper schedMedExamMapper, PatientMapper patientMapper) {
         this.scheduledMedExamRepository = scheduledMedExamRepository;
         this.patientRepository = patientRepository;
         this.schedMedExamMapper = schedMedExamMapper;
+        this.patientMapper = patientMapper;
     }
 
 
     @Override
     @Transactional
-    public SchedMedExamResponse createSchedMedExamination(SchedMedExamRequest schedMedExamRequest) {
+    public SchedMedExamResponse createSchedMedExamination(SchedMedExamRequest schedMedExamRequest, String token) {
 
         /**
          * Check if there are any ongoing appointments for the requested doctor at the requested time,
@@ -73,13 +80,10 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
             log.info(errMessage);
             throw new BadRequestException(errMessage);
         }
-
-
         /**
-         * #TODO
          * Checking if there is a referred doctor
          */
-
+        isGivenLbzDoctors(schedMedExamRequest.getLbzDoctor(),token);
 
         /**
          * Checking if there is a referred patient in the database, there should be.
@@ -147,41 +151,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
     public SchedMedExamListResponse getSchedMedExaminationByLbz(UUID lbz, Date appointmentDate
             , String token, Pageable pageable) {
 
-        ResponseEntity<UserResponse> response;
-        /**
-         * checking whether the employee is a doctor, as well as whether there is an
-         * employee with a forwarded lbz.
-         */
-        try {
-           response = HttpUtils.findUserByLbz(token, lbz);
-
-            if (response.getStatusCode() == HttpStatus.OK) {
-                UserResponse responseBody = response.getBody();
-
-                int isDoctor = max(responseBody.getPermissions().indexOf("ROLE_DR_SPEC_ODELJENJA")
-                        , responseBody.getPermissions().indexOf("ROLE_DR_SPEC")
-                        , responseBody.getPermissions().indexOf("ROLE_DR_SPEC_POV"));
-
-                if (isDoctor == -1) {
-                    String errMessage = String.format("Zaposleni sa id-om '%s' nije doktor", lbz);
-                    log.info(errMessage);
-                    throw new BadRequestException(errMessage);
-                }
-
-            } else {
-                String errMessage = String.format("Zaposleni sa id-om '%s' ne postoji", lbz);
-                log.info(errMessage);
-                throw new BadRequestException(errMessage);
-            }
-        } catch (RestClientException e) {
-            String errMessage = String.format("Error when calling user service: " + e.getMessage());
-            log.info(errMessage);
-            throw new InternalServerErrorException("Error when calling user service: " + e.getMessage());
-        } catch (IllegalArgumentException e){
-            String errMessage = String.format("Error when calling user service: " + e.getMessage());
-            log.info(errMessage);
-            throw  new InternalServerErrorException("Error when calling user service "+ e.getMessage());
-        }
+        isGivenLbzDoctors(lbz,token);
 
         ScheduledMedExamFilter scheduledMedExamFilter= new ScheduledMedExamFilter(lbz, appointmentDate);
         ScheduledMedExamSpecification specification= new ScheduledMedExamSpecification(scheduledMedExamFilter);
@@ -189,7 +159,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
         Page<ScheduledMedExamination> medExaminationPage= scheduledMedExamRepository.findAll(specification, pageable);
 
         log.info(String.format("Uspesno pronadjeni zakazani pregledi za docu lbza '%s'", lbz));
-        return schedMedExamMapper.schedMedExamPageToSchedMedExamListResponse(medExaminationPage);
+        return schedMedExamPageToSchedMedExamExtendListResponse(medExaminationPage);
     }
 
     @Override
@@ -220,6 +190,60 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
             ret = Math.max(ret, val);
         }
         return ret;
+    }
+
+    private SchedMedExamListResponse schedMedExamPageToSchedMedExamExtendListResponse(Page<ScheduledMedExamination> medExaminationPage) {
+        SchedMedExamListResponse schedMedExamListResponse=schedMedExamMapper.schedMedExamPageToSchedMedExamListResponse
+                (medExaminationPage);
+
+        List<SchedMedExamExtendedResponse> updatedResponses = schedMedExamListResponse.getSchedMedExamResponseList()
+                .stream()
+                .map(schedMedExamResponse -> {
+                    UUID lbp = schedMedExamResponse.getLbp();
+                    PatientResponse patientResponse = patientMapper.patientToPatientResponse(patientRepository.findByLbp(lbp).get());
+                    schedMedExamResponse.setPatientResponse(patientResponse);
+                    return schedMedExamResponse;
+                }).collect(Collectors.toList());
+
+        schedMedExamListResponse.setSchedMedExamResponseList(updatedResponses);
+        return schedMedExamListResponse;
+    }
+
+    private void isGivenLbzDoctors(UUID lbz, String token){
+        ResponseEntity<UserResponse> response;
+
+        /**
+         * checking whether the employee is a doctor, as well as whether there is an
+         * employee with a forwarded lbz.
+         */
+        try {
+
+            response = HttpUtils.findUserByLbz(token, lbz);
+            UserResponse responseBody = response.getBody();
+
+            int isDoctor = max(responseBody.getPermissions().indexOf("ROLE_DR_SPEC_ODELJENJA")
+                    , responseBody.getPermissions().indexOf("ROLE_DR_SPEC")
+                    , responseBody.getPermissions().indexOf("ROLE_DR_SPEC_POV"));
+
+             if (isDoctor == -1) {
+                String errMessage = String.format("Zaposleni sa id-om '%s' nije doktor", lbz);
+                log.info(errMessage);
+                throw new BadRequestException(errMessage);
+             }
+
+
+        } catch (IllegalArgumentException e) {
+            String errMessage = String.format("Error when calling user service: " + e.getMessage());
+            log.info(errMessage);
+            throw new InternalServerErrorException("Error when calling user service: " + e.getMessage());
+        }catch (HttpClientErrorException e) {
+            if(e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                String errMessage = String.format("Zaposleni sa id-om '%s' ne postoji", lbz);
+                log.info(errMessage);
+                throw new NotFoundException(errMessage);
+            }
+            throw new InternalServerErrorException("Error when calling user service: " + e.getMessage());
+        }
     }
 }
 

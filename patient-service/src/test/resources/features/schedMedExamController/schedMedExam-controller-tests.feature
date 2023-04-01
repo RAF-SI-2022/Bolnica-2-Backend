@@ -49,3 +49,14 @@ Feature: Service for Scheduled Medical Examination
   Scenario: Nurse updates the patient arrival status of a scheduled medical exam to unidentified exam status
     When Nurse tries to update the patient arrival status of a scheduled medical exam to unidentified exam status
     Then BadRequestException is thrown with status code 400 for unidentified exam status of update operation
+
+  Scenario: Nurse searches for scheduled medical exam for a doctor
+    When Nurse gives valid information for search
+    Then Nurse gets list of scheduled medical exam for doctor
+
+  Scenario: Nurse searches for scheduled medical exam for a doctor which lbz id does not exists
+    When Nurse tries to get scheduled medical exam for a doctor which lbz id does not exists
+    Then BadRequestException is thrown with status code 404 for doctor lbz id which id does not exists
+
+
+

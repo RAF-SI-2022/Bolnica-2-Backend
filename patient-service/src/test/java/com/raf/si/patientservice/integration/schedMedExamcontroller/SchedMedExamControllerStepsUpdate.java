@@ -158,6 +158,4 @@ public class SchedMedExamControllerStepsUpdate extends CucumberConfig {
         resultAction.andExpect(status().is(statusCode));
     }
 
-
-
 }

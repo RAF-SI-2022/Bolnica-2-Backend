@@ -16,7 +16,7 @@ import java.util.UUID;
 @Repository
 public interface ScheduledMedExamRepository extends JpaRepository<ScheduledMedExamination,Long>, JpaSpecificationExecutor<ScheduledMedExamination> {
 
-    Optional<ScheduledMedExamination> findByLbzDoctor(UUID lbzDoctor);
+    Optional<List<ScheduledMedExamination>> findByLbzDoctor(UUID lbzDoctor);
     Optional<List<ScheduledMedExamination>> findByAppointmentDateBetweenAndLbzDoctor(Date betweenAppointments, Date appointment
             , UUID lbzDoctor);
     Optional<ScheduledMedExamination> findById(Long id);

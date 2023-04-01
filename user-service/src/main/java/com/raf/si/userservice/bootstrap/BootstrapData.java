@@ -59,7 +59,7 @@ public class BootstrapData implements CommandLineRunner {
         Department laboratoryDepartment = new Department();
         laboratoryDepartment.setName("Laboratorija");
         laboratoryDepartment.setHospital(hospital);
-        laboratoryDepartment.setPbo(UUID.randomUUID());
+        laboratoryDepartment.setPbo(UUID.fromString("4e5911c8-ce7a-11ed-afa1-0242ac120002"));
 
         Department diagnosticDepartment = new Department();
         diagnosticDepartment.setName("Dijagnostika");
@@ -88,13 +88,37 @@ public class BootstrapData implements CommandLineRunner {
         Permission medSestraPermission = new Permission();
         medSestraPermission.setName("ROLE_MED_SESTRA");
 
-        List<Permission> permissions = new ArrayList<>();
-        permissions.add(permissionsRepository.save(adminPermission));
-        permissions.add(permissionsRepository.save(drSpecOdeljenjaPermission));
-        permissions.add(permissionsRepository.save(drSpecPermission));
-        permissions.add(permissionsRepository.save(drSpecPovPermission));
-        permissions.add(permissionsRepository.save(visaMedSestraPermission));
-        permissions.add(permissionsRepository.save(medSestraPermission));
+        Permission visiLabTehnicar = new Permission();
+        visiLabTehnicar.setName("ROLE_VISI_LAB_TEHNICAR");
+
+        Permission labTehnicar = new Permission();
+        labTehnicar.setName("ROLE_LAB_TEHNICAR");
+
+        Permission medBiohemicar = new Permission();
+        medBiohemicar.setName("ROLE_MED_BIOHEMICAR");
+
+        Permission specMedBiohemije = new Permission();
+        specMedBiohemije.setName("ROLE_SPEC_MED_BIOHEMIJE");
+
+        List<Permission> adminPermissions = new ArrayList<>();
+        List<Permission> medSestraPermissions = new ArrayList<>();
+        visaMedSestraPermission = permissionsRepository.save(visaMedSestraPermission);
+        medSestraPermission = permissionsRepository.save(medSestraPermission);
+
+
+        adminPermissions.add(permissionsRepository.save(adminPermission));
+        adminPermissions.add(permissionsRepository.save(drSpecOdeljenjaPermission));
+        adminPermissions.add(permissionsRepository.save(drSpecPermission));
+        adminPermissions.add(permissionsRepository.save(drSpecPovPermission));
+        adminPermissions.add(permissionsRepository.save(visiLabTehnicar));
+        adminPermissions.add(permissionsRepository.save(labTehnicar));
+        adminPermissions.add(permissionsRepository.save(medBiohemicar));
+        adminPermissions.add(permissionsRepository.save(specMedBiohemije));
+        adminPermissions.add(visaMedSestraPermission);
+        adminPermissions.add(medSestraPermission);
+
+        medSestraPermissions.add(visaMedSestraPermission);
+        medSestraPermissions.add(medSestraPermission);
 
         User user = new User();
         user.setEmail("balkan.medic2023@outlook.com");
@@ -102,7 +126,7 @@ public class BootstrapData implements CommandLineRunner {
         user.setUsername("admin");
         user.setDepartment(chirurgyDepartment);
         user.setResidentialAddress("Admin address");
-        user.setPermissions(permissions);
+        user.setPermissions(adminPermissions);
         user.setJMBG("23112412212");
         user.setPhone("02132123132");
         user.setPlaceOfLiving("Place of living");
@@ -114,6 +138,25 @@ public class BootstrapData implements CommandLineRunner {
         user.setProfession(Profession.SPEC_HIRURG);
         user.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
 
+        User medSestra = new User();
+        medSestra.setEmail("medsestra@something.com");
+        medSestra.setPassword(passwordEncoder.encode("medsestra"));
+        medSestra.setUsername("medsestra");
+        medSestra.setDepartment(laboratoryDepartment);
+        medSestra.setResidentialAddress("address");
+        medSestra.setPermissions(medSestraPermissions);
+        medSestra.setJMBG("463453453434");
+        medSestra.setPhone("0213123112");
+        medSestra.setPlaceOfLiving("Place");
+        medSestra.setDateOfBirth(new Date());
+        medSestra.setGender("Zenski");
+        medSestra.setFirstName("Medicinska");
+        medSestra.setLastName("Sestra");
+        medSestra.setTitle(Title.DIPL_FARM);
+        medSestra.setProfession(Profession.MED_SESTRA);
+        medSestra.setLbz(UUID.fromString("3e1a51ab-a3aa-1add-a3ad-28e043f8b435"));
+
+        userRepository.save(medSestra);
         userRepository.save(user);
     }
 }
