@@ -99,11 +99,11 @@ public class BootstrapData implements CommandLineRunner {
         operation.setHealthRecord(healthRecord);
 
 
-        Diagnosis diagnosis = new Diagnosis();
-        diagnosis.setCode("A15.3");
-        diagnosis.setDescription("Grip, virus nedokazan");
-        diagnosis.setLatinDescription("Influenza, virus non identificatum");
-        diagnosisRepository.save(diagnosis);
+        Diagnosis diagnosis1 = new Diagnosis();
+        diagnosis1.setCode("djovak");
+        diagnosis1.setDescription("smrtonosna bolest mozga");
+        diagnosis1.setLatinDescription("Influenza, virus non identificatum");
+        diagnosisRepository.save(diagnosis1);
 
         MedicalExamination examination = new MedicalExamination();
         examination.setLbz(UUID.randomUUID());
@@ -114,7 +114,7 @@ public class BootstrapData implements CommandLineRunner {
         examination.setAnamnesis("Bol u grlu, temperatura, pacijentu je konstantno hladno");
         examination.setFamilyAnamnesis("Bol u grlu, temperatura");
         examination.setPatientOpinion("Streptokoke");
-        examination.setDiagnosis(diagnosis);
+        examination.setDiagnosis(diagnosis1);
         examination.setSuggestedTherapy("Odmor, septolete jednom dnevno");
         examination.setAdvice("Odmor");
 
@@ -129,7 +129,7 @@ public class BootstrapData implements CommandLineRunner {
         examination2.setHealthRecord(healthRecord);
 
         MedicalHistory medicalHistory = new MedicalHistory();
-        medicalHistory.setDiagnosis(diagnosis);
+        medicalHistory.setDiagnosis(diagnosis1);
         medicalHistory.setIllnessStart(new Date());
         medicalHistory.setTreatmentResult(TreatmentResult.U_TOKU);
         medicalHistory.setCurrentStateDescription("Trenutno stanje");
@@ -199,6 +199,41 @@ public class BootstrapData implements CommandLineRunner {
                 vaccination.setVaccinationDate(new Date());
                 vaccinationRepository.save(vaccination);
             }
+        }
+
+        //dodaj sve dijagnoze
+        String[] mkb10 = {"A15.3", "D50", "I10", "I35.0", "J11", "J12.9", "K35", "K70.3", "K71.0", "N20.0"};
+        String[] description =
+                {
+                "Tuberkuloza pluća, potvrđena neoznačenim metodama",
+                "Anemija uzrokovana nedostatkom gvožđa",
+                "Povišen krvni pritisak, nepoznatog porekla",
+                "Suženje aortnog zaliska",
+                "Grip, virus nedokazan",
+                "Zapaljenje pluća uzrokovano virusom, neoznačeno",
+                "Akutno zapaljenje slepog creva",
+                "Ciroza jetre uzrokovana alkoholom",
+                "Toksička bolest jetre zbog zastoja žuči",
+                "Kamen u bubregu"};
+        String[] latin_desc = {
+                "Tuberculosis pulmonum, methodis non specificatis confirmata",
+                "Anaemia sideropenica",
+                "Hypertensio arterialis essentialis (primaria)",
+                "Stenosis valvulae aortae non rheumatica",
+                "Influenza, virus non identificatum",
+                "Pneumonia viralis, non specificata",
+                "Appendicitis acuta",
+                "Cirrhosis hepatis alcoholica",
+                "Morbus hepatis toxicus cholestaticus",
+                "Calculus renis"};
+
+        for(int i=0;i<mkb10.length;i+=1) {
+            Diagnosis diagnosis = new Diagnosis();
+            diagnosis.setCode(mkb10[i]);
+            diagnosis.setDescription(description[i]);
+            diagnosis.setLatinDescription(latin_desc[i]);
+
+            diagnosisRepository.save(diagnosis);
         }
     }
 
