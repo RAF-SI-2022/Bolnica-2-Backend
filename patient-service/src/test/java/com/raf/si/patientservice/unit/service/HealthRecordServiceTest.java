@@ -39,6 +39,10 @@ public class HealthRecordServiceTest {
     private MedicalExaminationRepository medicalExaminationRepository;
     private MedicalHistoryRepository medicalHistoryRepository;
     private OperationRepository operationRepository;
+    private VaccineRepository vaccineRepository;
+    private AllergenRepository allergenRepository;
+    private DiagnosisRepository diagnosisRepository;
+    private HealthRecordRepository healthRecordRepository;
     private PatientService patientService;
     private HealthRecordMapper healthRecordMapper;
 
@@ -49,14 +53,22 @@ public class HealthRecordServiceTest {
         medicalExaminationRepository = mock(MedicalExaminationRepository.class);
         medicalHistoryRepository = mock(MedicalHistoryRepository.class);
         operationRepository = mock(OperationRepository.class);
+        vaccineRepository = mock(VaccineRepository.class);
+        allergenRepository = mock(AllergenRepository.class);
+        diagnosisRepository = mock(DiagnosisRepository.class);
+        healthRecordRepository = mock(HealthRecordRepository.class);
         patientService = mock(PatientService.class);
         healthRecordMapper = new HealthRecordMapper();
 
         healthRecordService = new HealthRecordServiceImpl(allergyRepository,
+                diagnosisRepository,
+                allergenRepository,
+                vaccineRepository,
                 vaccinationRepository,
                 medicalExaminationRepository,
                 medicalHistoryRepository,
                 operationRepository,
+                healthRecordRepository,
                 patientService,
                 healthRecordMapper);
     }
