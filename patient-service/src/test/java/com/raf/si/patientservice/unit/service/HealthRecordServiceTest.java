@@ -1,9 +1,6 @@
 package com.raf.si.patientservice.unit.service;
 
-import com.raf.si.patientservice.dto.request.AddAllergyRequest;
-import com.raf.si.patientservice.dto.request.AddVaccinationRequest;
-import com.raf.si.patientservice.dto.request.CreateExaminationReportRequest;
-import com.raf.si.patientservice.dto.request.MedicalExaminationFilterRequest;
+import com.raf.si.patientservice.dto.request.*;
 import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.mapper.HealthRecordMapper;
@@ -17,6 +14,8 @@ import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.impl.HealthRecordServiceImpl;
 import com.raf.si.patientservice.utils.TokenPayload;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
+import com.sun.security.auth.NTSidUserPrincipal;
+import jdk.jshell.Diag;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -50,13 +49,6 @@ public class HealthRecordServiceTest {
     private HealthRecordRepository healthRecordRepository;
     private PatientService patientService;
     private HealthRecordMapper healthRecordMapper;
-
-    private DiagnosisRepository diagnosisRepository;
-
-    private VaccineRepository vaccineRepository;
-
-    private AllergenRepository allergenRepository;
-    private HealthRecordRepository healthRecordRepository;
 
     @BeforeEach
     public void setUp(){
@@ -646,27 +638,329 @@ public class HealthRecordServiceTest {
         assertThrows(BadRequestException.class, () -> healthRecordService.addVaccination(addVaccinationRequest, patient.getLbp()));
     }
 
-    // @Test
-    // public void createExaminationReportRequest_Success() {
-    //     // kreiraj request
-    //     CreateExaminationReportRequest createExaminationReportRequest = new CreateExaminationReportRequest();
-    //     createExaminationReportRequest.setObjectiveFinding("novak je objektivan");
-    //     createExaminationReportRequest.setMainSymptoms("nema simptoma");
-    //     createExaminationReportRequest.setCurrentIllness("nema boljku");
-    //     createExaminationReportRequest.setDiagnosis("I35.0");
-    //     createExaminationReportRequest.setExistingDiagnosis(Boolean.FALSE);
-    //     createExaminationReportRequest.setTreatmentResult("U toku");
-    //     createExaminationReportRequest.setCurrentStateDescription("mora da ima ovo polje");
+    @Test
+    public void createExaminationReportRequest_Success() {
+        // kreiraj request
+        CreateExaminationReportRequest createExaminationReportRequest = new CreateExaminationReportRequest();
+        createExaminationReportRequest.setObjectiveFinding("novak je objektivan");
+        createExaminationReportRequest.setMainSymptoms("nema simptoma");
+        createExaminationReportRequest.setCurrentIllness("nema boljku");
+        createExaminationReportRequest.setDiagnosis("I35.0");
+        createExaminationReportRequest.setExistingDiagnosis(Boolean.FALSE);
+        createExaminationReportRequest.setTreatmentResult("U toku");
+        createExaminationReportRequest.setCurrentStateDescription("mora da ima ovo polje");
 
-    //     Patient patient = makePatient();
+        Patient patient = makePatient();
+        HealthRecord healthRecord = patient.getHealthRecord();
+        Patient patient1 = mock(Patient.class);
+
+        Diagnosis diagnosis = new Diagnosis();
+        diagnosis.setCode("I35.0");
+        diagnosis.setDescription("ujed latino komarca");
+        diagnosis.setLatinDescription("latino dasa");
+
+        when(patient1.getHealthRecord()).thenReturn(healthRecord);
+        when(patientService.findPatient((UUID) any())).thenReturn(patient1);
+
+        when(medicalHistoryRepository.findByHealthRecord((HealthRecord) any() )).thenReturn(patient.getHealthRecord().getMedicalHistory());
+
+        when(diagnosisRepository.findByCode((String) any())).thenReturn(Optional.of(diagnosis));
+
+        // kreiraj ocekivani response
+        MessageResponse messageResponse = new MessageResponse("uspesno upisan pregled");
+
+        try(MockedStatic<TokenPayloadUtil> tokenUtils = Mockito.mockStatic(TokenPayloadUtil.class)){
+            tokenUtils.when(TokenPayloadUtil::getTokenPayload).thenReturn(makeTokenPayload());
+
+            assertEquals(messageResponse, healthRecordService.createExaminationReportRequest(patient.getLbp(),
+                                                                        patient.getLbp(),
+                                                                        createExaminationReportRequest));
+        }
+    }
+
+    @Test
+    public void createExaminationReportRequest_mkb10CodeNotFount_ThrowException() {
+        // kreiraj request
+        CreateExaminationReportRequest createExaminationReportRequest = new CreateExaminationReportRequest();
+        createExaminationReportRequest.setObjectiveFinding("novak je objektivan");
+        createExaminationReportRequest.setMainSymptoms("nema simptoma");
+        createExaminationReportRequest.setCurrentIllness("nema boljku");
+        createExaminationReportRequest.setDiagnosis("I35.0");
+        createExaminationReportRequest.setExistingDiagnosis(Boolean.FALSE);
+        createExaminationReportRequest.setTreatmentResult("U toku");
+        createExaminationReportRequest.setCurrentStateDescription("mora da ima ovo polje");
+
+        Patient patient = makePatient();
+        HealthRecord healthRecord = patient.getHealthRecord();
+        Patient patient1 = mock(Patient.class);
+
+        Diagnosis diagnosis = new Diagnosis();
+        diagnosis.setCode("I35.0");
+        diagnosis.setDescription("ujed latino komarca");
+        diagnosis.setLatinDescription("latino dasa");
+
+        when(patient1.getHealthRecord()).thenReturn(healthRecord);
+        when(patientService.findPatient((UUID) any())).thenReturn(patient1);
+
+        when(medicalHistoryRepository.findByHealthRecord((HealthRecord) any() )).thenReturn(patient.getHealthRecord().getMedicalHistory());
+
+        when(diagnosisRepository.findByCode((String) any())).thenReturn(Optional.empty());
+
+        // kreiraj ocekivani response
+        MessageResponse messageResponse = new MessageResponse("uspesno upisan pregled");
+
+        try(MockedStatic<TokenPayloadUtil> tokenUtils = Mockito.mockStatic(TokenPayloadUtil.class)){
+            tokenUtils.when(TokenPayloadUtil::getTokenPayload).thenReturn(makeTokenPayload());
+
+            assertThrows(BadRequestException.class, () -> healthRecordService.createExaminationReportRequest(patient.getLbp(),
+                    patient.getLbp(),
+                    createExaminationReportRequest));
+        }
+    }
 
 
+    @Test
+    public void createExaminationReportRequest_NoPermissionConfidential_ThrowException() {
+        // kreiraj request
+        CreateExaminationReportRequest createExaminationReportRequest = new CreateExaminationReportRequest();
+        createExaminationReportRequest.setObjectiveFinding("novak je objektivan");
+        createExaminationReportRequest.setMainSymptoms("nema simptoma");
+        createExaminationReportRequest.setCurrentIllness("nema boljku");
+        createExaminationReportRequest.setDiagnosis("nepoznati_kod");
+        createExaminationReportRequest.setExistingDiagnosis(Boolean.FALSE);
+        createExaminationReportRequest.setTreatmentResult("U toku");
+        createExaminationReportRequest.setConfidential(Boolean.TRUE);
+        createExaminationReportRequest.setCurrentStateDescription("mora da ima ovo polje");
 
-    //     // kreiraj ocekivani response
-    //     MessageResponse messageResponse = new MessageResponse("uspesno upisan pregled");
+        Patient patient = makePatient();
+        HealthRecord healthRecord = patient.getHealthRecord();
+        Patient patient1 = mock(Patient.class);
 
-    //     // assertEquals(messageResponse, healthRecordService.createExaminationReportRequest(patient.getLbp(), patientcreateExaminationReportRequest));
-    // }
+        Diagnosis diagnosis = new Diagnosis();
+        diagnosis.setCode("nepoznati_kod");
+        diagnosis.setDescription("ujed latino komarca");
+        diagnosis.setLatinDescription("latino dasa");
+
+        when(patient1.getHealthRecord()).thenReturn(healthRecord);
+        when(patientService.findPatient((UUID) any())).thenReturn(patient1);
+
+        when(medicalHistoryRepository.findByHealthRecord((HealthRecord) any() )).thenReturn(patient.getHealthRecord().getMedicalHistory());
+
+        when(diagnosisRepository.findByCode((String) any())).thenReturn(Optional.of(diagnosis));
+
+        // kreiraj ocekivani response
+        MessageResponse messageResponse = new MessageResponse("uspesno upisan pregled");
+
+        try(MockedStatic<TokenPayloadUtil> tokenUtils = Mockito.mockStatic(TokenPayloadUtil.class)){
+            tokenUtils.when(TokenPayloadUtil::getTokenPayload).thenReturn(makeTokenPayload());
+
+            assertThrows(BadRequestException.class, () -> healthRecordService.createExaminationReportRequest(patient.getLbp(),
+                    patient.getLbp(),
+                    createExaminationReportRequest));
+        }
+    }
+
+    @Test
+    public void createExaminationReportRequest_ExistingDiagnossis_Success() {
+        // kreiraj request
+        CreateExaminationReportRequest createExaminationReportRequest = new CreateExaminationReportRequest();
+        createExaminationReportRequest.setObjectiveFinding("novak je objektivan");
+        createExaminationReportRequest.setMainSymptoms("nema simptoma");
+        createExaminationReportRequest.setCurrentIllness("nema boljku");
+        createExaminationReportRequest.setDiagnosis("I35.0");
+        createExaminationReportRequest.setExistingDiagnosis(Boolean.TRUE);
+        createExaminationReportRequest.setTreatmentResult("U toku");
+        createExaminationReportRequest.setAdvice("bez konzumacije alkohola");
+        createExaminationReportRequest.setAnamnesis("nema anamnezija");
+        createExaminationReportRequest.setFamilyAnamnesis("nema porodicnih anamnezija");
+        createExaminationReportRequest.setPatientOpinion("pacijent se dobro oseca");
+        createExaminationReportRequest.setSuggestedTherapy("plivanje jednom nedeljno");
+        createExaminationReportRequest.setCurrentStateDescription("mora da ima ovo polje");
+
+        Patient patient = makePatient();
+        HealthRecord healthRecord = patient.getHealthRecord();
+        Patient patient1 = mock(Patient.class);
+
+        Diagnosis diagnosis = new Diagnosis();
+        diagnosis.setCode("I35.0");
+        diagnosis.setDescription("ujed latino komarca");
+        diagnosis.setLatinDescription("latino dasa");
+
+        when(patient1.getHealthRecord()).thenReturn(healthRecord);
+        when(patientService.findPatient((UUID) any())).thenReturn(patient1);
+
+        when(medicalHistoryRepository.findByHealthRecord((HealthRecord) any() )).thenReturn(patient.getHealthRecord().getMedicalHistory());
+
+        when(diagnosisRepository.findByCode((String) any())).thenReturn(Optional.of(diagnosis));
+
+        // kreiraj ocekivani response
+        MessageResponse messageResponse = new MessageResponse("uspesno upisan pregled");
+
+        try(MockedStatic<TokenPayloadUtil> tokenUtils = Mockito.mockStatic(TokenPayloadUtil.class)){
+            tokenUtils.when(TokenPayloadUtil::getTokenPayload).thenReturn(makeTokenPayload());
+
+            assertEquals(messageResponse, healthRecordService.createExaminationReportRequest(patient.getLbp(),
+                    patient.getLbp(),
+                    createExaminationReportRequest));
+        }
+    }
+
+    @Test
+    public void createExaminationReportRequest_ExistingDiagnosisEmpty_ThrowException() {
+        // kreiraj request
+        CreateExaminationReportRequest createExaminationReportRequest = new CreateExaminationReportRequest();
+        createExaminationReportRequest.setObjectiveFinding("novak je objektivan");
+        createExaminationReportRequest.setMainSymptoms("nema simptoma");
+        createExaminationReportRequest.setCurrentIllness("nema boljku");
+        createExaminationReportRequest.setDiagnosis("nepoznati_kod");
+        createExaminationReportRequest.setTreatmentResult("U toku");
+        createExaminationReportRequest.setCurrentStateDescription("mora da ima ovo polje");
+
+        Patient patient = makePatient();
+        HealthRecord healthRecord = patient.getHealthRecord();
+        Patient patient1 = mock(Patient.class);
+
+        Diagnosis diagnosis = new Diagnosis();
+        diagnosis.setCode("nepoznati_kod");
+        diagnosis.setDescription("ujed latino komarca");
+        diagnosis.setLatinDescription("latino dasa");
+
+        when(patient1.getHealthRecord()).thenReturn(healthRecord);
+        when(patientService.findPatient((UUID) any())).thenReturn(patient1);
+
+        when(medicalHistoryRepository.findByHealthRecord((HealthRecord) any() )).thenReturn(patient.getHealthRecord().getMedicalHistory());
+
+        when(diagnosisRepository.findByCode((String) any())).thenReturn(Optional.of(diagnosis));
+
+        // kreiraj ocekivani response
+        MessageResponse messageResponse = new MessageResponse("uspesno upisan pregled");
+
+        try(MockedStatic<TokenPayloadUtil> tokenUtils = Mockito.mockStatic(TokenPayloadUtil.class)){
+            tokenUtils.when(TokenPayloadUtil::getTokenPayload).thenReturn(makeTokenPayload());
+
+            assertThrows(BadRequestException.class, () -> healthRecordService.createExaminationReportRequest(patient.getLbp(),
+                    patient.getLbp(),
+                    createExaminationReportRequest));
+        }
+    }
+
+    @Test
+    public void createExaminationReportRequest_NotExistingDiagnosis_ThrowException() {
+        // kreiraj request
+        CreateExaminationReportRequest createExaminationReportRequest = new CreateExaminationReportRequest();
+        createExaminationReportRequest.setObjectiveFinding("novak je objektivan");
+        createExaminationReportRequest.setMainSymptoms("nema simptoma");
+        createExaminationReportRequest.setCurrentIllness("nema boljku");
+        createExaminationReportRequest.setDiagnosis("nepoznati_kod");
+        createExaminationReportRequest.setExistingDiagnosis(Boolean.TRUE);
+        createExaminationReportRequest.setTreatmentResult("U toku");
+        createExaminationReportRequest.setCurrentStateDescription("mora da ima ovo polje");
+
+        Patient patient = makePatient();
+        HealthRecord healthRecord = patient.getHealthRecord();
+        Patient patient1 = mock(Patient.class);
+
+        Diagnosis diagnosis = new Diagnosis();
+        diagnosis.setCode("nepoznati_kod");
+        diagnosis.setDescription("ujed latino komarca");
+        diagnosis.setLatinDescription("latino dasa");
+
+        when(patient1.getHealthRecord()).thenReturn(healthRecord);
+        when(patientService.findPatient((UUID) any())).thenReturn(patient1);
+
+        when(medicalHistoryRepository.findByHealthRecord((HealthRecord) any() )).thenReturn(patient.getHealthRecord().getMedicalHistory());
+
+        when(diagnosisRepository.findByCode((String) any())).thenReturn(Optional.of(diagnosis));
+
+        // kreiraj ocekivani response
+        MessageResponse messageResponse = new MessageResponse("uspesno upisan pregled");
+
+        try(MockedStatic<TokenPayloadUtil> tokenUtils = Mockito.mockStatic(TokenPayloadUtil.class)){
+            tokenUtils.when(TokenPayloadUtil::getTokenPayload).thenReturn(makeTokenPayload());
+
+            assertThrows(BadRequestException.class, () -> healthRecordService.createExaminationReportRequest(patient.getLbp(),
+                    patient.getLbp(),
+                    createExaminationReportRequest));
+        }
+    }
+
+    @Test
+    public void updateHealthRecord_Success(){
+        Patient patient = makePatient();
+        HealthRecord healthRecord = patient.getHealthRecord();
+        healthRecord.setId(new Long(1));
+        UpdateHealthRecordRequest updateHealthRecordRequest = new UpdateHealthRecordRequest();
+        updateHealthRecordRequest.setBlodtype("A");
+        updateHealthRecordRequest.setRhfactor("-");
+
+
+        // mock get healthrecord
+        Patient patient1 = mock(Patient.class);
+        when(patient1.getHealthRecord()).thenReturn(healthRecord);
+        when(patientService.findPatient((UUID) any())).thenReturn(patient1);
+
+        // create expected response
+        BasicHealthRecordResponse basicHealthRecordResponse = new BasicHealthRecordResponse();
+        basicHealthRecordResponse.setBloodType(BloodType.A);
+        basicHealthRecordResponse.setRhFactor(RHFactor.MINUS);
+        basicHealthRecordResponse.setPatientLbp(patient.getLbp());
+        basicHealthRecordResponse.setId(healthRecord.getId());
+
+
+        assertEquals(healthRecordService.updateHealthRecord(updateHealthRecordRequest, patient.getLbp()), basicHealthRecordResponse);
+    }
+
+    @Test
+    public void updateHealthRecord_WrongBloodType_ThrowsException(){
+        Patient patient = makePatient();
+        HealthRecord healthRecord = patient.getHealthRecord();
+        healthRecord.setId(new Long(1));
+        UpdateHealthRecordRequest updateHealthRecordRequest = new UpdateHealthRecordRequest();
+        updateHealthRecordRequest.setBlodtype("C");
+        updateHealthRecordRequest.setRhfactor("-");
+
+
+        // mock get healthrecord
+        Patient patient1 = mock(Patient.class);
+        when(patient1.getHealthRecord()).thenReturn(healthRecord);
+        when(patientService.findPatient((UUID) any())).thenReturn(patient1);
+
+        // create expected response
+        BasicHealthRecordResponse basicHealthRecordResponse = new BasicHealthRecordResponse();
+        basicHealthRecordResponse.setBloodType(BloodType.A);
+        basicHealthRecordResponse.setRhFactor(RHFactor.MINUS);
+        basicHealthRecordResponse.setPatientLbp(patient.getLbp());
+        basicHealthRecordResponse.setId(healthRecord.getId());
+
+
+        assertThrows(BadRequestException.class, () -> healthRecordService.updateHealthRecord(updateHealthRecordRequest, patient.getLbp()));
+    }
+
+    @Test
+    public void updateHealthRecord_WrongRhfactor_ThrowsException(){
+        Patient patient = makePatient();
+        HealthRecord healthRecord = patient.getHealthRecord();
+        healthRecord.setId(new Long(1));
+        UpdateHealthRecordRequest updateHealthRecordRequest = new UpdateHealthRecordRequest();
+        updateHealthRecordRequest.setBlodtype("AB");
+        updateHealthRecordRequest.setRhfactor("+-");
+
+
+        // mock get healthrecord
+        Patient patient1 = mock(Patient.class);
+        when(patient1.getHealthRecord()).thenReturn(healthRecord);
+        when(patientService.findPatient((UUID) any())).thenReturn(patient1);
+
+        // create expected response
+        BasicHealthRecordResponse basicHealthRecordResponse = new BasicHealthRecordResponse();
+        basicHealthRecordResponse.setBloodType(BloodType.A);
+        basicHealthRecordResponse.setRhFactor(RHFactor.MINUS);
+        basicHealthRecordResponse.setPatientLbp(patient.getLbp());
+        basicHealthRecordResponse.setId(healthRecord.getId());
+
+
+        assertThrows(BadRequestException.class, () -> healthRecordService.updateHealthRecord(updateHealthRecordRequest, patient.getLbp()));
+    }
 
     private Patient makePatient(){
         HealthRecord healthRecord = makeHealthRecord();
@@ -700,15 +994,41 @@ public class HealthRecordServiceTest {
 
         Allergy allergy = makeAllergy();
         Operation operation = new Operation();
-        MedicalHistory history = new MedicalHistory();
+
+
+
+        //createExaminationReportRequest.setDiagnosis("I35.0");
+        //createExaminationReportRequest.setExistingDiagnosis(Boolean.FALSE);
+        //createExaminationReportRequest.setTreatmentResult("U toku");
+        //createExaminationReportRequest.setCurrentStateDescription("mora da ima ovo polje");
+
         MedicalExamination examination = new MedicalExamination();
+        Diagnosis diagnosis = new Diagnosis();
+        diagnosis.setCode("I35.0");
+        diagnosis.setLatinDescription("latino dasa");
+        diagnosis.setDescription("ujed latino komarca");
+
+        examination.setObjectiveFinding("objektivan nalaz");
+        examination.setHealthRecord(healthRecord);
+        examination.setMainSymptoms("nema simptoma");
+        examination.setCurrentIllness("nema boljki");
+        examination.setDiagnosis(diagnosis);
+
+        MedicalHistory medicalHistory = new MedicalHistory();
+        medicalHistory.setDiagnosis(diagnosis);
+        medicalHistory.setValidFrom(new Date());
+        medicalHistory.setHealthRecord(healthRecord);
+        medicalHistory.setIllnessStart(new Date());
+
         Vaccination vaccination = new Vaccination();
 
         List<Allergy> allergies = new ArrayList<>();
         allergies.add(allergy);
         List<Operation> operations = Arrays.asList(new Operation[] {operation});
-        List<MedicalHistory> medicalHistoryList = Arrays.asList(new MedicalHistory[] {history});
-        List<MedicalExamination> examinations = Arrays.asList(new MedicalExamination[] {examination});
+        List<MedicalHistory> medicalHistoryList = new ArrayList<>();
+        medicalHistoryList.add(medicalHistory);
+        List<MedicalExamination> examinations = new ArrayList<>();
+        examinations.add(examination);
         List<Vaccination> vaccinations = new ArrayList<>();
         vaccinations.add(vaccination);
 
