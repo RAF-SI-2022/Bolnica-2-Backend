@@ -19,6 +19,7 @@ import java.util.UUID;
 public class UtilsHelper {
 
     private final String patientJmbg = "1209217282728";
+    private final UUID patientBootstrapLbp = UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8");
 
     private final JwtUtil jwtUtil;
     @Value("${duration.of.exam}")
@@ -134,5 +135,9 @@ public class UtilsHelper {
 
     public String getPatientJmbg(){
         return patientJmbg;
+    }
+
+    public UUID getPatientBootstrapLbp(){
+        return patientBootstrapLbp;
     }
 }
