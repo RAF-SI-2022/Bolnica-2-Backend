@@ -5,6 +5,7 @@ import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
 import com.raf.si.patientservice.dto.response.http.UserResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
+import com.raf.si.patientservice.mapper.PatientMapper;
 import com.raf.si.patientservice.mapper.SchedMedExamMapper;
 import com.raf.si.patientservice.model.Patient;
 import com.raf.si.patientservice.model.ScheduledMedExamination;
@@ -39,6 +40,7 @@ public class SchedMedExaminationServiceTest {
     private ScheduledMedExamRepository scheduledMedExamRepository;
     private SchedMedExamMapper schedMedExamMapper;
     private SchedMedExaminationService schedMedExaminationService;
+    private PatientMapper patientMapper;
     //kako se vrednost 44 injectuje tek prilikom pokretanja servisa, default vredonst tokom
     //testrianja bice 0.
     private final int DURATION_OF_EXAM= 0;
@@ -48,13 +50,15 @@ public class SchedMedExaminationServiceTest {
         patientRepository= mock(PatientRepository.class);
         scheduledMedExamRepository= mock(ScheduledMedExamRepository.class);
         schedMedExamMapper= new SchedMedExamMapper();
+        patientMapper= new PatientMapper();
         schedMedExaminationService=new SchedMedExaminationServiceImpl(scheduledMedExamRepository
-                , patientRepository, schedMedExamMapper);
+                , patientRepository, schedMedExamMapper, patientMapper);
     }
 
     @Test
     public void createSchedMedExam_WhenDoctorHasUncompletedExams_ThrowBadRequestException(){
         SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
+        String token= "Bearer woauhruoawbhfupaw";
 
         Date timeBetweenAppointmnets = new Date(schedMedExamRequest.getAppointmentDate().getTime()
                 - DURATION_OF_EXAM * 60 * 1000);
@@ -65,35 +69,60 @@ public class SchedMedExaminationServiceTest {
 
         // The log shows that the DURATION_OF_EXAM is zero, but while service is running
         // the exam has an appropriate duration value.
-        assertThrows(BadRequestException.class, () -> schedMedExaminationService.createSchedMedExamination(schedMedExamRequest));
+        assertThrows(BadRequestException.class, () -> schedMedExaminationService.createSchedMedExamination(schedMedExamRequest
+                , token));
     }
 
     @Test
     public void createSchedMedExam_WhenDoctorWithGivenLbzNotExists_ThrowBadRequestException(){
-        /**
-         * #TODO
-         */
-    }
-
-    @Test
-    public  void createSchedMedExam_WhenPatientWithGivenLbpNotExists_ThrowBadRequestException(){
         SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
+        String token= "Bearer woauhruoawbhfupaw";
 
         Date timeBetweenAppointmnets = new Date(schedMedExamRequest.getAppointmentDate().getTime() - DURATION_OF_EXAM * 60 * 1000);
+
+        Mockito.framework().clearInlineMocks();
+        setUp();
 
         when(scheduledMedExamRepository.findByAppointmentDateBetweenAndLbzDoctor(timeBetweenAppointmnets
                 ,schedMedExamRequest.getAppointmentDate(), schedMedExamRequest.getLbzDoctor()))
                 .thenReturn(Optional.of(new ArrayList<>()));
 
-        assertThrows(BadRequestException.class, () -> schedMedExaminationService.createSchedMedExamination(schedMedExamRequest));
+        mockConnectionWithUserService(-1, HttpStatus.BAD_REQUEST);
+
+        assertThrows(BadRequestException.class, () -> schedMedExaminationService.createSchedMedExamination(schedMedExamRequest
+                , token));
+
+    }
+
+    @Test
+    public  void createSchedMedExam_WhenPatientWithGivenLbpNotExists_ThrowBadRequestException(){
+        SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
+        String token= "Bearer woauhruoawbhfupaw";
+
+        Date timeBetweenAppointmnets = new Date(schedMedExamRequest.getAppointmentDate().getTime() - DURATION_OF_EXAM * 60 * 1000);
+
+        Mockito.framework().clearInlineMocks();
+        setUp();
+
+        when(scheduledMedExamRepository.findByAppointmentDateBetweenAndLbzDoctor(timeBetweenAppointmnets
+                ,schedMedExamRequest.getAppointmentDate(), schedMedExamRequest.getLbzDoctor()))
+                .thenReturn(Optional.of(new ArrayList<>()));
+
+        mockConnectionWithUserService(1, HttpStatus.OK);
+
+        assertThrows(BadRequestException.class, () -> schedMedExaminationService.createSchedMedExamination(schedMedExamRequest, token));
 
     }
 
     @Test
     public void createSchedMedExam_Success(){
         SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
+        String token= "Bearer woauhruoawbhfupaw";
 
         Date timeBetweenAppointmnets = new Date(schedMedExamRequest.getAppointmentDate().getTime() - DURATION_OF_EXAM * 60 * 1000);
+
+        Mockito.framework().clearInlineMocks();
+        setUp();
 
         when(scheduledMedExamRepository.findByAppointmentDateBetweenAndLbzDoctor(timeBetweenAppointmnets
                 ,schedMedExamRequest.getAppointmentDate(), schedMedExamRequest.getLbzDoctor()))
@@ -106,7 +135,9 @@ public class SchedMedExaminationServiceTest {
 
         when(scheduledMedExamRepository.save(any())).thenReturn(scheduledMedExamination);
 
-        assertEquals(schedMedExaminationService.createSchedMedExamination(schedMedExamRequest)
+        mockConnectionWithUserService(1, HttpStatus.OK);
+
+        assertEquals(schedMedExaminationService.createSchedMedExamination(schedMedExamRequest, token)
                 ,schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination));
     }
 
@@ -238,7 +269,7 @@ public class SchedMedExaminationServiceTest {
 
         when(medExaminationMockPage.getContent()).thenReturn(List.of(new ScheduledMedExamination()));
         when(scheduledMedExamRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(medExaminationMockPage);
-
+        when(patientRepository.findByLbp(any(UUID.class))).thenReturn(Optional.of(new Patient()));
         assertEquals(schedMedExaminationService.getSchedMedExaminationByLbz(lbz,appointmentDate,token, pageable)
                 , schedMedExamMapper.schedMedExamPageToSchedMedExamListResponse(medExaminationMockPage));
     }

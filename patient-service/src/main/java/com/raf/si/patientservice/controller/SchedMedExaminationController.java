@@ -32,8 +32,9 @@ public class SchedMedExaminationController {
 
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @PostMapping("/create")
-    public ResponseEntity<?> createSchedMedExamination(@Valid @RequestBody SchedMedExamRequest schedMedExamRequest) {
-        return ResponseEntity.ok(schedMedExaminationService.createSchedMedExamination(schedMedExamRequest));
+    public ResponseEntity<?> createSchedMedExamination(@Valid @RequestBody SchedMedExamRequest schedMedExamRequest,
+                                                       @RequestHeader("Authorization") String authorizationHeader) {
+        return ResponseEntity.ok(schedMedExaminationService.createSchedMedExamination(schedMedExamRequest, authorizationHeader));
     }
 
     @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" +

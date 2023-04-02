@@ -47,11 +47,12 @@ public class SchedMedExaminationControllerTest {
     public void createSchedMedExamination_Success(){
         SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
         SchedMedExamResponse schedMedExamResponse= createSchedMedExamResponse();
+        String auth= "Bearer enawoudoawnjdfoawnfuoaw";
 
-        when(schedMedExaminationService.createSchedMedExamination(schedMedExamRequest))
+        when(schedMedExaminationService.createSchedMedExamination(schedMedExamRequest, auth))
                 .thenReturn(schedMedExamResponse);
 
-        assertEquals(schedMedExaminationController.createSchedMedExamination(schedMedExamRequest),
+        assertEquals(schedMedExaminationController.createSchedMedExamination(schedMedExamRequest,auth),
                 ResponseEntity.of(Optional.of(schedMedExamResponse)));
     }
 
