@@ -6,19 +6,12 @@ import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
 import com.raf.si.patientservice.dto.response.SchedMedExamListResponse;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 import com.raf.si.patientservice.service.SchedMedExaminationService;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+
 
 import java.util.Date;
 import java.util.Optional;
@@ -125,7 +118,4 @@ public class SchedMedExaminationControllerTest {
         return  schedMedExamRequest;
     }
     private SchedMedExamResponse createSchedMedExamResponse(){return  new SchedMedExamResponse();}
-
-
-
 }

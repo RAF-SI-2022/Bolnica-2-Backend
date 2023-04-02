@@ -49,7 +49,7 @@ public class SchedMedExamControllerStepsCreate extends CucumberConfig {
     @When("Nurse provides valid information")
     public void nurse_provides_valid_information() throws Exception {
         SchedMedExamRequest schedMedExamRequest= util.createSchedMedExamRequest(1);
-        System.out.println("usli u pravljenje valid nursa " +util.generateNurseTokenValid());
+
         resultAction= mvc.perform(post("/sched-med-exam/create")
                 .header("Authorization", "Bearer " + util.generateNurseTokenValid())
                 .content(gson.toJson(schedMedExamRequest))

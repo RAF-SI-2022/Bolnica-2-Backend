@@ -44,7 +44,6 @@ public class SchedMedExamMapper {
 
         schedMedExamResponse.setId(scheduledMedExamination.getId());
         schedMedExamResponse.setPatientResponse(patientMapper.patientToPatientResponse(scheduledMedExamination.getPatient()));
-        // schedMedExamResponse.setLbp(scheduledMedExamination.getLbp());
         schedMedExamResponse.setLbzDoctor(scheduledMedExamination.getLbzDoctor());
         schedMedExamResponse.setAppointmentDate(scheduledMedExamination.getAppointmentDate());
         schedMedExamResponse.setExaminationStatus(scheduledMedExamination.getExaminationStatus());
