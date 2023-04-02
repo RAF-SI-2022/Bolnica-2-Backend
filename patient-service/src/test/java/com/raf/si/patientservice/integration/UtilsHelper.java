@@ -44,8 +44,18 @@ public class UtilsHelper {
     }
 
     public String generateNurseTokenValid(){
-        String token="eyJhbGciOiJIUzUxMiJ9.eyJmaXJzdE5hbWUiOiJNZWRpY2luc2thIiwibGFzdE5hbWUiOiJTZXN0cmEiLCJ0aXRsZSI6IkRpcGwuIGZhcm0uIiwicHJvZmVzc2lvbiI6Ik1lZC4gc2VzdHJhIiwicGJvIjoiNGU1OTExYzgtY2U3YS0xMWVkLWFmYTEtMDI0MmFjMTIwMDAyIiwiZGVwYXJ0bWVudE5hbWUiOiJMYWJvcmF0b3JpamEiLCJwYmIiOiI1ZTA4ZmVkYy0wOTFlLTRjYWItYWFmNC01YWQzNzU4MDk1ZDIiLCJob3NwaXRhbE5hbWUiOiJLQkMgWnZlemRhcmEgLSBLbGluaWthIHphIGhpcnVyZ2lqdSBcIk5pa29sYSBTcGFzaWNcIiIsInBlcm1pc3Npb25zIjpbIlJPTEVfVklTQV9NRURfU0VTVFJBIiwiUk9MRV9NRURfU0VTVFJBIl0sInN1YiI6IjNlMWE1MWFiLWEzYWEtMWFkZC1hM2FkLTI4ZTA0M2Y4YjQzNSIsImlhdCI6MTY4MDM3NTA2MiwiZXhwIjoxNjgwNDExMDYyfQ.WhlUKvCIX9ovaLDJAOpqmEpIfv7_R6xj03X41YmwReyAi7BBH11_u5P7pP32K8jFewpicOV1Zfa0c9hb_Pe8IQ";
-        return  token;
+        String[] roles= new String[]{"ROLE_VISA_MED_SESTRA","ROLE_MED_SESTRA"};
+        Claims claims= Jwts.claims();
+
+        claims.put("firstName", "Medicinska");
+        claims.put("lastName","Sestra");
+        claims.put("title","Med. sestra");
+        claims.put("pbo",UUID.fromString("4e5911c8-ce7a-11ed-afa1-0242ac120002"));
+        claims.put("departmentName","Dijagnostika");
+        claims.put("pbb",UUID.randomUUID());
+        claims.put("hospitalName", "NoviBeograd");
+        claims.put("permissions",roles);
+        return  jwtUtil.generateToken(claims, "3e1a51ab-a3aa-1add-a3ad-28e043f8b435");
     }
 
     private String generateToken(List<String> roles, String profession, String token){

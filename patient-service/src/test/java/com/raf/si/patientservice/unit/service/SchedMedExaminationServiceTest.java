@@ -14,6 +14,7 @@ import com.raf.si.patientservice.repository.ScheduledMedExamRepository;
 import com.raf.si.patientservice.service.SchedMedExaminationService;
 import com.raf.si.patientservice.service.impl.SchedMedExaminationServiceImpl;
 import com.raf.si.patientservice.utils.HttpUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -53,6 +54,10 @@ public class SchedMedExaminationServiceTest {
         patientMapper= new PatientMapper();
         schedMedExaminationService=new SchedMedExaminationServiceImpl(scheduledMedExamRepository
                 , patientRepository, schedMedExamMapper, patientMapper);
+    }
+    @AfterEach
+    public void clear(){
+        Mockito.framework().clearInlineMocks();
     }
 
     @Test

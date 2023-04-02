@@ -6,8 +6,13 @@ import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
 import com.raf.si.patientservice.dto.response.SchedMedExamListResponse;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 import com.raf.si.patientservice.service.SchedMedExaminationService;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +32,6 @@ public class SchedMedExaminationControllerTest {
 
     private SchedMedExaminationController schedMedExaminationController;
     private SchedMedExaminationService schedMedExaminationService;
-    private Authentication authentication;
 
 
 
@@ -35,12 +39,6 @@ public class SchedMedExaminationControllerTest {
     public void setUp(){
         schedMedExaminationService= mock(SchedMedExaminationService.class);
         schedMedExaminationController= new SchedMedExaminationController(schedMedExaminationService);
-        authentication = mock(Authentication.class);
-        SecurityContext securityContext = mock(SecurityContext.class);
-
-
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
     }
 
     @Test
@@ -127,5 +125,7 @@ public class SchedMedExaminationControllerTest {
         return  schedMedExamRequest;
     }
     private SchedMedExamResponse createSchedMedExamResponse(){return  new SchedMedExamResponse();}
+
+
 
 }
