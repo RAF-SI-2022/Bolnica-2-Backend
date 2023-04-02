@@ -6,8 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.UUID;
 
