@@ -6,7 +6,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.UUID;
 
 @Getter
@@ -17,7 +19,7 @@ public class CreateLabExamRequest {
     @NotNull(message = "Polje lbp ne sme biti prazno")
     private UUID lbp;
     @NotNull(message = "Polje datum ne sme biti prazno")
-    private Timestamp scheduledDate;
+    private Date scheduledDate;
     @NotEmpty(message = "Polje napomena ne sme biti prazno")
     private String note;
 

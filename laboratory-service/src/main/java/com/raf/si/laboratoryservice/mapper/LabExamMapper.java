@@ -6,10 +6,11 @@ import com.raf.si.laboratoryservice.model.ScheduledLabExam;
 import com.raf.si.laboratoryservice.model.enums.scheduledlabexam.ExamStatus;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.UUID;
 
 @Component
-public class ExaminationMapper {
+public class LabExamMapper {
     public ScheduledLabExam requestToModel(CreateLabExamRequest createLabExamRequest, UUID lbz, UUID pbo) {
         ScheduledLabExam scheduledLabExam = new ScheduledLabExam();
 
