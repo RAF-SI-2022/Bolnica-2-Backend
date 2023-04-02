@@ -16,7 +16,10 @@ public enum Profession {
     SPEC_PULMOLOG("Spec. pulmolog"),
     SPEC_UROLOG("Spec. urolog"),
     SPEC_HEMATOLOG("Spec. hematolog"),
-    SPEC_HIRURG("Spec. hirurg");
+    SPEC_HIRURG("Spec. hirurg"),
+    LAB_TEHNICAR("Lab. tehničar"),
+    MED_BIOHEMICAR("Med. biohemičar");
+
 
     String notation;
 
