@@ -2,8 +2,6 @@ package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
 import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
-import com.raf.si.patientservice.dto.response.PatientResponse;
-import com.raf.si.patientservice.dto.response.SchedMedExamExtendedResponse;
 import com.raf.si.patientservice.dto.response.SchedMedExamListResponse;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 import com.raf.si.patientservice.dto.response.http.UserResponse;
@@ -12,6 +10,7 @@ import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.exception.NotFoundException;
 import com.raf.si.patientservice.mapper.PatientMapper;
 import com.raf.si.patientservice.mapper.SchedMedExamMapper;
+import com.raf.si.patientservice.model.Patient;
 import com.raf.si.patientservice.model.ScheduledMedExamination;
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
 import com.raf.si.patientservice.repository.PatientRepository;
@@ -26,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
@@ -88,14 +88,14 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
         /**
          * Checking if there is a referred patient in the database, there should be.
          */
-        patientRepository.findByLbp(schedMedExamRequest.getLbp()).orElseThrow(() -> {
+        Patient patient=patientRepository.findByLbp(schedMedExamRequest.getLbp()).orElseThrow(() -> {
             String errMessage = String.format("Pacijent sa lbp-om '%s' ne postoji", schedMedExamRequest.getLbp());
             log.info(errMessage);
             throw new BadRequestException(errMessage);
         });
 
         ScheduledMedExamination scheduledMedExamination = schedMedExamMapper.schedMedExamRequestToScheduledMedExamination
-                (new ScheduledMedExamination(), schedMedExamRequest);
+                (new ScheduledMedExamination(), schedMedExamRequest, patient);
 
         scheduledMedExamRepository.save(scheduledMedExamination);
 
@@ -137,10 +137,10 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
                     log.info(errMessage);
                     throw new BadRequestException(errMessage);
                 });
-
-
+        Patient patient= scheduledMedExamination.getPatient();
+        scheduledMedExamination.setPatient(null);
         scheduledMedExamRepository.delete(scheduledMedExamination);
-
+        scheduledMedExamination.setPatient(patient);
         log.info(String.format("Zakazani pregled sa id '%d' uspešno izbrisan", id));
         return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
     }
@@ -159,7 +159,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
         Page<ScheduledMedExamination> medExaminationPage= scheduledMedExamRepository.findAll(specification, pageable);
 
         log.info(String.format("Uspesno pronadjeni zakazani pregledi za docu lbza '%s'", lbz));
-        return schedMedExamPageToSchedMedExamExtendListResponse(medExaminationPage);
+        return schedMedExamMapper.schedMedExamPageToSchedMedExamListResponse(medExaminationPage);
     }
 
     @Override
@@ -192,6 +192,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
         return ret;
     }
 
+    /*
     private SchedMedExamListResponse schedMedExamPageToSchedMedExamExtendListResponse(Page<ScheduledMedExamination> medExaminationPage) {
         SchedMedExamListResponse schedMedExamListResponse=schedMedExamMapper.schedMedExamPageToSchedMedExamListResponse
                 (medExaminationPage);
@@ -208,7 +209,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
         schedMedExamListResponse.setSchedMedExamResponseList(updatedResponses);
         return schedMedExamListResponse;
     }
-
+*/
     private void isGivenLbzDoctors(UUID lbz, String token){
         ResponseEntity<UserResponse> response;
 

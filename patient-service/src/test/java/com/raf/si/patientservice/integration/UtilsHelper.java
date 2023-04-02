@@ -3,7 +3,12 @@ package com.raf.si.patientservice.integration;
 import com.raf.si.patientservice.dto.request.PatientRequest;
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
 import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
+import com.raf.si.patientservice.model.HealthRecord;
+import com.raf.si.patientservice.model.Patient;
 import com.raf.si.patientservice.model.ScheduledMedExamination;
+import com.raf.si.patientservice.model.enums.healthrecord.BloodType;
+import com.raf.si.patientservice.model.enums.healthrecord.RHFactor;
+import com.raf.si.patientservice.model.enums.patient.*;
 import com.raf.si.patientservice.model.enums.user.Profession;
 import com.raf.si.patientservice.model.enums.user.Title;
 import com.raf.si.patientservice.utils.JwtUtil;
@@ -134,9 +139,9 @@ public class UtilsHelper {
         return updateSchedMedExamRequest;
     }
 
-    public ScheduledMedExamination createSchedMedExamination() {
+    public ScheduledMedExamination createSchedMedExamination(Patient patient) {
         ScheduledMedExamination scheduledMedExamination= new ScheduledMedExamination();
-        scheduledMedExamination.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+        scheduledMedExamination.setPatient(patient);
         scheduledMedExamination.setLbzDoctor(UUID.fromString("266a1e0c-cf45-11ed-afa1-0242ac120002"));
         scheduledMedExamination.setAppointmentDate(new Date(new Date().getTime()- (DURATION_OF_EXAM + 5 ) * 60 * 1000));
         scheduledMedExamination.setLbzNurse(UUID.fromString("3e1a51ab-a3aa-1add-a3ad-28e043f8b435"));

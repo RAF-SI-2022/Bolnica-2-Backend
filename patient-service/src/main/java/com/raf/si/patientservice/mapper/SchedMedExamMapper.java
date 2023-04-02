@@ -2,16 +2,14 @@ package com.raf.si.patientservice.mapper;
 
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
 import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
-import com.raf.si.patientservice.dto.response.SchedMedExamExtendedResponse;
 import com.raf.si.patientservice.dto.response.SchedMedExamListResponse;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
+import com.raf.si.patientservice.model.Patient;
 import com.raf.si.patientservice.model.ScheduledMedExamination;
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
 import com.raf.si.patientservice.model.enums.examination.PatientArrivalStatus;
-import com.raf.si.patientservice.repository.PatientRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
@@ -21,11 +19,15 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class SchedMedExamMapper {
+    private final PatientMapper patientMapper;
 
+    public SchedMedExamMapper(PatientMapper patientMapper) {
+        this.patientMapper = patientMapper;
+    }
 
     public ScheduledMedExamination schedMedExamRequestToScheduledMedExamination(ScheduledMedExamination scheduledMedExamination
-            ,SchedMedExamRequest schedMedExamRequest){
-        scheduledMedExamination.setLbp(schedMedExamRequest.getLbp());
+            , SchedMedExamRequest schedMedExamRequest, Patient patient){
+        scheduledMedExamination.setPatient(patient);
         scheduledMedExamination.setLbzDoctor(schedMedExamRequest.getLbzDoctor());
         scheduledMedExamination.setAppointmentDate(schedMedExamRequest.getAppointmentDate());
         scheduledMedExamination.setLbzNurse(schedMedExamRequest.getLbzNurse());
@@ -41,7 +43,8 @@ public class SchedMedExamMapper {
         SchedMedExamResponse schedMedExamResponse= new SchedMedExamResponse();
 
         schedMedExamResponse.setId(scheduledMedExamination.getId());
-        schedMedExamResponse.setLbp(scheduledMedExamination.getLbp());
+        schedMedExamResponse.setPatientResponse(patientMapper.patientToPatientResponse(scheduledMedExamination.getPatient()));
+        // schedMedExamResponse.setLbp(scheduledMedExamination.getLbp());
         schedMedExamResponse.setLbzDoctor(scheduledMedExamination.getLbzDoctor());
         schedMedExamResponse.setAppointmentDate(scheduledMedExamination.getAppointmentDate());
         schedMedExamResponse.setExaminationStatus(scheduledMedExamination.getExaminationStatus());
@@ -112,26 +115,13 @@ public class SchedMedExamMapper {
     }
 
     public SchedMedExamListResponse schedMedExamPageToSchedMedExamListResponse(Page<ScheduledMedExamination> schedMedExaminationPage) {
-        List<SchedMedExamExtendedResponse> schedMedExamResponses= schedMedExaminationPage.toList()
+        List<SchedMedExamResponse> schedMedExamResponses= schedMedExaminationPage.toList()
                 .stream()
-                .map(this::scheduledMedExaminationToSchedMedExamExtendedResponse)
+                .map(this::scheduledMedExaminationToSchedMedExamResponse)
                 .collect(Collectors.toList());
 
         return new SchedMedExamListResponse(schedMedExamResponses,schedMedExaminationPage.getTotalElements());
     }
 
-    public SchedMedExamExtendedResponse scheduledMedExaminationToSchedMedExamExtendedResponse(ScheduledMedExamination scheduledMedExamination) {
-        SchedMedExamExtendedResponse schedMedExamResponse= new SchedMedExamExtendedResponse();
 
-        schedMedExamResponse.setId(scheduledMedExamination.getId());
-        schedMedExamResponse.setLbp(scheduledMedExamination.getLbp());
-        schedMedExamResponse.setLbzDoctor(scheduledMedExamination.getLbzDoctor());
-        schedMedExamResponse.setAppointmentDate(scheduledMedExamination.getAppointmentDate());
-        schedMedExamResponse.setExaminationStatus(scheduledMedExamination.getExaminationStatus());
-        schedMedExamResponse.setPatientArrivalStatus(scheduledMedExamination.getPatientArrivalStatus());
-        schedMedExamResponse.setNote(scheduledMedExamination.getNote());
-        schedMedExamResponse.setLbzNurse(scheduledMedExamination.getLbzNurse());
-
-        return schedMedExamResponse;
-    }
 }
