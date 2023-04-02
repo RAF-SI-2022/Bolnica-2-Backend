@@ -45,12 +45,10 @@ public class SchedMedExamControllerStepsGet extends CucumberConfig{
     private JwtUtil jwtUtil;
     private UtilsHelper util;
     private ResultActions resultAction;
-    @Value("${duration.of.exam}")
-    private int DURATION_OF_EXAM;
 
     @Before
     public  void  init(){
-        util= new UtilsHelper(jwtUtil, DURATION_OF_EXAM);
+        util= new UtilsHelper(jwtUtil);
         gson= new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd")
                 .create();
@@ -66,7 +64,6 @@ public class SchedMedExamControllerStepsGet extends CucumberConfig{
     }
     @Then("Nurse gets list of scheduled medical exam for doctor")
     public void nurse_gets_list_of_scheduled_medical_exam_for_doctor() throws Exception {
-        resultAction.andDo(MockMvcResultHandlers.print());
         resultAction.andExpect(status().isOk());
     }
 
@@ -81,7 +78,6 @@ public class SchedMedExamControllerStepsGet extends CucumberConfig{
     }
     @Then("BadRequestException is thrown with status code {int} for doctor lbz id which id does not exists")
     public void bad_request_exception_is_thrown_with_status_code_for_doctor_lbz_id_which_id_does_not_exists(Integer statusCode) throws Exception {
-        resultAction.andDo(MockMvcResultHandlers.print());
         resultAction.andExpect(status().is(statusCode));
     }
 

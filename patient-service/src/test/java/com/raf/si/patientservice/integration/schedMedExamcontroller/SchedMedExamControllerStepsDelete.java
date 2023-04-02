@@ -40,14 +40,12 @@ public class SchedMedExamControllerStepsDelete extends CucumberConfig {
     @Autowired
     private JwtUtil jwtUtil;
     private UtilsHelper util;
-    @Value("${duration.of.exam}")
-    private int DURATION_OF_EXAM;
     private ResultActions resultAction;
     private Long id;
 
     @Before
     public  void  init(){
-        util= new UtilsHelper(jwtUtil, DURATION_OF_EXAM);
+        util= new UtilsHelper(jwtUtil);
         gson= new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd")
                 .create();
