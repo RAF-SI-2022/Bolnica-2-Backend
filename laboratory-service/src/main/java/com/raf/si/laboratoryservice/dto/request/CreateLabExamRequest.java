@@ -13,7 +13,7 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateExaminationRequest {
+public class CreateLabExamRequest {
     @NotNull(message = "Polje lbp ne sme biti prazno")
     private UUID lbp;
     @NotNull(message = "Polje datum ne sme biti prazno")

@@ -11,7 +11,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @EqualsAndHashCode
-public class ExaminationResponse {
+public class LabExamResponse {
 
     private UUID lbp;
 
