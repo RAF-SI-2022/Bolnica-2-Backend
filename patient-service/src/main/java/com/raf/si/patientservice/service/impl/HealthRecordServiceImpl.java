@@ -234,10 +234,10 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         //update podatke
         Allergy allergy = healthRecordMapper.addAllergyRequestToAllergy(addAllergyRequest, healthRecord, allergen);
 
-        healthRecord.getAllergies().add(allergy);
-
         // update podatke u bazi
         allergy = allergyRepository.save(allergy);
+
+        healthRecord.getAllergies().add(allergy);
 
         ExtendedAllergyResponse extendedAllergyResponse = healthRecordMapper.allergyToExtendedAllergyResponse(healthRecord, allergy);
         return extendedAllergyResponse;
@@ -263,7 +263,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
             throw new BadRequestException(errMessage);
         }
 
-        if(vaccinationDate.compareTo(new Date(System.currentTimeMillis())) < 0){
+        if(vaccinationDate.compareTo(new Date()) > 0){
             String errMessage = String.format("nije moguce upisati buducu vakcinaciju");
             log.info(errMessage);
             throw new BadRequestException(errMessage);
