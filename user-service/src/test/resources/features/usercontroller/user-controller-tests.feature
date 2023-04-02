@@ -35,6 +35,10 @@ Feature: Service for User Management
     When request is sent for listing
     Then page with given parameters is returned containing users
 
+  Scenario: Admin list users by parameters
+    When request is sent for listing
+    Then page with given parameters is returned containing users
+
   Scenario: User updates user's information
     When given lbz is not matched with logged user lbz
     Then ForbiddenException is thrown with status code 403 for invalid lbz
@@ -58,6 +62,18 @@ Feature: Service for User Management
   Scenario: Admin deletes user
     When user does not exist for given id
     Then NotFoundException is thrown with status code 404 for given id
+
+  Scenario: User fetches all doctors
+    When tries to fetch all doctors
+    Then list of doctors are returned
+
+  Scenario: User fetches all doctors by department
+    When given department with pbo does not exist
+    Then NotFoundException is thrown with status code 404 for given pbo
+
+  Scenario: User fetches all doctors by department
+    When given department with pbo exists
+    Then list of doctors for given department is returned
 
   Scenario: Admin deletes user
     When user exists for given id

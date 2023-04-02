@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import  org.hamcrest.Matchers;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -44,12 +45,10 @@ public class SchedMedExamControllerStepsGet extends CucumberConfig{
     private JwtUtil jwtUtil;
     private UtilsHelper util;
     private ResultActions resultAction;
-    @Value("${duration.of.exam}")
-    private int DURATION_OF_EXAM;
 
     @Before
     public  void  init(){
-        util= new UtilsHelper(jwtUtil, DURATION_OF_EXAM);
+        util= new UtilsHelper(jwtUtil);
         gson= new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd")
                 .create();

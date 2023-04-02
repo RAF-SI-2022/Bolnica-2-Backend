@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 
 import java.util.List;
@@ -35,13 +36,11 @@ public class SchedMedExamControllerStepsCreate extends CucumberConfig {
     @Autowired
     private JwtUtil jwtUtil;
     private UtilsHelper util;
-    @Value("${duration.of.exam}")
-    private int DURATION_OF_EXAM;
     private ResultActions resultAction;
 
     @Before
-    public  void  init() {
-        util= new UtilsHelper(jwtUtil, DURATION_OF_EXAM);
+    public  void  init(){
+        util= new UtilsHelper(jwtUtil);
         gson= new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd")
                 .create();

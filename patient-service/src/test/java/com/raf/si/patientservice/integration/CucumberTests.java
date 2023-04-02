@@ -8,9 +8,8 @@ import org.junit.platform.suite.api.Suite;
 
 import static  io.cucumber.core.options.Constants.GLUE_PROPERTY_NAME;
 
-//@Suite
 @IncludeEngines({"cucumber"})
-@SelectClasspathResource("features/schedMedExamController")
+@SelectClasspathResource("features")
 @ConfigurationParameter(key= GLUE_PROPERTY_NAME, value = "com.raf.si.patientservice.integration")
 public class CucumberTests {
 }

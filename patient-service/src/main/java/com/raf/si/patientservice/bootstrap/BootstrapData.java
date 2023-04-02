@@ -2,6 +2,7 @@ package com.raf.si.patientservice.bootstrap;
 
 
 import com.raf.si.patientservice.model.*;
+import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
 import com.raf.si.patientservice.model.enums.healthrecord.BloodType;
 import com.raf.si.patientservice.model.enums.healthrecord.RHFactor;
 import com.raf.si.patientservice.model.enums.medicalhistory.TreatmentResult;
@@ -10,6 +11,7 @@ import com.raf.si.patientservice.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
 
@@ -99,11 +101,11 @@ public class BootstrapData implements CommandLineRunner {
         operation.setHealthRecord(healthRecord);
 
 
-        Diagnosis diagnosis = new Diagnosis();
-        diagnosis.setCode("A15.3");
-        diagnosis.setDescription("Grip, virus nedokazan");
-        diagnosis.setLatinDescription("Influenza, virus non identificatum");
-        diagnosisRepository.save(diagnosis);
+        Diagnosis diagnosis1 = new Diagnosis();
+        diagnosis1.setCode("djovak");
+        diagnosis1.setDescription("smrtonosna bolest mozga");
+        diagnosis1.setLatinDescription("Influenza, virus non identificatum");
+        diagnosisRepository.save(diagnosis1);
 
         MedicalExamination examination = new MedicalExamination();
         examination.setLbz(UUID.randomUUID());
@@ -114,7 +116,7 @@ public class BootstrapData implements CommandLineRunner {
         examination.setAnamnesis("Bol u grlu, temperatura, pacijentu je konstantno hladno");
         examination.setFamilyAnamnesis("Bol u grlu, temperatura");
         examination.setPatientOpinion("Streptokoke");
-        examination.setDiagnosis(diagnosis);
+        examination.setDiagnosis(diagnosis1);
         examination.setSuggestedTherapy("Odmor, septolete jednom dnevno");
         examination.setAdvice("Odmor");
 
@@ -129,7 +131,7 @@ public class BootstrapData implements CommandLineRunner {
         examination2.setHealthRecord(healthRecord);
 
         MedicalHistory medicalHistory = new MedicalHistory();
-        medicalHistory.setDiagnosis(diagnosis);
+        medicalHistory.setDiagnosis(diagnosis1);
         medicalHistory.setIllnessStart(new Date());
         medicalHistory.setTreatmentResult(TreatmentResult.U_TOKU);
         medicalHistory.setCurrentStateDescription("Trenutno stanje");
@@ -150,42 +152,91 @@ public class BootstrapData implements CommandLineRunner {
         medicalHistoryRepository.save(medicalHistory);
 
 
-        Allergen allergen = new Allergen();
-        allergen.setName("polen");
+        // dodaj sve alergije
+        String[] allergenNames = {"mleko", "jaja", "orasasti plodovi", "plodovi mora", "psenica",
+                        "soja", "riba", "penicilin"};
+        for(int i=0;i<allergenNames.length; i+=1) {
+            Allergen allergen= new Allergen();
+            allergen.setName(allergenNames[i]);
+            allergenRepository.save(allergen);
 
-        allergenRepository.save(allergen);
+            if(i<=1){
+                // dodaj jednu alergiju
+                Allergy allergy = new Allergy();
+                allergy.setHealthRecord(healthRecord);
+                allergy.setAllergen(allergen);
+                allergyRepository.save(allergy);
+            }
+        }
 
-        Allergy allergy = new Allergy();
-        allergy.setHealthRecord(healthRecord);
-        allergy.setAllergen(allergen);
+        // dodaj sve vakcine
+        String[] vaccineNames = {"PRIORIX", "HIBERIX", "INFLUVAC", "SYNFLORIX", "BCG VAKCINA"};
+        String[] vaccineType = {"Virusne vakcine", "Bakterijske vakcine","Virusne vakcine", "Bakterijske vakcine", "Bakterijske vakcine"};
+        String[] vaccineDescription = {
+                "Vakcina protiv morbila (malih boginja)",
+                "Kapsulirani antigen hemofilus influence tip B",
+                "Virusne vakcine protiv influence (grip)",
+                "Vakcine protiv pneumokoka",
+                "Vakcine protiv tuberkuloze"};
+        String[] vaccineProducer = {
+                "GlaxoSmithKline Biologicals S.A., Belgija",
+                "GlaxoSmithKline Biologicals S.A., Belgija",
+                "Abbott Biologicals B.V., Holandija",
+                "GlaxoSmithKline Biologicals S.A., Belgija",
+                "Institut za virusologiju, vakcine i serume \"Torlak\", Republika Srbija"};
 
-        allergyRepository.save(allergy);
+        for(int i=0;i<vaccineNames.length;i+=1) {
+            Vaccine vaccine = new Vaccine();
+            vaccine.setName(vaccineNames[i]);
+            vaccine.setType(vaccineType[i]);
+            vaccine.setDescription(vaccineDescription[i]);
+            vaccine.setProducer(vaccineProducer[i]);
+            vaccineRepository.save(vaccine);
 
-        Allergen allergen2 = new Allergen();
-        allergen2.setName("lipa");
+            if(i<=1){
+                // dodaj prve dve vakcine kao vakcinacije u karton
+                Vaccination vaccination = new Vaccination();
+                vaccination.setHealthRecord(healthRecord);
+                vaccination.setVaccine(vaccine);
+                vaccination.setVaccinationDate(new Date());
+                vaccinationRepository.save(vaccination);
+            }
+        }
 
-        allergenRepository.save(allergen2);
+        //dodaj sve dijagnoze
+        String[] mkb10 = {"A15.3", "D50", "I10", "I35.0", "J11", "J12.9", "K35", "K70.3", "K71.0", "N20.0"};
+        String[] description =
+                {
+                "Tuberkuloza pluća, potvrđena neoznačenim metodama",
+                "Anemija uzrokovana nedostatkom gvožđa",
+                "Povišen krvni pritisak, nepoznatog porekla",
+                "Suženje aortnog zaliska",
+                "Grip, virus nedokazan",
+                "Zapaljenje pluća uzrokovano virusom, neoznačeno",
+                "Akutno zapaljenje slepog creva",
+                "Ciroza jetre uzrokovana alkoholom",
+                "Toksička bolest jetre zbog zastoja žuči",
+                "Kamen u bubregu"};
+        String[] latin_desc = {
+                "Tuberculosis pulmonum, methodis non specificatis confirmata",
+                "Anaemia sideropenica",
+                "Hypertensio arterialis essentialis (primaria)",
+                "Stenosis valvulae aortae non rheumatica",
+                "Influenza, virus non identificatum",
+                "Pneumonia viralis, non specificata",
+                "Appendicitis acuta",
+                "Cirrhosis hepatis alcoholica",
+                "Morbus hepatis toxicus cholestaticus",
+                "Calculus renis"};
 
-        Allergy allergy2 = new Allergy();
-        allergy2.setHealthRecord(healthRecord);
-        allergy2.setAllergen(allergen2);
+        for(int i=0;i<mkb10.length;i+=1) {
+            Diagnosis diagnosis = new Diagnosis();
+            diagnosis.setCode(mkb10[i]);
+            diagnosis.setDescription(description[i]);
+            diagnosis.setLatinDescription(latin_desc[i]);
 
-        allergyRepository.save(allergy2);
-
-
-        Vaccine vaccine = new Vaccine();
-        vaccine.setName("PRIORIX");
-        vaccine.setType("Virusne vakcine");
-        vaccine.setDescription("Vakcina protiv malih boginja");
-
-        vaccineRepository.save(vaccine);
-
-        Vaccination vaccination = new Vaccination();
-        vaccination.setHealthRecord(healthRecord);
-        vaccination.setVaccine(vaccine);
-        vaccination.setVaccinationDate(new Date());
-
-        vaccinationRepository.save(vaccination);
+            diagnosisRepository.save(diagnosis);
+        }
     }
 
     private  void makeSchedExam(){
@@ -196,6 +247,30 @@ public class BootstrapData implements CommandLineRunner {
         scheduledMedExamination.setAppointmentDate(new Date());
         scheduledMedExamination.setNote("Pacijent ima bol u zuci");
         scheduledMedExamination.setLbzNurse(UUID.fromString("5a2e71bb-e4ee-43dd-55a3-28e043f8b435"));
+
+        ScheduledMedExamination scheduledMedExamination1 = new ScheduledMedExamination();
+        scheduledMedExamination1.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+        scheduledMedExamination1.setLbzDoctor(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.HOUR_OF_DAY, 1);
+        scheduledMedExamination1.setAppointmentDate(calendar.getTime());
+        scheduledMedExamination1.setNote("Pacijent oseca mucninu, ima glavobolju");
+        scheduledMedExamination1.setLbzNurse(UUID.fromString("5a2e71bb-e4ee-43dd-55a3-28e043f8b435"));
+        scheduledMedExamination1.setExaminationStatus(ExaminationStatus.U_TOKU);
+        scheduledMedExamRepository.save(scheduledMedExamination1);
+
+        ScheduledMedExamination scheduledMedExamination2 = new ScheduledMedExamination();
+        scheduledMedExamination2.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+        scheduledMedExamination2.setLbzDoctor(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.setTime(new Date());
+        calendar1.add(Calendar.HOUR_OF_DAY, 2);
+        scheduledMedExamination2.setAppointmentDate(calendar1.getTime());
+        scheduledMedExamination2.setNote("Pacijent ima psihickih problema");
+        scheduledMedExamination2.setLbzNurse(UUID.fromString("5a2e71bb-e4ee-43dd-55a3-28e043f8b435"));
+        scheduledMedExamination2.setExaminationStatus(ExaminationStatus.OTKAZANO);
+        scheduledMedExamRepository.save(scheduledMedExamination2);
 
         scheduledMedExamRepository.save(scheduledMedExamination);
     }

@@ -1,14 +1,11 @@
 package com.raf.si.patientservice.repository.filtering.filter;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.UUID;
 
-@Data
+@Getter
 @AllArgsConstructor
-@NoArgsConstructor
 public class PatientSearchFilter {
     private UUID lbp;
     private String firstName;
