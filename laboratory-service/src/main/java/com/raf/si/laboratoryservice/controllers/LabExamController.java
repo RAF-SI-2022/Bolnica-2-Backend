@@ -3,7 +3,6 @@ package com.raf.si.laboratoryservice.controllers;
 import com.raf.si.laboratoryservice.dto.request.CreateLabExamRequest;
 import com.raf.si.laboratoryservice.dto.request.UpdateLabExamStatusRequest;
 import com.raf.si.laboratoryservice.dto.response.LabExamResponse;
-import com.raf.si.laboratoryservice.model.enums.scheduledlabexam.ExamStatus;
 import com.raf.si.laboratoryservice.service.LabExamService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

@@ -5,7 +5,6 @@ import com.raf.si.laboratoryservice.controllers.ReferralController;
 import com.raf.si.laboratoryservice.dto.request.CreateReferralRequest;
 import com.raf.si.laboratoryservice.dto.response.ReferralListResponse;
 import com.raf.si.laboratoryservice.dto.response.ReferralResponse;
-import com.raf.si.laboratoryservice.model.Referral;
 import com.raf.si.laboratoryservice.model.enums.referral.ReferralType;
 import com.raf.si.laboratoryservice.service.ReferralService;
 import org.junit.jupiter.api.BeforeEach;

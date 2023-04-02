@@ -1,5 +1,6 @@
 package com.raf.si.laboratoryservice.dto.response;
 
+import com.raf.si.laboratoryservice.model.enums.scheduledlabexam.ExamStatus;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,4 +19,6 @@ public class LabExamResponse {
     private Date scheduledDate;
 
     private String note;
+
+    private ExamStatus examStatus;
 }

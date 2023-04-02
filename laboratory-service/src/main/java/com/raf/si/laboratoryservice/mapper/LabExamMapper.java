@@ -27,13 +27,14 @@ public class LabExamMapper {
     }
 
     public LabExamResponse modelToResponse(ScheduledLabExam scheduledLabExam) {
-        LabExamResponse referralResponse = new LabExamResponse();
+        LabExamResponse labExamResponse = new LabExamResponse();
 
-        referralResponse.setLbp(scheduledLabExam.getLbp());
-        referralResponse.setScheduledDate(scheduledLabExam.getScheduledDate());
-        referralResponse.setNote(scheduledLabExam.getNote());
+        labExamResponse.setLbp(scheduledLabExam.getLbp());
+        labExamResponse.setScheduledDate(scheduledLabExam.getScheduledDate());
+        labExamResponse.setNote(scheduledLabExam.getNote());
+        labExamResponse.setExamStatus(scheduledLabExam.getExamStatus());
 
-        return referralResponse;
+        return labExamResponse;
     }
 
     public List<LabExamResponse> scheduledLabExamsToLabExamListResponse(List<ScheduledLabExam> labExams) {
