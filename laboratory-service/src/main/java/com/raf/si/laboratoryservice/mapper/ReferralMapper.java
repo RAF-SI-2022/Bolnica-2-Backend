@@ -24,6 +24,10 @@ public class ReferralMapper {
        referral.setLbz(createReferralRequest.getLbz());
        referral.setLbp(createReferralRequest.getLbp());
        referral.setCreationTime(createReferralRequest.getCreationTime());
+       referral.setReferralReason(createReferralRequest.getReferralReason());
+       referral.setReferralDiagnosis(createReferralRequest.getReferralDiagnosis());
+       referral.setComment(createReferralRequest.getComment());
+       referral.setRequiredAnalysis(createReferralRequest.getRequiredAnalysis());
 
         return referral;
     }
@@ -32,12 +36,13 @@ public class ReferralMapper {
         ReferralResponse referralResponse = new ReferralResponse();
 
         referralResponse.setType(referral.getType());
-        referralResponse.setLbz(referral.getLbz());
         referralResponse.setPboReferredFrom(referral.getPboReferredFrom());
         referralResponse.setPboReferredTo(referral.getPboReferredTo());
         referralResponse.setLbz(referral.getLbz());
         referralResponse.setLbp(referral.getLbp());
         referralResponse.setCreationTime(referral.getCreationTime());
+        referralResponse.setReferralDiagnosis(referral.getReferralDiagnosis());
+        referralResponse.setReferralReason(referral.getReferralReason());
 
         return referralResponse;
     }
