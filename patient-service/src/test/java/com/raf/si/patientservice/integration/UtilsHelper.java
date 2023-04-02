@@ -9,6 +9,7 @@ import com.raf.si.patientservice.model.enums.user.Title;
 import com.raf.si.patientservice.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -16,11 +17,14 @@ import java.util.List;
 import java.util.UUID;
 
 public class UtilsHelper {
+
+    private final String patientJmbg = "1209217282728";
+
     private final JwtUtil jwtUtil;
-    private final  int DURATION_OF_EXAM;
-    public UtilsHelper(JwtUtil jwtUtil, int DURATION_OF_EXAM) {
+    @Value("${duration.of.exam}")
+    private int DURATION_OF_EXAM;
+    public UtilsHelper(JwtUtil jwtUtil) {
         this.jwtUtil=jwtUtil;
-        this.DURATION_OF_EXAM=DURATION_OF_EXAM;
     }
 
     public String generateDocaToken(){
@@ -74,25 +78,25 @@ public class UtilsHelper {
     public PatientRequest makePatientRequest(){
         PatientRequest patientRequest = new PatientRequest();
 
-        patientRequest.setJmbg("1342002345612");
-        patientRequest.setFirstName("Pacijent");
-        patientRequest.setLastName("Pacijentovic");
-        patientRequest.setParentName("Roditelj");
+        patientRequest.setJmbg(patientJmbg);
+        patientRequest.setFirstName("Test");
+        patientRequest.setLastName("Test");
+        patientRequest.setParentName("Test");
         patientRequest.setGender("Muški");
         patientRequest.setBirthDate(new Date());
         patientRequest.setDeathDate(new Date());
-        patientRequest.setBirthplace("Resnjak");
+        patientRequest.setBirthplace("Test");
         patientRequest.setCitizenshipCountry("SRB");
-        patientRequest.setCountryOfLiving("AFG");
+        patientRequest.setCountryOfLiving("SRB");
 
-        patientRequest.setAddress("Jurija Gagarina 16");
-        patientRequest.setPlaceOfLiving("Novi Beograd");
+        patientRequest.setAddress("Test");
+        patientRequest.setPlaceOfLiving("Test");
         patientRequest.setPhoneNumber("0601234567");
-        patientRequest.setEmail("pacijent.pacijentovic@gmail.com");
-        patientRequest.setCustodianJmbg("0101987123456");
-        patientRequest.setCustodianName("Staratelj Starateljovic");
-        patientRequest.setProfession("Programer");
-        patientRequest.setChildrenNum(2);
+        patientRequest.setEmail("test@gmail.com");
+        patientRequest.setCustodianJmbg("0192023930");
+        patientRequest.setCustodianName("Test Testovic");
+        patientRequest.setProfession("Test");
+        patientRequest.setChildrenNum(0);
         patientRequest.setEducation("Osnovno obrazovanje");
         patientRequest.setMaritalStatus("Razveden");
         patientRequest.setFamilyStatus("Usvojen");
@@ -126,5 +130,9 @@ public class UtilsHelper {
         scheduledMedExamination.setAppointmentDate(new Date(new Date().getTime()- (DURATION_OF_EXAM + 5 ) * 60 * 1000));
         scheduledMedExamination.setLbzNurse(UUID.fromString("3e1a51ab-a3aa-1add-a3ad-28e043f8b435"));
         return scheduledMedExamination;
+    }
+
+    public String getPatientJmbg(){
+        return patientJmbg;
     }
 }

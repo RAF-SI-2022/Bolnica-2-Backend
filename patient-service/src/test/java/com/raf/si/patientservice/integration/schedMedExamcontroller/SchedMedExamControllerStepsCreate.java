@@ -35,13 +35,11 @@ public class SchedMedExamControllerStepsCreate extends CucumberConfig {
     @Autowired
     private JwtUtil jwtUtil;
     private UtilsHelper util;
-    @Value("${duration.of.exam}")
-    private int DURATION_OF_EXAM;
     private ResultActions resultAction;
 
     @Before
     public  void  init(){
-        util= new UtilsHelper(jwtUtil, DURATION_OF_EXAM);
+        util= new UtilsHelper(jwtUtil);
         gson= new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd")
                 .create();
@@ -62,7 +60,6 @@ public class SchedMedExamControllerStepsCreate extends CucumberConfig {
         List<ScheduledMedExamination> createdScheduledMedExamination= scheduledMedExamRepository
                 .findByLbzDoctor(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435")).get();
         assertNotNull(createdScheduledMedExamination);
-        resultAction.andDo(MockMvcResultHandlers.print());
         resultAction.andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(createdScheduledMedExamination
                         .get(createdScheduledMedExamination.size()-1).getId()));
