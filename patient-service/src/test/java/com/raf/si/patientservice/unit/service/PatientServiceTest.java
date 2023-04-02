@@ -213,11 +213,11 @@ public class PatientServiceTest {
         when(patientRepository.findByLbpAndDeleted(patient.getLbp(), false))
                 .thenReturn(Optional.of(patient));
 
-        when(allergyRepository.findByHealthRecord(any())).thenReturn(healthRecord.getAllergies());
-        when(operationRepository.findByHealthRecord(any())).thenReturn(healthRecord.getOperations());
-        when(medicalExaminationRepository.findByHealthRecord(any())).thenReturn(healthRecord.getMedicalExaminations());
-        when(medicalHistoryRepository.findByHealthRecord(any())).thenReturn(healthRecord.getMedicalHistory());
-        when(vaccinationRepository.findByHealthRecord(any())).thenReturn(healthRecord.getVaccinations());
+        when(allergyRepository.updateDeletedByHealthRecord(any())).thenReturn(0);
+        when(operationRepository.updateDeletedByHealthRecord(any())).thenReturn(0);
+        when(medicalExaminationRepository.updateDeletedByHealthRecord(any())).thenReturn(0);
+        when(medicalHistoryRepository.updateDeletedByHealthRecord(any())).thenReturn(0);
+        when(vaccinationRepository.updateDeletedByHealthRecord(any())).thenReturn(0);
 
         when(patientRepository.save(any())).thenReturn(patient);
 
