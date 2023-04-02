@@ -201,7 +201,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         healthRecord = healthRecordMapper.updateHealthRecordRequestToHealthRecord( updateHealthRecordRequest, healthRecord);
 
         // update podatke u bazi
-        healthRecord = healthRecordRepository.save(healthRecord);
+        healthRecordRepository.save(healthRecord);
 
         BasicHealthRecordResponse basicHealthRecordResponse = healthRecordMapper.healthRecordToBasicHealthRecordResponse(lbp, healthRecord);
 
@@ -234,7 +234,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         //update podatke
         Allergy allergy = healthRecordMapper.addAllergyRequestToAllergy(addAllergyRequest, healthRecord, allergen);
 
-        // update podatke u bazi
+
         allergy = allergyRepository.save(allergy);
 
         healthRecord.getAllergies().add(allergy);
@@ -339,7 +339,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                 createExaminationReportRequest,
                 diagnosis);
 
-        medicalExamination = medicalExaminationRepository.save(medicalExamination);
+        medicalExaminationRepository.save(medicalExamination);
 
         // ako ima dijagnozu
         if(medicalExamination.getDiagnosis() != null) {
