@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 
 import java.util.List;
@@ -61,6 +62,7 @@ public class SchedMedExamControllerStepsCreate extends CucumberConfig {
         List<ScheduledMedExamination> createdScheduledMedExamination= scheduledMedExamRepository
                 .findByLbzDoctor(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435")).get();
         assertNotNull(createdScheduledMedExamination);
+        resultAction.andDo(MockMvcResultHandlers.print());
         resultAction.andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(createdScheduledMedExamination
                         .get(createdScheduledMedExamination.size()-1).getId()));

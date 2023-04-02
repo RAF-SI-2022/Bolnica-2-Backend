@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import  org.hamcrest.Matchers;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -65,6 +66,7 @@ public class SchedMedExamControllerStepsGet extends CucumberConfig{
     }
     @Then("Nurse gets list of scheduled medical exam for doctor")
     public void nurse_gets_list_of_scheduled_medical_exam_for_doctor() throws Exception {
+        resultAction.andDo(MockMvcResultHandlers.print());
         resultAction.andExpect(status().isOk());
     }
 
@@ -79,6 +81,7 @@ public class SchedMedExamControllerStepsGet extends CucumberConfig{
     }
     @Then("BadRequestException is thrown with status code {int} for doctor lbz id which id does not exists")
     public void bad_request_exception_is_thrown_with_status_code_for_doctor_lbz_id_which_id_does_not_exists(Integer statusCode) throws Exception {
+        resultAction.andDo(MockMvcResultHandlers.print());
         resultAction.andExpect(status().is(statusCode));
     }
 
