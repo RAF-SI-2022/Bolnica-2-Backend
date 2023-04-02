@@ -42,14 +42,13 @@ public class SchedMedExamControllerStepsCreate extends CucumberConfig {
     public  void  init(){
         util= new UtilsHelper(jwtUtil);
         gson= new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd")
+                .setDateFormat("yyyy-MM-dd'T'HH:mm")
                 .create();
     }
 
     @When("Nurse provides valid information")
     public void nurse_provides_valid_information() throws Exception {
         SchedMedExamRequest schedMedExamRequest= util.createSchedMedExamRequest(1);
-
         resultAction= mvc.perform(post("/sched-med-exam/create")
                 .header("Authorization", "Bearer " + util.generateNurseTokenValid())
                 .content(gson.toJson(schedMedExamRequest))

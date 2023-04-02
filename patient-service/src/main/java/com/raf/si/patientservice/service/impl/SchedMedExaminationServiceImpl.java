@@ -88,7 +88,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
         /**
          * Checking if there is a referred patient in the database, there should be.
          */
-        Patient patient=patientRepository.findByLbp(schedMedExamRequest.getLbp()).orElseThrow(() -> {
+        Patient patient=patientRepository.findByLbpAndDeleted(schedMedExamRequest.getLbp(), false).orElseThrow(() -> {
             String errMessage = String.format("Pacijent sa lbp-om '%s' ne postoji", schedMedExamRequest.getLbp());
             log.info(errMessage);
             throw new BadRequestException(errMessage);
@@ -138,9 +138,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
                     throw new BadRequestException(errMessage);
                 });
         Patient patient= scheduledMedExamination.getPatient();
-        scheduledMedExamination.setPatient(null);
         scheduledMedExamRepository.delete(scheduledMedExamination);
-        scheduledMedExamination.setPatient(patient);
         log.info(String.format("Zakazani pregled sa id '%d' uspešno izbrisan", id));
         return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
     }

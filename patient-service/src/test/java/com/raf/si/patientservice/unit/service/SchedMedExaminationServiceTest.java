@@ -138,7 +138,7 @@ public class SchedMedExaminationServiceTest {
                 ,schedMedExamRequest.getAppointmentDate(), schedMedExamRequest.getLbzDoctor()))
                 .thenReturn(Optional.of(new ArrayList<>()));
 
-        when(patientRepository.findByLbp(schedMedExamRequest.getLbp())).thenReturn(Optional.of(patient));
+        when(patientRepository.findByLbpAndDeleted(schedMedExamRequest.getLbp(), false)).thenReturn(Optional.of(patient));
 
         ScheduledMedExamination scheduledMedExamination= schedMedExamMapper
                 .schedMedExamRequestToScheduledMedExamination(new ScheduledMedExamination(),schedMedExamRequest, patient);
