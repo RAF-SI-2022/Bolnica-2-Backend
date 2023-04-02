@@ -100,6 +100,9 @@ public class BootstrapData implements CommandLineRunner {
         Permission specMedBiohemije = new Permission();
         specMedBiohemije.setName("ROLE_SPEC_MED_BIOHEMIJE");
 
+        Permission receptionistPermission = new Permission();
+        receptionistPermission.setName("ROLE_RECEPCIONER");
+
         List<Permission> adminPermissions = new ArrayList<>();
         List<Permission> medSestraPermissions = new ArrayList<>();
         visaMedSestraPermission = permissionsRepository.save(visaMedSestraPermission);
@@ -114,6 +117,7 @@ public class BootstrapData implements CommandLineRunner {
         adminPermissions.add(permissionsRepository.save(labTehnicar));
         adminPermissions.add(permissionsRepository.save(medBiohemicar));
         adminPermissions.add(permissionsRepository.save(specMedBiohemije));
+        adminPermissions.add(permissionsRepository.save(receptionistPermission));
         adminPermissions.add(visaMedSestraPermission);
         adminPermissions.add(medSestraPermission);
 

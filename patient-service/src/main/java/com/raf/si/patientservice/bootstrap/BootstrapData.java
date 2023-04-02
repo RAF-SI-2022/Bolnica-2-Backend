@@ -2,6 +2,7 @@ package com.raf.si.patientservice.bootstrap;
 
 
 import com.raf.si.patientservice.model.*;
+import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
 import com.raf.si.patientservice.model.enums.healthrecord.BloodType;
 import com.raf.si.patientservice.model.enums.healthrecord.RHFactor;
 import com.raf.si.patientservice.model.enums.medicalhistory.TreatmentResult;
@@ -10,6 +11,7 @@ import com.raf.si.patientservice.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
 
@@ -245,6 +247,30 @@ public class BootstrapData implements CommandLineRunner {
         scheduledMedExamination.setAppointmentDate(new Date());
         scheduledMedExamination.setNote("Pacijent ima bol u zuci");
         scheduledMedExamination.setLbzNurse(UUID.fromString("5a2e71bb-e4ee-43dd-55a3-28e043f8b435"));
+
+        ScheduledMedExamination scheduledMedExamination1 = new ScheduledMedExamination();
+        scheduledMedExamination1.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+        scheduledMedExamination1.setLbzDoctor(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.HOUR_OF_DAY, 1);
+        scheduledMedExamination1.setAppointmentDate(calendar.getTime());
+        scheduledMedExamination1.setNote("Pacijent oseca mucninu, ima glavobolju");
+        scheduledMedExamination1.setLbzNurse(UUID.fromString("5a2e71bb-e4ee-43dd-55a3-28e043f8b435"));
+        scheduledMedExamination1.setExaminationStatus(ExaminationStatus.U_TOKU);
+        scheduledMedExamRepository.save(scheduledMedExamination1);
+
+        ScheduledMedExamination scheduledMedExamination2 = new ScheduledMedExamination();
+        scheduledMedExamination2.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+        scheduledMedExamination2.setLbzDoctor(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.setTime(new Date());
+        calendar1.add(Calendar.HOUR_OF_DAY, 2);
+        scheduledMedExamination2.setAppointmentDate(calendar1.getTime());
+        scheduledMedExamination2.setNote("Pacijent ima psihickih problema");
+        scheduledMedExamination2.setLbzNurse(UUID.fromString("5a2e71bb-e4ee-43dd-55a3-28e043f8b435"));
+        scheduledMedExamination2.setExaminationStatus(ExaminationStatus.OTKAZANO);
+        scheduledMedExamRepository.save(scheduledMedExamination2);
 
         scheduledMedExamRepository.save(scheduledMedExamination);
     }

@@ -2,7 +2,9 @@ package com.raf.si.userservice.cucumber.usercontroller;
 
 import com.raf.si.userservice.cucumber.CucumberConfig;
 import com.raf.si.userservice.cucumber.UtilsHelper;
+import com.raf.si.userservice.model.Department;
 import com.raf.si.userservice.model.User;
+import com.raf.si.userservice.repository.DepartmentRepository;
 import com.raf.si.userservice.repository.UserRepository;
 import com.raf.si.userservice.utils.JwtUtil;
 import io.cucumber.java.Before;
@@ -17,6 +19,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -27,6 +30,8 @@ public class UserControllerStepsGet extends CucumberConfig {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private DepartmentRepository departmentRepository;
     @Autowired
     private JwtUtil jwtUtil;
     private ResultActions resultActions;
@@ -118,5 +123,54 @@ public class UserControllerStepsGet extends CucumberConfig {
     public void page_with_given_parameters_is_returned_containing_users() throws Exception {
         resultActions.andExpect(status().isOk())
                 .andExpect(jsonPath("$.userList", hasSize(1)));
+    }
+
+    @When("tries to fetch all doctors")
+    public void tries_to_fetch_all_doctors() throws Exception {
+        User admin = userRepository.findUserByUsername("admin").orElse(null);
+        assertNotNull(admin);
+
+        resultActions = mvc.perform(get("/users/doctors")
+                .header("Authorization", "Bearer " + utils.generateToken(admin))
+                .contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Then("list of doctors are returned")
+    public void list_of_doctors_are_returned() throws Exception {
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()", greaterThan(0)));
+    }
+
+    @When("given department with pbo does not exist")
+    public void given_department_with_pbo_does_not_exist() throws Exception {
+        User admin = userRepository.findUserByUsername("admin").orElse(null);
+        assertNotNull(admin);
+
+        resultActions = mvc.perform(get(String.format("/users/doctors/%s", UUID.randomUUID().toString()))
+                .header("Authorization", "Bearer " + utils.generateToken(admin))
+                .contentType(MediaType.APPLICATION_JSON));
+    }
+    @Then("NotFoundException is thrown with status code {int} for given pbo")
+    public void not_found_exception_is_thrown_with_status_code_for_given_pbo(Integer statusCode) throws Exception {
+        resultActions.andExpect(status().is(statusCode));
+    }
+
+    @When("given department with pbo exists")
+    public void given_department_with_pbo_exists() throws Exception {
+        User admin = userRepository.findUserByUsername("admin").orElse(null);
+        Department department = departmentRepository.findDepartmentByName("Hirurgija").orElse(null);
+
+        assertNotNull(admin);
+        assertNotNull(department);
+
+        resultActions = mvc.perform(get(String.format("/users/doctors/%s", department.getPbo()))
+                .header("Authorization", "Bearer " + utils.generateToken(admin))
+                .contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Then("list of doctors for given department is returned")
+    public void list_of_doctors_for_given_department_is_returned() throws Exception {
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()", greaterThan(0)));
     }
 }

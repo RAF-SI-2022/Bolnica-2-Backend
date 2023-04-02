@@ -1,5 +1,6 @@
 package com.raf.si.userservice.repository;
 
+import com.raf.si.userservice.model.Department;
 import com.raf.si.userservice.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,4 +34,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
                             @PathVariable("includeDeleted") List<Boolean> includeDeleted, Pageable pageable);
 
     Optional<User> findByPasswordToken(UUID passwordToken);
+
+    @Query(value = "select distinct u from users u left join u.permissions p where p.name in :permissions")
+    List<User> getAllDoctors(@PathVariable("permissions") List<String> permissions);
+
+    @Query(value = "select distinct u from users u left join u.permissions p where p.name in :permissions and u.department = :department")
+    List<User> getAllDoctorsByDepartment(@PathVariable("permissions") List<String> permissions, @PathVariable("department") Department department);
 }

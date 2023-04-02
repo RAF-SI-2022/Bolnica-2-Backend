@@ -30,9 +30,10 @@ public class SchedMedExaminationController {
         this.schedMedExaminationService = schedMedExaminationService;
     }
 
-    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')" +
+            " or hasRole('ROLE_RECEPCIONER')")
     @PostMapping("/create")
-    public ResponseEntity<?> createSchedMedExamination(@Valid @RequestBody SchedMedExamRequest schedMedExamRequest,
+    public ResponseEntity<SchedMedExamResponse> createSchedMedExamination(@Valid @RequestBody SchedMedExamRequest schedMedExamRequest,
                                                        @RequestHeader("Authorization") String authorizationHeader) {
         return ResponseEntity.ok(schedMedExaminationService.createSchedMedExamination(schedMedExamRequest, authorizationHeader));
     }
@@ -56,7 +57,8 @@ public class SchedMedExaminationController {
             "or hasRole('ROLE_DR_SPEC')" +
             "or hasRole('ROLE_DR_SPEC_POV')" +
             "or hasRole('ROLE_MED_SESTRA')" +
-            "or hasRole('ROLE_VISA_MED_SESTRA')")
+            "or hasRole('ROLE_VISA_MED_SESTRA')" +
+            "or hasRole('ROLE_RECEPCIONER')")
     @GetMapping("/search")
     public ResponseEntity<SchedMedExamListResponse> getSchedMedExam(@RequestHeader("Authorization") String authorizationHeader,
                                                                     @RequestParam("lbz") UUID lbz,
