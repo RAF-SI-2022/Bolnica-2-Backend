@@ -1,5 +1,6 @@
 package com.raf.si.patientservice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -46,6 +47,7 @@ public class MedicalExamination {
     @Column
     private String advice;
 
+    @JsonIgnore
     @Column
     private Boolean deleted = false;
 
@@ -53,9 +55,10 @@ public class MedicalExamination {
     @Column(nullable = false)
     private UUID lbz;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private Diagnosis diagnosis;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "health_record_id", nullable = false)
     private HealthRecord healthRecord;

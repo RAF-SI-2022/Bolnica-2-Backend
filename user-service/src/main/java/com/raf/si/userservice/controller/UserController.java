@@ -4,6 +4,7 @@ import com.raf.si.userservice.dto.request.CreateUserRequest;
 import com.raf.si.userservice.dto.request.PasswordResetRequest;
 import com.raf.si.userservice.dto.request.UpdatePasswordRequest;
 import com.raf.si.userservice.dto.request.UpdateUserRequest;
+import com.raf.si.userservice.dto.response.DoctorResponse;
 import com.raf.si.userservice.dto.response.MessageResponse;
 import com.raf.si.userservice.dto.response.UserListAndCountResponse;
 import com.raf.si.userservice.dto.response.UserResponse;
@@ -19,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -51,10 +53,32 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserByLbz(lbz));
     }
 
+    @GetMapping("/employee-info/{lbz}")
+    public ResponseEntity<UserResponse> getEmployeeInfo(@PathVariable("lbz") UUID lbz) {
+        return ResponseEntity.ok(userService.getUserByLbz(lbz));
+    }
+
+    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA') or hasRole('ROLE_DR_SPEC') or " +
+            "hasRole('ROLE_DR_SPEC_POV') or hasRole('ROLE_VISA_MED_SESTRA') or " +
+            "hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_RECEPCIONER')")
+    @GetMapping("/doctors")
+    public ResponseEntity<List<DoctorResponse>> getAllDoctors() {
+        return ResponseEntity.ok(userService.getAllDoctors());
+    }
+
+    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA') or hasRole('ROLE_DR_SPEC') or " +
+            "hasRole('ROLE_DR_SPEC_POV') or hasRole('ROLE_VISA_MED_SESTRA') or " +
+            "hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_RECEPCIONER')")
+    @GetMapping("/doctors/{pbo}")
+    public ResponseEntity<List<DoctorResponse>> getAllDoctorsByDepartment(@PathVariable("pbo") UUID pbo) {
+        return ResponseEntity.ok(userService.getAllDoctorsByDepartment(pbo));
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<UserResponse> deleteUser(@PathVariable("id") Long id) {
-        return ResponseEntity.ok(userService.deleteUser(id));
+        TokenPayload payload = getPayload();
+        return ResponseEntity.ok(userService.deleteUser(id, payload.getLbz()));
     }
 
     @PutMapping("/{lbz}")
