@@ -23,3 +23,7 @@ server:
 jwt.secret.key: "secret_key"
 
 user-service-url: "http://user-service:8081/api/users"
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/

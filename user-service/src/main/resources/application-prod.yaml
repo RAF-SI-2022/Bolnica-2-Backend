@@ -35,3 +35,7 @@ mail:
       enable: "true"
     auth: "true"
     debug: "true"
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
