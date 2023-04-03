@@ -27,7 +27,7 @@ public class ScheduledMedExamSpecification implements Specification<ScheduledMed
             predicates.add(criteriaBuilder.equal(lbzDoctor, filter.getLbz()));
         if(filter.getAppointmentDate()!= null){
             /**
-             * Very Hacky way to get schedMedExams for passed day.
+             * Very Hacky way to get schedMedExams for given day.
              */
             Calendar calendar=Calendar.getInstance();
             calendar.setTime(filter.getAppointmentDate());

@@ -5,6 +5,7 @@ import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
 import com.raf.si.patientservice.dto.response.SchedMedExamListResponse;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
+import com.raf.si.patientservice.model.Patient;
 import com.raf.si.patientservice.model.ScheduledMedExamination;
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
 import com.raf.si.patientservice.model.enums.examination.PatientArrivalStatus;
@@ -18,11 +19,15 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class SchedMedExamMapper {
+    private final PatientMapper patientMapper;
 
+    public SchedMedExamMapper(PatientMapper patientMapper) {
+        this.patientMapper = patientMapper;
+    }
 
     public ScheduledMedExamination schedMedExamRequestToScheduledMedExamination(ScheduledMedExamination scheduledMedExamination
-            ,SchedMedExamRequest schedMedExamRequest){
-        scheduledMedExamination.setLbp(schedMedExamRequest.getLbp());
+            , SchedMedExamRequest schedMedExamRequest, Patient patient){
+        scheduledMedExamination.setPatient(patient);
         scheduledMedExamination.setLbzDoctor(schedMedExamRequest.getLbzDoctor());
         scheduledMedExamination.setAppointmentDate(schedMedExamRequest.getAppointmentDate());
         scheduledMedExamination.setLbzNurse(schedMedExamRequest.getLbzNurse());
@@ -38,7 +43,7 @@ public class SchedMedExamMapper {
         SchedMedExamResponse schedMedExamResponse= new SchedMedExamResponse();
 
         schedMedExamResponse.setId(scheduledMedExamination.getId());
-        schedMedExamResponse.setLbp(scheduledMedExamination.getLbp());
+        schedMedExamResponse.setPatientResponse(patientMapper.patientToPatientResponse(scheduledMedExamination.getPatient()));
         schedMedExamResponse.setLbzDoctor(scheduledMedExamination.getLbzDoctor());
         schedMedExamResponse.setAppointmentDate(scheduledMedExamination.getAppointmentDate());
         schedMedExamResponse.setExaminationStatus(scheduledMedExamination.getExaminationStatus());
@@ -116,4 +121,6 @@ public class SchedMedExamMapper {
 
         return new SchedMedExamListResponse(schedMedExamResponses,schedMedExaminationPage.getTotalElements());
     }
+
+
 }

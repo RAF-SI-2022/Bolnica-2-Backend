@@ -1,10 +1,7 @@
 package com.raf.si.patientservice.service;
 
-import com.raf.si.patientservice.dto.request.MedicalExaminationFilterRequest;
-import com.raf.si.patientservice.dto.response.HealthRecordResponse;
-import com.raf.si.patientservice.dto.response.LightHealthRecordResponse;
-import com.raf.si.patientservice.dto.response.MedicalExaminationListResponse;
-import com.raf.si.patientservice.dto.response.MedicalHistoryListResponse;
+import com.raf.si.patientservice.dto.request.*;
+import com.raf.si.patientservice.dto.response.*;
 import org.springframework.data.domain.Pageable;
 
 import java.util.UUID;
@@ -18,4 +15,19 @@ public interface HealthRecordService {
     MedicalExaminationListResponse findExaminations(UUID lbp, MedicalExaminationFilterRequest request, Pageable pageable);
 
     MedicalHistoryListResponse findMedicalHistory(UUID lbp, String diagnosisCode, Pageable pageable);
+
+    BasicHealthRecordResponse updateHealthRecord(UpdateHealthRecordRequest updateHealthRecordRequest, UUID lbp);
+
+    ExtendedAllergyResponse addAllergy(AddAllergyRequest addAllergyRequest, UUID lbp);
+
+    ExtendedVaccinationResponse addVaccination(AddVaccinationRequest addVaccinationRequest, UUID lbp);
+
+    VaccineListResponse getAvailableVaccines();
+
+    AllergenListResponse getAvailableAllergens();
+
+    MessageResponse createExaminationReportRequest(UUID lbp, UUID lbz, CreateExaminationReportRequest createExaminationReportRequest);
+
+
+
 }

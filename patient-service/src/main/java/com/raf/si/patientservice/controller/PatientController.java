@@ -25,21 +25,24 @@ public class PatientController {
         this.patientService = patientService;
     }
 
-    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')" +
+            " or hasRole('ROLE_RECEPCIONER')")
     @PostMapping("/create")
     public ResponseEntity<PatientResponse> createPatient(@Valid @RequestBody PatientRequest patientRequest){
         return ResponseEntity.ok(patientService.createPatient(patientRequest));
     }
 
-    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')" +
+            " or hasRole('ROLE_RECEPCIONER')")
     @PutMapping("/update")
     public ResponseEntity<PatientResponse> updatePatientByJmbg(@Valid @RequestBody PatientRequest patientRequest){
         return ResponseEntity.ok(patientService.updatePatientByJmbg(patientRequest));
     }
 
-    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')" +
+            " or hasRole('ROLE_RECEPCIONER')")
     @PutMapping("/update/{lbp}")
-    public ResponseEntity<PatientResponse> updatePatientByJmbg(@Valid @RequestBody PatientRequest patientRequest,
+    public ResponseEntity<PatientResponse> updatePatientByLbp(@Valid @RequestBody PatientRequest patientRequest,
                                                                @PathVariable("lbp") UUID lbp){
         return ResponseEntity.ok(patientService.updatePatientByLbp(patientRequest, lbp));
     }
@@ -64,7 +67,8 @@ public class PatientController {
             "or hasRole('ROLE_DR_SPEC')" +
             "or hasRole('ROLE_DR_SPEC_POV')" +
             "or hasRole('ROLE_MED_SESTRA')" +
-            "or hasRole('ROLE_VISA_MED_SESTRA')")
+            "or hasRole('ROLE_VISA_MED_SESTRA')" +
+            "or hasRole('ROLE_RECEPCIONER')")
     @GetMapping
     public ResponseEntity<PatientListResponse> getPatients(@RequestParam(required = false) UUID lbp,
                                                            @RequestParam(required = false) String firstName,

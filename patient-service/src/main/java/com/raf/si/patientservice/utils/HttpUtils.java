@@ -16,10 +16,11 @@ import java.util.UUID;
 public class HttpUtils {
 
     private static String USER_SERVICE_BASE_URL;
+    private static String USER_GET_USER_INFO= "/employee-info";
 
 
     public static ResponseEntity<UserResponse> findUserByLbz(String token, UUID lbz){
-        String url = USER_SERVICE_BASE_URL + "/" + lbz;
+        String url = USER_SERVICE_BASE_URL +USER_GET_USER_INFO+ "/" + lbz;
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", token);

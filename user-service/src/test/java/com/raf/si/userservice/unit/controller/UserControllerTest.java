@@ -5,6 +5,7 @@ import com.raf.si.userservice.dto.request.CreateUserRequest;
 import com.raf.si.userservice.dto.request.PasswordResetRequest;
 import com.raf.si.userservice.dto.request.UpdatePasswordRequest;
 import com.raf.si.userservice.dto.request.UpdateUserRequest;
+import com.raf.si.userservice.dto.response.DoctorResponse;
 import com.raf.si.userservice.dto.response.MessageResponse;
 import com.raf.si.userservice.dto.response.UserListAndCountResponse;
 import com.raf.si.userservice.dto.response.UserResponse;
@@ -89,10 +90,39 @@ public class UserControllerTest {
     public void deleteUser_Success() {
         Long id = 1L;
         UserResponse userResponse = createUserResponse();
-        when(authentication.getPrincipal()).thenReturn(getTokenPayload(false));
-        when(userService.deleteUser(id)).thenReturn(userResponse);
+        TokenPayload tokenPayload = getTokenPayload(false);
+        when(authentication.getPrincipal()).thenReturn(tokenPayload);
+        when(userService.deleteUser(id, tokenPayload.getLbz())).thenReturn(userResponse);
         assertEquals(userController.deleteUser(id),
                 ResponseEntity.of(Optional.of(userResponse)));
+    }
+
+    @Test
+    public void getAllDoctors_Success() {
+       DoctorResponse doctorResponse = createDoctorResponse(UUID.randomUUID());
+       DoctorResponse doctorResponse2 = createDoctorResponse(UUID.randomUUID());
+
+       List<DoctorResponse> list = Arrays.asList(doctorResponse, doctorResponse2);
+
+       when(userService.getAllDoctors())
+               .thenReturn(list);
+
+       assertEquals(userController.getAllDoctors(), ResponseEntity.of(Optional.of(list)));
+    }
+
+    @Test
+    public void getAllDoctorsByDepartment_Success() {
+        DoctorResponse doctorResponse = createDoctorResponse(UUID.randomUUID());
+        DoctorResponse doctorResponse2 = createDoctorResponse(UUID.randomUUID());
+
+        UUID pbo = UUID.randomUUID();
+
+        List<DoctorResponse> list = Arrays.asList(doctorResponse, doctorResponse2);
+
+        when(userService.getAllDoctorsByDepartment(pbo))
+                .thenReturn(list);
+
+        assertEquals(userController.getAllDoctorsByDepartment(pbo), ResponseEntity.of(Optional.of(list)));
     }
 
     @Test
@@ -173,6 +203,15 @@ public class UserControllerTest {
 
     private UserResponse createUserResponse() {
         return new UserResponse();
+    }
+
+    private DoctorResponse createDoctorResponse(UUID lbz) {
+        DoctorResponse doctorResponse = new DoctorResponse();
+        doctorResponse.setLbz(lbz);
+        doctorResponse.setLastName("lastname");
+        doctorResponse.setFirstName("firstName");
+
+        return doctorResponse;
     }
 
     private TokenPayload getTokenPayload(boolean isAdmin) {

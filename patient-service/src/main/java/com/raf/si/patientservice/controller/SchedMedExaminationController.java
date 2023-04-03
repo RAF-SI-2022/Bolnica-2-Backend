@@ -7,18 +7,14 @@ import com.raf.si.patientservice.dto.response.SchedMedExamListResponse;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 import com.raf.si.patientservice.service.SchedMedExaminationService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
 import java.util.Date;
-import java.util.Optional;
 import java.util.UUID;
 
 
@@ -34,10 +30,12 @@ public class SchedMedExaminationController {
         this.schedMedExaminationService = schedMedExaminationService;
     }
 
-    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')" +
+            " or hasRole('ROLE_RECEPCIONER')")
     @PostMapping("/create")
-    public ResponseEntity<?> createSchedMedExamination(@Valid @RequestBody SchedMedExamRequest schedMedExamRequest) {
-        return ResponseEntity.ok(schedMedExaminationService.createSchedMedExamination(schedMedExamRequest));
+    public ResponseEntity<SchedMedExamResponse> createSchedMedExamination(@Valid @RequestBody SchedMedExamRequest schedMedExamRequest,
+                                                       @RequestHeader("Authorization") String authorizationHeader) {
+        return ResponseEntity.ok(schedMedExaminationService.createSchedMedExamination(schedMedExamRequest, authorizationHeader));
     }
 
     @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA')" +
@@ -59,7 +57,8 @@ public class SchedMedExaminationController {
             "or hasRole('ROLE_DR_SPEC')" +
             "or hasRole('ROLE_DR_SPEC_POV')" +
             "or hasRole('ROLE_MED_SESTRA')" +
-            "or hasRole('ROLE_VISA_MED_SESTRA')")
+            "or hasRole('ROLE_VISA_MED_SESTRA')" +
+            "or hasRole('ROLE_RECEPCIONER')")
     @GetMapping("/search")
     public ResponseEntity<SchedMedExamListResponse> getSchedMedExam(@RequestHeader("Authorization") String authorizationHeader,
                                                                     @RequestParam("lbz") UUID lbz,
