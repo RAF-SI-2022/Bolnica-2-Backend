@@ -45,6 +45,20 @@ public class ReferralControllerStepsCreate extends CucumberConfig {
                 .create();
     }
 
+    @When("doctor provides invalid information for creating a referral")
+    public void doctor_provides_invalid_information_for_creating_a_referral() throws Exception {
+        CreateReferralRequest createReferralRequest = new CreateReferralRequest();
+        resultActions = mvc.perform(post("/referral/create")
+                .header("Authorization", "Bearer " + util.getToken())
+                .content(gson.toJson(createReferralRequest))
+                .contentType(MediaType.APPLICATION_JSON));
+
+    }
+    @Then("BadRequestException is thrown with status code {int}")
+    public void bad_request_exception_is_thrown_with_status_code(Integer statusCode) throws Exception {
+        resultActions.andExpect(status().is(statusCode));
+    }
+
     @When("doctor provides valid information for creating a referral")
     public void doctor_provides_valid_information_for_creating_a_referral() throws Exception {
         CreateReferralRequest createReferralRequest = util.createReferralRequest();
