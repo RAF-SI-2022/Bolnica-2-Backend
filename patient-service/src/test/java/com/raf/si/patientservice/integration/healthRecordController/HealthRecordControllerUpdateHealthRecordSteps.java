@@ -106,7 +106,7 @@ public class HealthRecordControllerUpdateHealthRecordSteps extends CucumberConfi
         addVaccinationRequest.setVaccine(vaccine);
         //SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         //LocalDate localDate = LocalDate.parse(patient.getBirthDate().toString()).plusDays(1).toString();
-        addVaccinationRequest.setDate(new Date(System.currentTimeMillis() - 6000 * 1000));
+        addVaccinationRequest.setDate(new Date(System.currentTimeMillis() - 3600 * 1000*25));
 
         resultAction = mvc.perform(put(String.format("/record/add-vaccination/%s", patient.getLbp().toString()))
                 .header("Authorization", "Bearer " + util.generateToken())
