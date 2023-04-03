@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.raf.si.laboratoryservice.cucumber.CucumberConfig;
 import com.raf.si.laboratoryservice.cucumber.UtilsHelper;
 import com.raf.si.laboratoryservice.repository.ReferralRepository;
+import com.raf.si.laboratoryservice.utils.JwtUtil;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -33,9 +34,12 @@ public class ReferralControllerStepsHistory extends CucumberConfig {
     private UtilsHelper util;
     private ResultActions resultActions;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @Before
     public void initialization() {
-        util = new UtilsHelper();
+        util = new UtilsHelper(jwtUtil);
         gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd")
                 .create();
@@ -51,7 +55,7 @@ public class ReferralControllerStepsHistory extends CucumberConfig {
         queryParams.add("size", "10");
 
         resultActions = mvc.perform(get("/referral/history").queryParams(queryParams)
-                .header("Authorization", "Bearer " + util.getToken())
+                .header("Authorization", "Bearer " + util.generateToken())
                 .contentType(MediaType.APPLICATION_JSON));
     }
     @Then("page with given parameters is returned containing referral history")
@@ -69,7 +73,7 @@ public class ReferralControllerStepsHistory extends CucumberConfig {
         queryParams.add("page", "1");
 
         resultActions = mvc.perform(get("/referral/history").queryParams(queryParams)
-                .header("Authorization", "Bearer " + util.getToken())
+                .header("Authorization", "Bearer " + util.generateToken())
                 .contentType(MediaType.APPLICATION_JSON));
     }
 

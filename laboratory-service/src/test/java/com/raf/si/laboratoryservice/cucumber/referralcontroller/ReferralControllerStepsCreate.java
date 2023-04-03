@@ -16,15 +16,8 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.ResultActions;
-
-import java.sql.Timestamp;
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,9 +30,12 @@ public class ReferralControllerStepsCreate extends CucumberConfig {
     private UtilsHelper util;
     private ResultActions resultActions;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @Before
     public void initialization() {
-        util = new UtilsHelper();
+        util = new UtilsHelper(jwtUtil);
         gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd")
                 .create();
@@ -49,7 +45,7 @@ public class ReferralControllerStepsCreate extends CucumberConfig {
     public void doctor_provides_invalid_information_for_creating_a_referral() throws Exception {
         CreateReferralRequest createReferralRequest = new CreateReferralRequest();
         resultActions = mvc.perform(post("/referral/create")
-                .header("Authorization", "Bearer " + util.getToken())
+                .header("Authorization", "Bearer " + util.generateToken())
                 .content(gson.toJson(createReferralRequest))
                 .contentType(MediaType.APPLICATION_JSON));
 
@@ -64,7 +60,7 @@ public class ReferralControllerStepsCreate extends CucumberConfig {
         CreateReferralRequest createReferralRequest = util.createReferralRequest();
 
         resultActions = mvc.perform(post("/referral/create")
-                .header("Authorization", "Bearer " + util.getToken())
+                .header("Authorization", "Bearer " + util.generateToken())
                 .content(gson.toJson(createReferralRequest))
                 .contentType(MediaType.APPLICATION_JSON));
 

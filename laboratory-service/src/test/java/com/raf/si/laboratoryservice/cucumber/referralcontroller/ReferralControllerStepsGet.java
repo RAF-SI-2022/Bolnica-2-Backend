@@ -7,6 +7,7 @@ import com.raf.si.laboratoryservice.cucumber.UtilsHelper;
 import com.raf.si.laboratoryservice.dto.request.CreateReferralRequest;
 import com.raf.si.laboratoryservice.model.Referral;
 import com.raf.si.laboratoryservice.repository.ReferralRepository;
+import com.raf.si.laboratoryservice.utils.JwtUtil;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -29,9 +30,12 @@ public class ReferralControllerStepsGet extends CucumberConfig {
     private UtilsHelper util;
     private ResultActions resultActions;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @Before
     public void initialization() {
-        util = new UtilsHelper();
+        util = new UtilsHelper(jwtUtil);
         gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd")
                 .create();
@@ -40,7 +44,7 @@ public class ReferralControllerStepsGet extends CucumberConfig {
     @When("given referral does not exist for given id")
     public void given_referral_does_not_exist_for_given_id() throws Exception {
         resultActions = mvc.perform(get("/referral/2")
-                .header("Authorization", "Bearer " + util.getToken())
+                .header("Authorization", "Bearer " + util.generateToken())
                 .contentType(MediaType.APPLICATION_JSON));
     }
     @Then("NotFoundException is thrown with status code {int} for given id")
@@ -51,7 +55,7 @@ public class ReferralControllerStepsGet extends CucumberConfig {
     @When("given referral exists for given id")
     public void given_referral_exists_for_given_id() throws Exception {
         resultActions = mvc.perform(get("/referral/1")
-                .header("Authorization", "Bearer " + util.getToken())
+                .header("Authorization", "Bearer " + util.generateToken())
                 .contentType(MediaType.APPLICATION_JSON));
     }
     @Then("referral is returned for given id")
