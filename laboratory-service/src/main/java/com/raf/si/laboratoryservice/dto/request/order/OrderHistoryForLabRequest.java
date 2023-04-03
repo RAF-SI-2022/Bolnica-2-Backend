@@ -1,6 +1,7 @@
 package com.raf.si.laboratoryservice.dto.request.order;
 
 import com.raf.si.laboratoryservice.model.enums.labworkorder.OrderStatus;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,6 +11,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@AllArgsConstructor
 public class OrderHistoryForLabRequest {
     @NotNull
     private Date startDate;

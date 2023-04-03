@@ -1,4 +1,4 @@
-package com.raf.si.laboratoryservice.controllers;
+package com.raf.si.laboratoryservice.controller;
 
 import com.raf.si.laboratoryservice.dto.request.order.*;
 import com.raf.si.laboratoryservice.dto.response.order.*;
@@ -25,7 +25,9 @@ public class WorkOrderController {
     @PreAuthorize("hasRole('ROLE_LAB_TEHNICAR') or hasRole('ROLE_VISI_LAB_TEHNICAR')")
     @PostMapping("/create")
     public ResponseEntity<CreateOrderResponse> createWorkOrder(@Valid @RequestBody CreateOrderRequest orderRequest){
-        return ResponseEntity.ok(orderService.createOrder(orderRequest));
+        CreateOrderResponse response = orderService.createOrder(orderRequest);
+        System.out.println(response.toString());
+        return ResponseEntity.ok(response);
     }
 
     @PreAuthorize("hasRole('ROLE_NACELNIK_ODELJENJA') or hasRole('ROLE_DOKTOR_SPEC') or hasRole('DOKTOR_SPEC_POV')")
