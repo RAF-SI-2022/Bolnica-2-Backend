@@ -18,4 +18,6 @@ public interface ReferralRepository extends JpaRepository<Referral, Long> {
     Page<Referral> findByLbpAndCreationTimeBetweenAndDeletedFalse(UUID patientId, Timestamp dateFrom, Timestamp dateTo, Pageable pageable);
 
     Optional<List<Referral>> findByLbpAndPboReferredToAndStatus(UUID lbp, UUID pboFromToken, ReferralStatus status);
+
+    Optional<Referral> findById(Long id);
 }

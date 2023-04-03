@@ -1,4 +1,7 @@
 package com.raf.si.laboratoryservice.cucumber.labexamcontroller;
 
-public class LabExamControllerStepsCreate {
+import com.raf.si.laboratoryservice.cucumber.CucumberConfig;
+
+public class LabExamControllerStepsCreate extends CucumberConfig {
+//    private
 }
