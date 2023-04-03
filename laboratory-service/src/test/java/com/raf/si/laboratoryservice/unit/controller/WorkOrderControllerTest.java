@@ -5,7 +5,8 @@ import com.raf.si.laboratoryservice.dto.request.order.*;
 import com.raf.si.laboratoryservice.dto.response.order.*;
 import com.raf.si.laboratoryservice.model.enums.labworkorder.OrderStatus;
 import com.raf.si.laboratoryservice.services.WorkOrderService;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,16 +21,22 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 public class WorkOrderControllerTest {
+    WorkOrderService orderService;
+    WorkOrderController workOrderController;
+
+    @BeforeEach
+    public void setUp(){
+        orderService = mock(WorkOrderService.class);
+        workOrderController = new WorkOrderController(orderService);
+    }
 
     @Test
     public void createOrderSuccess(){
-        WorkOrderService orderService = mock(WorkOrderService.class);
-        WorkOrderController workOrderController = new WorkOrderController(orderService);
-        CreateOrderRequest request = new CreateOrderRequest(new Random().nextLong());
-        CreateOrderResponse response = new CreateOrderResponse();
+        Long request = new Random().nextLong();
+        OrderResponse response = new OrderResponse();
         when(orderService.createOrder(request)).thenReturn(response);
 
-        ResponseEntity<CreateOrderResponse> result = workOrderController.createWorkOrder(request);
+        ResponseEntity<OrderResponse> result = workOrderController.createWorkOrder(request);
 
         System.out.println(result.toString());
 
@@ -39,8 +46,6 @@ public class WorkOrderControllerTest {
 
     @Test
     public void getHistorySuccess(){
-        WorkOrderService orderService = mock(WorkOrderService.class);
-        WorkOrderController workOrderController = new WorkOrderController(orderService);
         OrderHistoryRequest request = makeOrderHistoryRequest();
         OrderHistoryResponse response = new OrderHistoryResponse();
         when(orderService.orderHistory(request, PageRequest.of(0,5))).thenReturn(response);
@@ -56,7 +61,7 @@ public class WorkOrderControllerTest {
         WorkOrderService orderService = mock(WorkOrderService.class);
         WorkOrderController workOrderController = new WorkOrderController(orderService);
         SaveResultRequest request = new SaveResultRequest(new Random().nextLong(), new Random().nextLong(), "123");
-        SaveResultResponse response = new SaveResultResponse("Uspešno unet rezultat analize.");
+        SaveResultResponse response = new SaveResultResponse();
         when(orderService.saveResult(request)).thenReturn(response);
 
         ResponseEntity<SaveResultResponse> result = workOrderController.saveResult(request);
@@ -67,9 +72,7 @@ public class WorkOrderControllerTest {
 
     @Test
     public void getResultSuccess(){
-        WorkOrderService orderService = mock(WorkOrderService.class);
-        WorkOrderController workOrderController = new WorkOrderController(orderService);
-        ResultRequest request = new ResultRequest(new Random().nextLong());
+        Long request = new Random().nextLong();
         ResultResponse response = new ResultResponse();
         when(orderService.getResults(request)).thenReturn(response);
 
@@ -81,8 +84,6 @@ public class WorkOrderControllerTest {
 
     @Test
     public void getHistoryForLabSuccess(){
-        WorkOrderService orderService = mock(WorkOrderService.class);
-        WorkOrderController workOrderController = new WorkOrderController(orderService);
         OrderHistoryForLabRequest request = makeOrderHistoryForLabRequest();
         OrderHistoryResponse response = new OrderHistoryResponse();
         when(orderService.orderHistoryForLab(request, PageRequest.of(0,5))).thenReturn(response);
@@ -95,13 +96,11 @@ public class WorkOrderControllerTest {
 
     @Test
     public void verifySuccess(){
-        WorkOrderService orderService = mock(WorkOrderService.class);
-        WorkOrderController workOrderController = new WorkOrderController(orderService);
-        VerifyRequest request = new VerifyRequest(new Random().nextLong());
-        VerifyResponse response = new VerifyResponse("");
+        Long request = new Random().nextLong();
+        OrderResponse response = new OrderResponse();
         when(orderService.verify(request)).thenReturn(response);
 
-        ResponseEntity<VerifyResponse> result = workOrderController.verify(request);
+        ResponseEntity<OrderResponse> result = workOrderController.verify(request);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(response, result.getBody());
@@ -129,7 +128,8 @@ public class WorkOrderControllerTest {
         Date oneWeekLater = calendar.getTime();
 
         UUID lbp = UUID.randomUUID();
-        OrderStatus status = OrderStatus.values()[new Random().nextInt(OrderStatus.values().length)];
+        String[] values = {"Neobrađen","Obrađen","U obradi"};
+        String status = values[new Random().nextInt(OrderStatus.values().length)];
 
         return new OrderHistoryForLabRequest(currentDate,oneWeekLater,lbp, status);
     }

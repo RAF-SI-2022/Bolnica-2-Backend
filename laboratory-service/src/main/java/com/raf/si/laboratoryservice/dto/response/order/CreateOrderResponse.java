@@ -9,9 +9,4 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class CreateOrderResponse {
-    String message;
-
-    public CreateOrderResponse(String message) {
-        this.message = message;
-    }
 }

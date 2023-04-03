@@ -4,15 +4,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.Column;
 import java.util.Date;
 import java.util.UUID;
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class SaveResultResponse {
+public class AnalysisResultResponse {
     private Long id;
     private String result;
-    private Date date;
+    private Date dateAndTime;
     private UUID lbzBiochemist;
+    private AnalysisResponse analysis;
+    private AnalysisParameterResponse parameter;
 }

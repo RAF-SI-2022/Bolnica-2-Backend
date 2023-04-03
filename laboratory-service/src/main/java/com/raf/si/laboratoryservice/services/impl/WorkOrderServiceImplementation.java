@@ -11,14 +11,12 @@ import com.raf.si.laboratoryservice.model.enums.labworkorder.OrderStatus;
 import com.raf.si.laboratoryservice.model.enums.referral.ReferralStatus;
 import com.raf.si.laboratoryservice.model.enums.user.Profession;
 import com.raf.si.laboratoryservice.model.enums.user.Title;
-import com.raf.si.laboratoryservice.repository.AnalysisParameterResultRepository;
-import com.raf.si.laboratoryservice.repository.LabAnalysisRepository;
-import com.raf.si.laboratoryservice.repository.LabWorkOrderRepository;
-import com.raf.si.laboratoryservice.repository.ReferralRepository;
+import com.raf.si.laboratoryservice.repository.*;
 import com.raf.si.laboratoryservice.services.WorkOrderService;
 import com.raf.si.laboratoryservice.utils.TokenPayload;
 import com.raf.si.laboratoryservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.criterion.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,24 +33,25 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
     LabWorkOrderRepository labWorkOrderRepository;
     AnalysisParameterResultRepository analysisParameterResultRepository;
     OrderMapper orderMapper;
+    AnalysisParameterRepository analysisParameterRepository;
 
-    public WorkOrderServiceImplementation(ReferralRepository referralRepository, LabAnalysisRepository labAnalysisRepository, LabWorkOrderRepository labWorkOrderRepository, AnalysisParameterResultRepository analysisParameterResultRepository, ReferralRepository referralRepository1, OrderMapper orderMapper) {
+    public WorkOrderServiceImplementation(ReferralRepository referralRepository, LabAnalysisRepository labAnalysisRepository, LabWorkOrderRepository labWorkOrderRepository, AnalysisParameterResultRepository analysisParameterResultRepository, OrderMapper orderMapper, AnalysisParameterRepository analysisParameterRepository) {
+        this.referralRepository = referralRepository;
         this.labAnalysisRepository = labAnalysisRepository;
         this.labWorkOrderRepository = labWorkOrderRepository;
         this.analysisParameterResultRepository = analysisParameterResultRepository;
-        this.referralRepository = referralRepository1;
         this.orderMapper = orderMapper;
+        this.analysisParameterRepository = analysisParameterRepository;
     }
 
-    //TODO prebaciti na mapper
     @Override
-    public CreateOrderResponse createOrder(CreateOrderRequest orderRequest) {
+    public OrderResponse createOrder(Long orderId) {
         TokenPayload tokenPayload = TokenPayloadUtil.getTokenPayload();
         UUID lbz = tokenPayload.getLbz();
 
-        Optional<Referral> referral = referralRepository.findById(orderRequest.getId());
+        Optional<Referral> referral = referralRepository.findById(orderId);
         if(referral.isEmpty()){
-            String errMessage = String.format("Uput sa id-om '%s' ne postoji", orderRequest.getId());
+            String errMessage = String.format("Uput sa id-om '%s' ne postoji", orderId);
             log.info(errMessage);
             throw new BadRequestException(errMessage);
         }
@@ -82,7 +81,7 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
         }
 
         labWorkOrderRepository.save(newOrder);
-        return new CreateOrderResponse("Uspešno kreiran radni nalog sa id-em: " + newOrder.getId());
+        return orderMapper.orderToOrderResponse(newOrder);
     }
 
     @Override
@@ -96,40 +95,64 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
 
     @Override
     public SaveResultResponse saveResult(SaveResultRequest saveRequest) {
-        orderMapper.saveRequestToAnalysisResult(saveRequest);
+        LabWorkOrder order = findOrder(saveRequest.getOrderId());
+        if (order.getStatus().equals(OrderStatus.NEOBRADJEN)){
+            order.setStatus(OrderStatus.U_OBRADI);
+            labWorkOrderRepository.save(order);
+        }
 
-        return new SaveResultResponse("Uspešno unet rezultat analize.");
+        Optional<AnalysisParameter> analysisParameterOptional =  analysisParameterRepository.findById(
+                saveRequest.getParameterId());
+
+        if(analysisParameterOptional.isEmpty()){
+            String errMessage = String.format("Ne postoji parametar sa datim id-em: %s",
+                    saveRequest.getOrderId());
+            log.info(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+
+        AnalysisParameter analysisParameter = analysisParameterOptional.get();
+
+        Optional<AnalysisParameterResult> resultOptional = analysisParameterResultRepository
+                .findAnalysisParameterResultByLabWorkOrderAndAnalysisParameter(
+                        order, analysisParameter
+                );
+
+        if(resultOptional.isEmpty()){
+            String errMessage = "Ne postoji rezultat sa date parametre.";
+            log.info(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+
+        AnalysisParameterResult result = resultOptional.get();
+
+        result.setResult(saveRequest.getResult());
+        result.setDateAndTime(new Date(System.currentTimeMillis()));
+        result.setLbzBiochemist(TokenPayloadUtil.getTokenPayload().getLbz());
+
+        analysisParameterResultRepository.save(result);
+
+        return orderMapper.resultToSaveResultResponse(result);
     }
 
     @Override
-    public ResultResponse getResults(ResultRequest resultRequest) {
-        List<String> permisions = TokenPayloadUtil.getTokenPayload().getPermissions();
-        Optional<LabWorkOrder> order = labWorkOrderRepository.findById(resultRequest.getOrderId());
-        if(permisions.contains("ROLE_MED_BIOHEM") || permisions.contains("ROLE_SPEC_MED_BIOHEM")){
-            if(order.isEmpty()){
-                String errMessage = String.format("Radni nalog sa id-om '%s' ne postoji", resultRequest.getOrderId());
-                log.info(errMessage);
-                throw new BadRequestException(errMessage);
-            }
-        }else{
-            if(order.isEmpty()){
-                String errMessage = String.format("Radni nalog sa id-om '%s' ne postoji", resultRequest.getOrderId());
-                log.info(errMessage);
-                throw new BadRequestException(errMessage);
-            }
-            if(!order.get().getStatus().equals(OrderStatus.OBRADJEN)){
-                String errMessage = String.format("Radni nalog sa id-om '%s' nije obradjen", resultRequest.getOrderId());
+    public ResultResponse getResults(Long orderId) {
+        List<String> permissions = TokenPayloadUtil.getTokenPayload().getPermissions();
+        LabWorkOrder order = findOrder(orderId);
+        if (!permissions.contains("ROLE_MED_BIOHEM") && !permissions.contains("ROLE_SPEC_MED_BIOHEM")) {
+            if (!order.getStatus().equals(OrderStatus.OBRADJEN)) {
+                String errMessage = String.format("Radni nalog sa id-om '%s' nije obradjen", orderId);
                 log.info(errMessage);
                 throw new BadRequestException(errMessage);
             }
         }
-        return orderMapper.orderToResultResponse(order.get());
+        return orderMapper.orderToResultResponse(order);
     }
 
     @Override
     public OrderHistoryResponse orderHistoryForLab(OrderHistoryForLabRequest request, Pageable pageable) {
         Page<LabWorkOrder> orders = labWorkOrderRepository.findByLbpAndCreationTimeBetweenAndStatus(
-                request.getLbp(),request.getStartDate(),request.getEndDate(),request.getOrderStatus(),
+                request.getLbp(),request.getStartDate(),request.getEndDate(), OrderStatus.valueOfNotation(request.getOrderStatus()),
                 pageable
         );
 
@@ -137,16 +160,9 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
     }
 
     @Override
-    public VerifyResponse verify(VerifyRequest verifyRequest) {
-        Optional<LabWorkOrder> orderOptional = labWorkOrderRepository.findById(verifyRequest.getOrderId());
+    public OrderResponse verify(Long orderId) {
+        LabWorkOrder order = findOrder(orderId);
 
-        if(orderOptional.isEmpty()){
-            String errMessage = String.format("Radni nalog sa id-om '%s' ne postoji", verifyRequest.getOrderId());
-            log.info(errMessage);
-            throw new BadRequestException(errMessage);
-        }
-
-        LabWorkOrder order = orderOptional.get();
         for(AnalysisParameterResult apr : order.getAnalysisParameterResults()){
             if(apr.getResult() == null){
                 String errMessage = "Nisu unete svi rezultati analize parametara.";
@@ -164,6 +180,17 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
         labWorkOrderRepository.save(order);
         referralRepository.save(referral);
 
-        return new VerifyResponse("Radni nalog je uspešno realizovan.");
+        return orderMapper.orderToOrderResponse(order);
+    }
+
+    private LabWorkOrder findOrder(Long orderId){
+        Optional<LabWorkOrder> order = labWorkOrderRepository.findById(orderId);
+        if(order.isEmpty()){
+            String errMessage = String.format("Radni nalog sa id-om '%s' ne postoji", orderId);
+            log.info(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+
+        return order.get();
     }
 }

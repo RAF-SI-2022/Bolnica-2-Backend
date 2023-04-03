@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.UUID;
@@ -13,12 +14,12 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 public class OrderHistoryForLabRequest {
-    @NotNull
+    @NotNull(message = "Start date can't be null.")
     private Date startDate;
-    @NotNull
+    @NotNull(message = "End date can't be null.")
     private Date endDate;
-    @NotNull
+    @NotNull(message = "LBP can't be null.")
     private UUID lbp;
-    @NotNull
-    private OrderStatus orderStatus;
+    @NotEmpty(message = "OrderStatus can't be empty.")
+    private String orderStatus;
 }

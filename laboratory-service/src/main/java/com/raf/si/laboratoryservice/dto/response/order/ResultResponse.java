@@ -15,7 +15,5 @@ import java.util.List;
 @NoArgsConstructor
 public class ResultResponse {
     LabWorkOrder order;
-    List<AnalysisParameterResult> resultList;
-    List<AnalysisParameter> parameterList;
-    List<LabAnalysis> analysisList;
+    List<AnalysisResultResponse> results;
 }

@@ -4,12 +4,14 @@ import com.raf.si.laboratoryservice.dto.request.order.*;
 import com.raf.si.laboratoryservice.dto.response.order.*;
 import com.raf.si.laboratoryservice.services.WorkOrderService;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.criterion.Order;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -23,10 +25,9 @@ public class WorkOrderController {
     }
 
     @PreAuthorize("hasRole('ROLE_LAB_TEHNICAR') or hasRole('ROLE_VISI_LAB_TEHNICAR')")
-    @PostMapping("/create")
-    public ResponseEntity<CreateOrderResponse> createWorkOrder(@Valid @RequestBody CreateOrderRequest orderRequest){
-        CreateOrderResponse response = orderService.createOrder(orderRequest);
-        System.out.println(response.toString());
+    @PostMapping("/create/{orderId}")
+    public ResponseEntity<OrderResponse> createWorkOrder(@PathVariable("orderId") Long orderId){
+        OrderResponse response = orderService.createOrder(orderId);
         return ResponseEntity.ok(response);
     }
 
@@ -39,7 +40,7 @@ public class WorkOrderController {
     }
 
     @PreAuthorize("hasRole('ROLE_MED_BIOHEM') or hasRole('ROLE_SPEC_MED_BIOHEM')")
-    @PostMapping("/saveResult")
+    @PutMapping("/saveResult")
     public ResponseEntity<SaveResultResponse> saveResult(@Valid @RequestBody SaveResultRequest saveRequest){
         return ResponseEntity.ok(orderService.saveResult(saveRequest));
     }
@@ -48,9 +49,9 @@ public class WorkOrderController {
             "or hasRole('ROLE_DOKTOR_SPEC_POV') or hasRole('ROLE_LAB_TEHNICAR')" +
             " or hasRole('ROLE_VISI_LAB_TEHNICAR') or hasRole('ROLE_MED_BIOHEM')" +
             "or hasRole('ROLE_SPEC_MED_BIOHEM')")
-    @GetMapping("/results")
-    public ResponseEntity<ResultResponse> getResults(@Valid @RequestBody ResultRequest resultRequest){
-        return ResponseEntity.ok(orderService.getResults(resultRequest));
+    @GetMapping("/results/{orderId}")
+    public ResponseEntity<ResultResponse> getResults(@PathVariable("orderId") Long orderId){
+        return ResponseEntity.ok(orderService.getResults(orderId));
     }
 
     @PreAuthorize("hasRole('ROLE_LAB_TEHNICAR') or hasRole('ROLE_VISI_LAB_TEHNICAR')" +
@@ -63,8 +64,8 @@ public class WorkOrderController {
     }
 
     @PreAuthorize("hasRole('SPEC_MED_BIOHEM')")
-    @PostMapping("/verify")
-    public ResponseEntity<VerifyResponse> verify(@Valid @RequestBody VerifyRequest verifyRequest) {
-        return ResponseEntity.ok(orderService.verify(verifyRequest));
+    @PostMapping("/verify/{orderId}")
+    public ResponseEntity<OrderResponse> verify(@PathVariable("orderId") Long orderId){
+        return ResponseEntity.ok(orderService.verify(orderId));
     }
 }
