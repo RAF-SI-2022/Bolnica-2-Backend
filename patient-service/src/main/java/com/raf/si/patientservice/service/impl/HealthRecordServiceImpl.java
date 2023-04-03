@@ -354,11 +354,6 @@ public class HealthRecordServiceImpl implements HealthRecordService {
 
                 // nadji stari
                 List<MedicalHistory> oldMedicalHistoryList = medicalHistoryRepository.findByHealthRecord(healthRecord);
-                if(oldMedicalHistoryList == null ) {
-                    String errMessage = String.format("nije uspeo da dohvati istoriju bolesti za korisnika '%s'", lbp);
-                    log.info(errMessage);
-                    throw new InternalServerErrorException(errMessage);
-                }
                 MedicalHistory oldMedicalHistory = null;
                 for(MedicalHistory medicalHistory : oldMedicalHistoryList) {
                     if( medicalHistory.getDiagnosis().getCode().equals(medicalExamination.getDiagnosis().getCode())){

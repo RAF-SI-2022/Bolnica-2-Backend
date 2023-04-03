@@ -11,6 +11,8 @@ import com.raf.si.patientservice.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
@@ -56,19 +58,20 @@ public class BootstrapData implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) {
+    public void run(String... args) throws ParseException {
         makePatient();
         //makeSchedExam();
     }
 
-    private void makePatient(){
+    private void makePatient() throws ParseException {
         Patient patient = new Patient();
         patient.setJmbg("1342002345612");
         patient.setFirstName("Pacijent");
         patient.setLastName("Pacijentovic");
         patient.setParentName("Roditelj");
         patient.setGender(Gender.MUSKI);
-        patient.setBirthDate(new Date());
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        patient.setBirthDate(formatter.parse("2000-01-07"));
         patient.setBirthplace("Resnjak");
         patient.setCitizenshipCountry(CountryCode.SRB);
         patient.setCountryOfLiving(CountryCode.AFG);
