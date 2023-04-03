@@ -1,7 +1,14 @@
 version: '3.9'
 
 services:
-
+  discovery-service:
+    build: ./discovery-service
+    restart: always
+    container_name: discovery-service
+    ports:
+      - "8761:8761"
+    networks:
+      - local_newtork
   user-db:
     image: postgres
     restart: always
@@ -60,6 +67,8 @@ services:
       - local_newtork
     depends_on:
       - user-db
+      - discovery-service
+      - gateway-service
 
   patient-service:
     build: ./patient-service
@@ -71,6 +80,8 @@ services:
       - local_newtork
     depends_on:
       - patient-db
+      - discovery-service
+      - gateway-service
 
   laboratory-service:
     build: ./laboratory-service
@@ -82,6 +93,20 @@ services:
       - local_newtork
     depends_on:
       - laboratory-db
+      - discovery-service
+      - gateway-service
+
+  gateway-service:
+    build: ./gateway-service
+    restart: always
+    container_name: gateway-service
+    ports:
+      - "8080:8080"
+    networks:
+      - local_newtork
+    depends_on:
+      - discovery-service
+
 
 networks:
   local_newtork:
