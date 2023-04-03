@@ -35,7 +35,7 @@ public class LabExamController {
     }
 
     @PreAuthorize("hasRole('ROLE_VISI_LAB_TEHNICAR')" + "or hasRole('ROLE_LAB_TEHNICAR')")
-    @GetMapping("/get-scheduled")
+    @GetMapping("/scheduled")
     public ResponseEntity<List<LabExamResponse>> getScheduledExams(@RequestParam(value = "date", required = false) Timestamp date,
                                                                    @RequestParam(value = "lbp", required = false) UUID lbp) {
         return ResponseEntity.ok(labExamService.getScheduledExams(date, lbp));

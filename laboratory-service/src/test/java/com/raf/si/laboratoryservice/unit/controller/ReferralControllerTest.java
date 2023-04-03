@@ -91,6 +91,18 @@ public class ReferralControllerTest {
         assertEquals(referralResponse, responseEntity.getBody());
     }
 
+    @Test
+    public void unprocessedReferrals_Success() {
+        UUID lbp = UUID.fromString("d79f77be-0a0e-4e2f-88a5-5f5d5cdd1e2c");
+        ReferralListResponse referralListResponse = new ReferralListResponse();
+        when(referralService.unprocessedReferrals(lbp)).thenReturn(referralListResponse);
+
+        ResponseEntity<ReferralListResponse> responseEntity = referralController.unprocessedReferrals(lbp);
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(referralListResponse, responseEntity.getBody());
+    }
+
     private CreateReferralRequest createReferralRequest() {
         CreateReferralRequest createReferralRequest = new CreateReferralRequest();
 

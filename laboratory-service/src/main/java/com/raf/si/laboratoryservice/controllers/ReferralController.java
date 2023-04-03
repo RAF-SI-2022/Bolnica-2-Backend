@@ -50,5 +50,10 @@ public class ReferralController {
     public ResponseEntity<ReferralResponse> deleteReferral(@Valid @PathVariable Long id) {
         return ResponseEntity.ok(referralService.deleteReferral(id));
     }
+    @PreAuthorize("hasRole('ROLE_VISI_LAB_TEHNICAR')" + "or hasRole('ROLE_LAB_TEHNICAR')")
+    @GetMapping(value = "/unprocessed")
+    public ResponseEntity<ReferralListResponse> unprocessedReferrals(@Valid @RequestParam UUID lbp) {
+        return ResponseEntity.ok(referralService.unprocessedReferrals(lbp));
+    }
 
 }

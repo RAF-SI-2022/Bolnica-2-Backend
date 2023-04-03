@@ -13,6 +13,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   datasource:
     url: "jdbc:postgresql://localhost:5434/postgresDB"
+#    "jdbc:postgresql://laboratory-db:5434/postgresDB"
     username: "student"
     password: "student"
     driver-class-name: org.postgresql.Driver

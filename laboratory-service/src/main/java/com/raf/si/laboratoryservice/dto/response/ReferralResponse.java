@@ -1,5 +1,6 @@
 package com.raf.si.laboratoryservice.dto.response;
 
+import com.raf.si.laboratoryservice.model.enums.referral.ReferralStatus;
 import com.raf.si.laboratoryservice.model.enums.referral.ReferralType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -20,6 +21,7 @@ public class ReferralResponse {
     private UUID pboReferredTo;
     private UUID lbp;
     private Date creationTime;
+    private ReferralStatus status;
     private String requiredAnalysis;
     private String comment;
     private String referralDiagnosis;

@@ -8,6 +8,7 @@ import org.apache.catalina.mapper.Mapper;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,7 +19,6 @@ public class ReferralMapper {
        Referral referral = new Referral();
 
        referral.setType(createReferralRequest.getType());
-       referral.setLbz(createReferralRequest.getLbz());
        referral.setPboReferredFrom(createReferralRequest.getPboReferredFrom());
        referral.setPboReferredTo(createReferralRequest.getPboReferredTo());
        referral.setLbz(createReferralRequest.getLbz());
@@ -43,6 +43,7 @@ public class ReferralMapper {
         referralResponse.setCreationTime(referral.getCreationTime());
         referralResponse.setReferralDiagnosis(referral.getReferralDiagnosis());
         referralResponse.setReferralReason(referral.getReferralReason());
+        referralResponse.setStatus(referral.getStatus());
 
         return referralResponse;
     }
@@ -53,6 +54,14 @@ public class ReferralMapper {
                 .map(this::modelToResponse)
                 .collect(Collectors.toList());
         return new ReferralListResponse(referrals, referralPage.getTotalElements());
+    }
+
+    public ReferralListResponse referralListToListResponse(List<Referral> referralList) {
+        List<ReferralResponse> referrals = referralList
+                .stream()
+                .map(this::modelToResponse)
+                .collect(Collectors.toList());
+        return new ReferralListResponse(referrals, (long) referralList.size());
     }
 
 }

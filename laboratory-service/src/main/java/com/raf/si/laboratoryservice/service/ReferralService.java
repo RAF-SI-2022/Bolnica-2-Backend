@@ -6,6 +6,7 @@ import com.raf.si.laboratoryservice.dto.response.ReferralResponse;
 import org.springframework.data.domain.Pageable;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.UUID;
 
 public interface ReferralService {
@@ -16,4 +17,6 @@ public interface ReferralService {
     ReferralResponse getReferral(Long id);
 
     ReferralResponse deleteReferral(Long id);
+
+    ReferralListResponse unprocessedReferrals(UUID lbp);
 }
