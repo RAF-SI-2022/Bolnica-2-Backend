@@ -8,15 +8,14 @@ import com.raf.si.patientservice.dto.response.http.UserResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.exception.NotFoundException;
-import com.raf.si.patientservice.mapper.PatientMapper;
 import com.raf.si.patientservice.mapper.SchedMedExamMapper;
 import com.raf.si.patientservice.model.Patient;
 import com.raf.si.patientservice.model.ScheduledMedExamination;
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
-import com.raf.si.patientservice.repository.PatientRepository;
 import com.raf.si.patientservice.repository.ScheduledMedExamRepository;
 import com.raf.si.patientservice.repository.filtering.filter.ScheduledMedExamFilter;
 import com.raf.si.patientservice.repository.filtering.specification.ScheduledMedExamSpecification;
+import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.SchedMedExaminationService;
 import com.raf.si.patientservice.utils.HttpUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -25,13 +24,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -39,17 +36,15 @@ import java.util.stream.Collectors;
 public class SchedMedExaminationServiceImpl implements SchedMedExaminationService {
 
     private final ScheduledMedExamRepository scheduledMedExamRepository;
-    private final PatientRepository patientRepository;
+    private final PatientService patientService;
     private final SchedMedExamMapper schedMedExamMapper;
-    private  final PatientMapper patientMapper;
     @Value("${duration.of.exam}")
     private int DURATION_OF_EXAM;
 
-    public SchedMedExaminationServiceImpl(ScheduledMedExamRepository scheduledMedExamRepository, PatientRepository patientRepository, SchedMedExamMapper schedMedExamMapper, PatientMapper patientMapper) {
+    public SchedMedExaminationServiceImpl(ScheduledMedExamRepository scheduledMedExamRepository, PatientService patientService, SchedMedExamMapper schedMedExamMapper) {
         this.scheduledMedExamRepository = scheduledMedExamRepository;
-        this.patientRepository = patientRepository;
+        this.patientService = patientService;
         this.schedMedExamMapper = schedMedExamMapper;
-        this.patientMapper = patientMapper;
     }
 
 
@@ -85,15 +80,8 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
          */
         isGivenLbzDoctors(schedMedExamRequest.getLbzDoctor(),token);
 
-        /**
-         * Checking if there is a referred patient in the database, there should be.
-         */
-        Patient patient=patientRepository.findByLbpAndDeleted(schedMedExamRequest.getLbp(), false).orElseThrow(() -> {
-            String errMessage = String.format("Pacijent sa lbp-om '%s' ne postoji", schedMedExamRequest.getLbp());
-            log.info(errMessage);
-            throw new BadRequestException(errMessage);
-        });
 
+        Patient patient=patientService.findPatient(schedMedExamRequest.getLbp());
         ScheduledMedExamination scheduledMedExamination = schedMedExamMapper.schedMedExamRequestToScheduledMedExamination
                 (new ScheduledMedExamination(), schedMedExamRequest, patient);
 
@@ -105,18 +93,10 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
 
     @Override
     public SchedMedExamResponse updateSchedMedExaminationExamStatus(UpdateSchedMedExamRequest updateSchedMedExamRequest) {
-        /**
-         * Checking if there is an appointment in database with the passed id
-         */
-        ScheduledMedExamination scheduledMedExamination = scheduledMedExamRepository.findById(updateSchedMedExamRequest.getId())
-                .orElseThrow(() -> {
-                    String errMessage = String.format("Zakazani pregled sa id-om '%s' ne postoji", updateSchedMedExamRequest.getId());
-                    log.info(errMessage);
-                    throw new BadRequestException(errMessage);
-                });
+        ScheduledMedExamination scheduledMedExamination= findSchedMedExamById(updateSchedMedExamRequest.getId());
 
-        scheduledMedExamination = schedMedExamMapper.updateSchedMedExamRequestToScheduledMedExaminationExamStatus(scheduledMedExamination,
-                updateSchedMedExamRequest);
+        scheduledMedExamination= schedMedExamMapper.updateSchedMedExamRequestToScheduledMedExaminationExamStatus
+                (scheduledMedExamination, updateSchedMedExamRequest);
 
         scheduledMedExamRepository.save(scheduledMedExamination);
 
@@ -127,18 +107,10 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
     @Transactional
     @Override
     public SchedMedExamResponse deleteSchedMedExamination(Long id) {
-        /**
-         * Checking if there is an appointment in database with the passed id
-         */
-        ScheduledMedExamination scheduledMedExamination=scheduledMedExamRepository.findById(id)
-                .orElseThrow(()->{
-                    String errMessage = String.format("Zakazani pregled sa id-om '%s' ne postoji", id);
+        ScheduledMedExamination scheduledMedExamination= findSchedMedExamById(id);
 
-                    log.info(errMessage);
-                    throw new BadRequestException(errMessage);
-                });
-        Patient patient= scheduledMedExamination.getPatient();
         scheduledMedExamRepository.delete(scheduledMedExamination);
+
         log.info(String.format("Zakazani pregled sa id '%d' uspešno izbrisan", id));
         return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
     }
@@ -162,15 +134,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
 
     @Override
     public SchedMedExamResponse updateSchedMedExaminationPatientArrivalStatus(UpdateSchedMedExamRequest updateSchedMedExamRequest) {
-        /**
-         * Checking if there is an appointment in database with the passed id
-         */
-        ScheduledMedExamination scheduledMedExamination=scheduledMedExamRepository.findById(updateSchedMedExamRequest.getId())
-                .orElseThrow(()->{
-                    String errMessage = String.format("Zakazani pregled sa id-om '%s' ne postoji", updateSchedMedExamRequest.getId());
-                    log.info(errMessage);
-                    throw new BadRequestException(errMessage);
-                });
+        ScheduledMedExamination scheduledMedExamination= findSchedMedExamById(updateSchedMedExamRequest.getId());
 
         scheduledMedExamination= schedMedExamMapper.updateSchedMedExamRequestToScheduledMedExaminationPatientArrivalStatus(
                 scheduledMedExamination, updateSchedMedExamRequest);
@@ -181,7 +145,17 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
         return schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination);
 
     }
-    
+
+    @Override
+    public ScheduledMedExamination findSchedMedExamById(Long id) {
+        return scheduledMedExamRepository.findById(id)
+                .orElseThrow(()->{
+                    String errMessage = String.format("Zakazani pregled sa id-om '%s' ne postoji", id);
+                    log.info(errMessage);
+                    throw new BadRequestException(errMessage);
+                });
+    }
+
     private int max(int first, int... rest) {
         int ret = first;
         for (int val : rest) {
@@ -190,24 +164,6 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
         return ret;
     }
 
-    /*
-    private SchedMedExamListResponse schedMedExamPageToSchedMedExamExtendListResponse(Page<ScheduledMedExamination> medExaminationPage) {
-        SchedMedExamListResponse schedMedExamListResponse=schedMedExamMapper.schedMedExamPageToSchedMedExamListResponse
-                (medExaminationPage);
-
-        List<SchedMedExamExtendedResponse> updatedResponses = schedMedExamListResponse.getSchedMedExamResponseList()
-                .stream()
-                .map(schedMedExamResponse -> {
-                    UUID lbp = schedMedExamResponse.getLbp();
-                    PatientResponse patientResponse = patientMapper.patientToPatientResponse(patientRepository.findByLbp(lbp).get());
-                    schedMedExamResponse.setPatientResponse(patientResponse);
-                    return schedMedExamResponse;
-                }).collect(Collectors.toList());
-
-        schedMedExamListResponse.setSchedMedExamResponseList(updatedResponses);
-        return schedMedExamListResponse;
-    }
-*/
     private void isGivenLbzDoctors(UUID lbz, String token){
         ResponseEntity<UserResponse> response;
 

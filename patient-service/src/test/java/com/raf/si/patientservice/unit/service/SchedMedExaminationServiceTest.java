@@ -13,9 +13,10 @@ import com.raf.si.patientservice.model.ScheduledMedExamination;
 import com.raf.si.patientservice.model.enums.healthrecord.BloodType;
 import com.raf.si.patientservice.model.enums.healthrecord.RHFactor;
 import com.raf.si.patientservice.model.enums.patient.*;
-import com.raf.si.patientservice.repository.PatientRepository;
-import com.raf.si.patientservice.repository.ScheduledMedExamRepository;
+import com.raf.si.patientservice.repository.*;
+import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.SchedMedExaminationService;
+import com.raf.si.patientservice.service.impl.PatientServiceImpl;
 import com.raf.si.patientservice.service.impl.SchedMedExaminationServiceImpl;
 import com.raf.si.patientservice.utils.HttpUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -41,23 +42,31 @@ import static org.mockito.Mockito.mock;
 
 public class SchedMedExaminationServiceTest {
 
-    private PatientRepository patientRepository;
+    private PatientService patientService;
+    private  PatientRepository patientRepository;
     private ScheduledMedExamRepository scheduledMedExamRepository;
     private SchedMedExamMapper schedMedExamMapper;
     private SchedMedExaminationService schedMedExaminationService;
-    private PatientMapper patientMapper;
     //kako se vrednost 44 injectuje tek prilikom pokretanja servisa, default vredonst tokom
     //testrianja bice 0.
     private final int DURATION_OF_EXAM= 0;
 
     @BeforeEach
     public void setUp(){
-        patientRepository= mock(PatientRepository.class);
+        patientRepository = mock(PatientRepository.class);
         scheduledMedExamRepository= mock(ScheduledMedExamRepository.class);
-        patientMapper= new PatientMapper();
+        PatientMapper patientMapper = new PatientMapper();
         schedMedExamMapper= new SchedMedExamMapper(patientMapper);
+        patientService= new PatientServiceImpl(patientRepository,
+                mock(HealthRecordRepository.class) ,
+                mock(VaccinationRepository.class),
+                mock(OperationRepository.class),
+                mock(MedicalHistoryRepository.class),
+                mock(MedicalExaminationRepository.class),
+                mock(AllergyRepository.class),
+                patientMapper);
         schedMedExaminationService=new SchedMedExaminationServiceImpl(scheduledMedExamRepository
-                , patientRepository, schedMedExamMapper, patientMapper);
+                , patientService, schedMedExamMapper);
     }
     @AfterEach
     public void clear(){
@@ -281,7 +290,8 @@ public class SchedMedExaminationServiceTest {
 
         when(medExaminationMockPage.getContent()).thenReturn(List.of(new ScheduledMedExamination()));
         when(scheduledMedExamRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(medExaminationMockPage);
-        when(patientRepository.findByLbp(any(UUID.class))).thenReturn(Optional.of(new Patient()));
+        when(patientRepository.findByLbpAndDeleted(any(UUID.class), any(Boolean.class))).thenReturn(Optional.of(new Patient()));
+
         assertEquals(schedMedExaminationService.getSchedMedExaminationByLbz(lbz,appointmentDate,token, pageable)
                 , schedMedExamMapper.schedMedExamPageToSchedMedExamListResponse(medExaminationMockPage));
     }
