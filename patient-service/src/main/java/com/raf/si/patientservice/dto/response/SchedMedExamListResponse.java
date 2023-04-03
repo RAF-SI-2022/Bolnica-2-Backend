@@ -10,6 +10,6 @@ import  java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SchedMedExamListResponse {
-    private List<SchedMedExamExtendedResponse> schedMedExamResponseList;
+    private List<SchedMedExamResponse> schedMedExamResponseList;
     private long count;
 }

@@ -7,13 +7,19 @@ import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.mapper.PatientMapper;
 import com.raf.si.patientservice.mapper.SchedMedExamMapper;
+import com.raf.si.patientservice.model.HealthRecord;
 import com.raf.si.patientservice.model.Patient;
 import com.raf.si.patientservice.model.ScheduledMedExamination;
-import com.raf.si.patientservice.repository.PatientRepository;
-import com.raf.si.patientservice.repository.ScheduledMedExamRepository;
+import com.raf.si.patientservice.model.enums.healthrecord.BloodType;
+import com.raf.si.patientservice.model.enums.healthrecord.RHFactor;
+import com.raf.si.patientservice.model.enums.patient.*;
+import com.raf.si.patientservice.repository.*;
+import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.SchedMedExaminationService;
+import com.raf.si.patientservice.service.impl.PatientServiceImpl;
 import com.raf.si.patientservice.service.impl.SchedMedExaminationServiceImpl;
 import com.raf.si.patientservice.utils.HttpUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -36,23 +42,35 @@ import static org.mockito.Mockito.mock;
 
 public class SchedMedExaminationServiceTest {
 
-    private PatientRepository patientRepository;
+    private PatientService patientService;
+    private  PatientRepository patientRepository;
     private ScheduledMedExamRepository scheduledMedExamRepository;
     private SchedMedExamMapper schedMedExamMapper;
     private SchedMedExaminationService schedMedExaminationService;
-    private PatientMapper patientMapper;
     //kako se vrednost 44 injectuje tek prilikom pokretanja servisa, default vredonst tokom
     //testrianja bice 0.
     private final int DURATION_OF_EXAM= 0;
 
     @BeforeEach
     public void setUp(){
-        patientRepository= mock(PatientRepository.class);
+        patientRepository = mock(PatientRepository.class);
         scheduledMedExamRepository= mock(ScheduledMedExamRepository.class);
-        schedMedExamMapper= new SchedMedExamMapper();
-        patientMapper= new PatientMapper();
+        PatientMapper patientMapper = new PatientMapper();
+        schedMedExamMapper= new SchedMedExamMapper(patientMapper);
+        patientService= new PatientServiceImpl(patientRepository,
+                mock(HealthRecordRepository.class) ,
+                mock(VaccinationRepository.class),
+                mock(OperationRepository.class),
+                mock(MedicalHistoryRepository.class),
+                mock(MedicalExaminationRepository.class),
+                mock(AllergyRepository.class),
+                patientMapper);
         schedMedExaminationService=new SchedMedExaminationServiceImpl(scheduledMedExamRepository
-                , patientRepository, schedMedExamMapper, patientMapper);
+                , patientService, schedMedExamMapper);
+    }
+    @AfterEach
+    public void clear(){
+        Mockito.framework().clearInlineMocks();
     }
 
     @Test
@@ -124,14 +142,15 @@ public class SchedMedExaminationServiceTest {
         Mockito.framework().clearInlineMocks();
         setUp();
 
+        Patient patient=createPatient();
         when(scheduledMedExamRepository.findByAppointmentDateBetweenAndLbzDoctor(timeBetweenAppointmnets
                 ,schedMedExamRequest.getAppointmentDate(), schedMedExamRequest.getLbzDoctor()))
                 .thenReturn(Optional.of(new ArrayList<>()));
 
-        when(patientRepository.findByLbp(schedMedExamRequest.getLbp())).thenReturn(Optional.of(new Patient()));
+        when(patientRepository.findByLbpAndDeleted(schedMedExamRequest.getLbp(), false)).thenReturn(Optional.of(patient));
 
         ScheduledMedExamination scheduledMedExamination= schedMedExamMapper
-                .schedMedExamRequestToScheduledMedExamination(new ScheduledMedExamination(),schedMedExamRequest);
+                .schedMedExamRequestToScheduledMedExamination(new ScheduledMedExamination(),schedMedExamRequest, patient);
 
         when(scheduledMedExamRepository.save(any())).thenReturn(scheduledMedExamination);
 
@@ -175,6 +194,7 @@ public class SchedMedExaminationServiceTest {
     public void updateSchedMedExaminationExamStatus_Success(){
         UpdateSchedMedExamRequest updateSchedMedExamRequest = createUpdateSchedMedExamRequest("U toku");
         ScheduledMedExamination scheduledMedExamination= new ScheduledMedExamination();
+        scheduledMedExamination.setPatient(createPatient());
 
         when(scheduledMedExamRepository.findById(updateSchedMedExamRequest.getId())).thenReturn(Optional
                 .of(scheduledMedExamination));
@@ -199,6 +219,7 @@ public class SchedMedExaminationServiceTest {
     public void deleteSchedMedExamination_Success(){
         Long id= 1L;
         ScheduledMedExamination scheduledMedExamination= new ScheduledMedExamination();
+        scheduledMedExamination.setPatient(createPatient());
 
         when(scheduledMedExamRepository.findById(id)).thenReturn(Optional.of(scheduledMedExamination));
 
@@ -269,7 +290,8 @@ public class SchedMedExaminationServiceTest {
 
         when(medExaminationMockPage.getContent()).thenReturn(List.of(new ScheduledMedExamination()));
         when(scheduledMedExamRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(medExaminationMockPage);
-        when(patientRepository.findByLbp(any(UUID.class))).thenReturn(Optional.of(new Patient()));
+        when(patientRepository.findByLbpAndDeleted(any(UUID.class), any(Boolean.class))).thenReturn(Optional.of(new Patient()));
+
         assertEquals(schedMedExaminationService.getSchedMedExaminationByLbz(lbz,appointmentDate,token, pageable)
                 , schedMedExamMapper.schedMedExamPageToSchedMedExamListResponse(medExaminationMockPage));
     }
@@ -297,6 +319,7 @@ public class SchedMedExaminationServiceTest {
     public void  updateSchedMedExaminationPatientArrivalStatus_Success() {
         UpdateSchedMedExamRequest updateSchedMedExamRequest= createUpdateSchedMedExamRequest("Čeka");
         ScheduledMedExamination scheduledMedExamination= new ScheduledMedExamination();
+        scheduledMedExamination.setPatient(createPatient());
 
         when(scheduledMedExamRepository.findById(updateSchedMedExamRequest.getId())).thenReturn(
                 Optional.of(scheduledMedExamination));
@@ -346,5 +369,40 @@ public class SchedMedExaminationServiceTest {
         updateSchedMedExamRequest.setId(1L);
         updateSchedMedExamRequest.setNewStatus(status);
         return updateSchedMedExamRequest;
+    }
+
+    private Patient createPatient(){
+        Patient patient = new Patient();
+        patient.setJmbg("1342002345612");
+        patient.setFirstName("Pacijent");
+        patient.setLastName("Pacijentovic");
+        patient.setParentName("Roditelj");
+        patient.setGender(Gender.MUSKI);
+        patient.setBirthDate(new Date());
+        patient.setBirthplace("Resnjak");
+        patient.setCitizenshipCountry(CountryCode.SRB);
+        patient.setCountryOfLiving(CountryCode.AFG);
+        patient.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+
+        patient.setAddress("Jurija Gagarina 16");
+        patient.setPlaceOfLiving("Novi Beograd");
+        patient.setPhoneNumber("0601234567");
+        patient.setEmail("pacijent.pacijentovic@gmail.com");
+        patient.setCustodianJmbg("0101987123456");
+        patient.setCustodianName("Staratelj Starateljovic");
+        patient.setFamilyStatus(FamilyStatus.OBA_RODITELJA);
+        patient.setMaritalStatus(MaritalStatus.SAMAC);
+        patient.setChildrenNum(0);
+        patient.setEducation(Education.VISOKO_OBRAZOVANJE);
+        patient.setProfession("Programer");
+
+        HealthRecord healthRecord = new HealthRecord();
+        healthRecord.setRegistrationDate(new Date());
+        healthRecord.setBloodType(BloodType.A);
+        healthRecord.setRhFactor(RHFactor.PLUS);
+
+        patient.setHealthRecord(healthRecord);
+
+        return patient;
     }
 }

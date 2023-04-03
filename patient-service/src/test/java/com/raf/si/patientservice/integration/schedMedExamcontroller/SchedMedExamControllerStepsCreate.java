@@ -3,6 +3,7 @@ package com.raf.si.patientservice.integration.schedMedExamcontroller;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.raf.si.patientservice.controller.SchedMedExaminationController;
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
 import com.raf.si.patientservice.integration.CucumberConfig;
 import com.raf.si.patientservice.integration.UtilsHelper;
@@ -41,14 +42,13 @@ public class SchedMedExamControllerStepsCreate extends CucumberConfig {
     public  void  init(){
         util= new UtilsHelper(jwtUtil);
         gson= new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd")
+                .setDateFormat("yyyy-MM-dd'T'HH:mm")
                 .create();
     }
 
     @When("Nurse provides valid information")
     public void nurse_provides_valid_information() throws Exception {
         SchedMedExamRequest schedMedExamRequest= util.createSchedMedExamRequest(1);
-
         resultAction= mvc.perform(post("/sched-med-exam/create")
                 .header("Authorization", "Bearer " + util.generateNurseTokenValid())
                 .content(gson.toJson(schedMedExamRequest))

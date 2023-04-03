@@ -58,7 +58,7 @@ public class BootstrapData implements CommandLineRunner {
     @Override
     public void run(String... args) {
         makePatient();
-        makeSchedExam();
+        //makeSchedExam();
     }
 
     private void makePatient(){
@@ -237,11 +237,13 @@ public class BootstrapData implements CommandLineRunner {
 
             diagnosisRepository.save(diagnosis);
         }
+
+        makeSchedExam(patient);
     }
 
-    private  void makeSchedExam(){
+    private  void makeSchedExam(Patient patient){
         ScheduledMedExamination scheduledMedExamination= new ScheduledMedExamination();
-        scheduledMedExamination.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+        scheduledMedExamination.setPatient(patient);
         //                                                          5a2e71bb-e4ee-43dd-a3ad-28e043f8b435
         scheduledMedExamination.setLbzDoctor(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
         scheduledMedExamination.setAppointmentDate(new Date());
@@ -249,7 +251,7 @@ public class BootstrapData implements CommandLineRunner {
         scheduledMedExamination.setLbzNurse(UUID.fromString("5a2e71bb-e4ee-43dd-55a3-28e043f8b435"));
 
         ScheduledMedExamination scheduledMedExamination1 = new ScheduledMedExamination();
-        scheduledMedExamination1.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+        scheduledMedExamination1.setPatient(patient);
         scheduledMedExamination1.setLbzDoctor(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
@@ -261,7 +263,7 @@ public class BootstrapData implements CommandLineRunner {
         scheduledMedExamRepository.save(scheduledMedExamination1);
 
         ScheduledMedExamination scheduledMedExamination2 = new ScheduledMedExamination();
-        scheduledMedExamination2.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+        scheduledMedExamination2.setPatient(patient);
         scheduledMedExamination2.setLbzDoctor(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
         Calendar calendar1 = Calendar.getInstance();
         calendar1.setTime(new Date());

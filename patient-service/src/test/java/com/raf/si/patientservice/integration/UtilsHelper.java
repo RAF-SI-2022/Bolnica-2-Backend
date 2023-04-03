@@ -3,6 +3,7 @@ package com.raf.si.patientservice.integration;
 import com.raf.si.patientservice.dto.request.PatientRequest;
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
 import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
+import com.raf.si.patientservice.model.Patient;
 import com.raf.si.patientservice.model.ScheduledMedExamination;
 import com.raf.si.patientservice.model.enums.user.Profession;
 import com.raf.si.patientservice.model.enums.user.Title;
@@ -11,7 +12,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -43,7 +43,18 @@ public class UtilsHelper {
     }
 
     public String generateNurseTokenValid(){
-        return generateToken();
+        String[] roles= new String[]{"ROLE_VISA_MED_SESTRA","ROLE_MED_SESTRA"};
+        Claims claims= Jwts.claims();
+
+        claims.put("firstName", "Medicinska");
+        claims.put("lastName","Sestra");
+        claims.put("title","Med. sestra");
+        claims.put("pbo",UUID.fromString("4e5911c8-ce7a-11ed-afa1-0242ac120002"));
+        claims.put("departmentName","Dijagnostika");
+        claims.put("pbb",UUID.randomUUID());
+        claims.put("hospitalName", "NoviBeograd");
+        claims.put("permissions",roles);
+        return  jwtUtil.generateToken(claims, "3e1a51ab-a3aa-1add-a3ad-28e043f8b435");
     }
 
     private String generateToken(List<String> roles, String profession, String token){
@@ -124,9 +135,9 @@ public class UtilsHelper {
         return updateSchedMedExamRequest;
     }
 
-    public ScheduledMedExamination createSchedMedExamination() {
+    public ScheduledMedExamination createSchedMedExamination(Patient patient) {
         ScheduledMedExamination scheduledMedExamination= new ScheduledMedExamination();
-        scheduledMedExamination.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+        scheduledMedExamination.setPatient(patient);
         scheduledMedExamination.setLbzDoctor(UUID.fromString("266a1e0c-cf45-11ed-afa1-0242ac120002"));
         scheduledMedExamination.setAppointmentDate(new Date(new Date().getTime()- (DURATION_OF_EXAM + 5 ) * 60 * 1000));
         scheduledMedExamination.setLbzNurse(UUID.fromString("3e1a51ab-a3aa-1add-a3ad-28e043f8b435"));
