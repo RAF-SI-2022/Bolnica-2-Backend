@@ -6,7 +6,6 @@ import com.raf.si.patientservice.mapper.PatientMapper;
 import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.repository.*;
 import com.raf.si.patientservice.service.PatientService;
-import com.raf.si.patientservice.service.impl.HealthRecordServiceImpl;
 import com.raf.si.patientservice.service.impl.PatientServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
