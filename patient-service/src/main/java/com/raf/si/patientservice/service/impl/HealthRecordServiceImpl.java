@@ -232,12 +232,12 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         }
 
         //update podatke
-        Allergy allergy = healthRecordMapper.addAllergyRequestToAllergy(addAllergyRequest, healthRecord, allergen);
+        Allergy allergy = healthRecordMapper.addAllergyRequestToAllergy(healthRecord, allergen);
+
+
+        allergy = allergyRepository.save(allergy);
 
         healthRecord.getAllergies().add(allergy);
-
-        // update podatke u bazi
-        allergy = allergyRepository.save(allergy);
 
         ExtendedAllergyResponse extendedAllergyResponse = healthRecordMapper.allergyToExtendedAllergyResponse(healthRecord, allergy);
         return extendedAllergyResponse;
@@ -263,7 +263,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
             throw new BadRequestException(errMessage);
         }
 
-        if(vaccinationDate.compareTo(new Date(System.currentTimeMillis())) < 0){
+        if(vaccinationDate.compareTo(new Date()) > 0){
             String errMessage = String.format("nije moguce upisati buducu vakcinaciju");
             log.info(errMessage);
             throw new BadRequestException(errMessage);
@@ -339,7 +339,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                 createExaminationReportRequest,
                 diagnosis);
 
-        medicalExamination = medicalExaminationRepository.save(medicalExamination);
+        medicalExaminationRepository.save(medicalExamination);
 
         // ako ima dijagnozu
         if(medicalExamination.getDiagnosis() != null) {
@@ -353,12 +353,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
             if(createExaminationReportRequest.getExistingDiagnosis()) {
 
                 // nadji stari
-                List<MedicalHistory> oldMedicalHistoryList = medicalHistoryRepository.findByHealthRecord(healthRecord).get();
-                if(oldMedicalHistoryList == null ) {
-                    String errMessage = String.format("nije uspeo da dohvati istoriju bolesti za korisnika '%s'", lbp);
-                    log.info(errMessage);
-                    throw new InternalServerErrorException(errMessage);
-                }
+                List<MedicalHistory> oldMedicalHistoryList = medicalHistoryRepository.findByHealthRecord(healthRecord);
                 MedicalHistory oldMedicalHistory = null;
                 for(MedicalHistory medicalHistory : oldMedicalHistoryList) {
                     if( medicalHistory.getDiagnosis().getCode().equals(medicalExamination.getDiagnosis().getCode())){

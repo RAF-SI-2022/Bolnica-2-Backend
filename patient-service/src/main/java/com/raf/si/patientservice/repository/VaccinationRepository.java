@@ -16,6 +16,8 @@ import java.util.List;
 public interface VaccinationRepository  extends JpaRepository<Vaccination, Long> {
     Page<Vaccination> findByHealthRecord(HealthRecord healthRecord, Pageable pageable);
 
+    List<Vaccination> findByHealthRecord(HealthRecord healthRecord);
+
     @Modifying
     @Query("update Vaccination v set v.deleted=true where v.healthRecord=:hr")
     Integer updateDeletedByHealthRecord(@PathVariable HealthRecord hr);

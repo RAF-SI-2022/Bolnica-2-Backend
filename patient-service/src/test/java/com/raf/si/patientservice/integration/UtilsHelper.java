@@ -12,6 +12,9 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +23,8 @@ public class UtilsHelper {
 
     private final String patientJmbg = "1209217282728";
     private final UUID patientBootstrapLbp = UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8");
+
+    private final String vaccineBootstrap = "PRIORIX";
 
     private final JwtUtil jwtUtil;
     @Value("${duration.of.exam}")
@@ -87,7 +92,7 @@ public class UtilsHelper {
         return jwtUtil.generateToken(claims, "5a2e71bb-e4ee-43dd-a3ad-28e043f8b435");
     }
 
-    public PatientRequest makePatientRequest(){
+    public PatientRequest makePatientRequest() throws ParseException {
         PatientRequest patientRequest = new PatientRequest();
 
         patientRequest.setJmbg(patientJmbg);
@@ -96,7 +101,8 @@ public class UtilsHelper {
         patientRequest.setParentName("Test");
         patientRequest.setGender("Muški");
         patientRequest.setBirthDate(new Date());
-        patientRequest.setDeathDate(new Date());
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+        patientRequest.setDeathDate(formatter.parse("12-12-2200"));
         patientRequest.setBirthplace("Test");
         patientRequest.setCitizenshipCountry("SRB");
         patientRequest.setCountryOfLiving("SRB");
@@ -150,5 +156,9 @@ public class UtilsHelper {
 
     public UUID getPatientBootstrapLbp(){
         return patientBootstrapLbp;
+    }
+
+    public String getVaccineBootstrap(){
+        return vaccineBootstrap;
     }
 }

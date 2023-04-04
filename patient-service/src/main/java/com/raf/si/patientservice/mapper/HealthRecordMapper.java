@@ -189,7 +189,7 @@ public class HealthRecordMapper {
         return vaccination;
     }
 
-    public Allergy addAllergyRequestToAllergy(AddAllergyRequest addAllergyRequest, HealthRecord healthRecord, Allergen allergen) {
+    public Allergy addAllergyRequestToAllergy(HealthRecord healthRecord, Allergen allergen) {
         Allergy allergy = new Allergy();
         allergy.setAllergen(allergen);
         allergy.setHealthRecord(healthRecord);
