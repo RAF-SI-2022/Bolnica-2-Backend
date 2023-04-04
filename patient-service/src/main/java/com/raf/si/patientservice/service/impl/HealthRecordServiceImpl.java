@@ -14,15 +14,15 @@ import com.raf.si.patientservice.repository.filtering.specification.MedicalHisto
 import com.raf.si.patientservice.service.HealthRecordService;
 import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.mail.Message;
 import java.util.*;
+
+import static java.lang.String.format;
 
 @Slf4j
 @Service
@@ -89,15 +89,13 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                 null,
                 pageable);
 
-        HealthRecordResponse response = healthRecordMapper.healthRecordToHealthRecordResponse(patient,
+        return healthRecordMapper.healthRecordToHealthRecordResponse(patient,
                 healthRecord,
                 allergies,
                 vaccinations,
                 examinations,
                 medicalHistory,
                 operations);
-
-        return response;
     }
 
     @Override
@@ -184,7 +182,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         Patient patient = patientService.findPatient(lbp);
         HealthRecord healthRecord = patient.getHealthRecord();
         if(healthRecord == null) {
-            String errMessage = String.format("pacijent sa lbp '%s' nema zdravstveni karton", lbp);
+            String errMessage = format("pacijent sa lbp '%s' nema zdravstveni karton", lbp);
             log.info(errMessage);
             throw new InternalServerErrorException(errMessage);
         }
@@ -203,9 +201,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         // update podatke u bazi
         healthRecord = healthRecordRepository.save(healthRecord);
 
-        BasicHealthRecordResponse basicHealthRecordResponse = healthRecordMapper.healthRecordToBasicHealthRecordResponse(lbp, healthRecord);
-
-        return basicHealthRecordResponse;
+        return healthRecordMapper.healthRecordToBasicHealthRecordResponse(lbp, healthRecord);
     }
 
     @Override
@@ -214,7 +210,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         // proveri da li su vrednosti koje je korisnik poslao dobre
         Allergen allergen = allergenRepository.findByName(addAllergyRequest.getAllergen())
                 .orElseThrow(() -> {
-                    String errMessage = String.format("alergent '%s' ne postoji", addAllergyRequest.getAllergen());
+                    String errMessage = format("alergent '%s' ne postoji", addAllergyRequest.getAllergen());
                     log.info(errMessage);
                     throw new BadRequestException(errMessage);
                 });
@@ -225,7 +221,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         // proveri da li je vec uneta alergija
         for(Allergy allergy : healthRecord.getAllergies()) {
             if(allergy.getAllergen().getName().equals(addAllergyRequest.getAllergen())){
-                String errMessage = String.format("alergent '%s' je vec upisan za korisnika '%s'", addAllergyRequest.getAllergen(), lbp);
+                String errMessage = format("alergent '%s' je vec upisan za korisnika '%s'", addAllergyRequest.getAllergen(), lbp);
                 log.info(errMessage);
                 throw new BadRequestException(errMessage);
             }
@@ -239,8 +235,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
 
         healthRecord.getAllergies().add(allergy);
 
-        ExtendedAllergyResponse extendedAllergyResponse = healthRecordMapper.allergyToExtendedAllergyResponse(healthRecord, allergy);
-        return extendedAllergyResponse;
+        return healthRecordMapper.allergyToExtendedAllergyResponse(healthRecord, allergy);
     }
 
     @Override
@@ -250,7 +245,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         // proveri da li su vrednosti koje je korisnik poslao dobre
         Vaccine vaccine = vaccineRepository.findByName(addVaccinationRequest.getVaccine())
                 .orElseThrow(() -> {
-                    String errMessage = String.format("vakcina sa nazivom '%s' ne postoji", addVaccinationRequest.getVaccine());
+                    String errMessage = format("vakcina sa nazivom '%s' ne postoji", addVaccinationRequest.getVaccine());
                     log.info(errMessage);
                     throw new BadRequestException(errMessage);
                 });
@@ -258,13 +253,13 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         // proveri da li je datum manji od trenutnog vremena
         Date vaccinationDate = addVaccinationRequest.getDate();
         if (vaccinationDate==null) {
-            String errMessage = String.format("polje 'date' ne sme da bude prazno", addVaccinationRequest.getVaccine());
+            String errMessage = "polje 'date' ne sme da bude prazno";
             log.info(errMessage);
             throw new BadRequestException(errMessage);
         }
 
         if(vaccinationDate.compareTo(new Date()) > 0){
-            String errMessage = String.format("nije moguce upisati buducu vakcinaciju");
+            String errMessage = "nije moguce upisati buducu vakcinaciju";
             log.info(errMessage);
             throw new BadRequestException(errMessage);
         }
@@ -282,7 +277,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                                 &&
                                 vaccinationDate.compareTo(patient.getDeathDate())>0
                 )) {
-            String errMessage = String.format("datum vakcinacije mora biti izmedju rodjenja i smrti pacijenta");
+            String errMessage = "datum vakcinacije mora biti izmedju rodjenja i smrti pacijenta";
             log.info(errMessage);
             throw new BadRequestException(errMessage);
         }
@@ -297,9 +292,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         // update podatke u bazi
         vaccination = vaccinationRepository.save(vaccination);
 
-        ExtendedVaccinationResponse extendedVaccinationResponse = healthRecordMapper.vaccinationToExtendedVaccinationResponse(healthRecord, vaccination);
-
-        return extendedVaccinationResponse;
+        return healthRecordMapper.vaccinationToExtendedVaccinationResponse(healthRecord, vaccination);
     }
 
     @Override
@@ -319,7 +312,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
 
         // ako ima confidential, onda proveriti da je auth doktor specijalista
         if(createExaminationReportRequest.getConfidential()!=null && createExaminationReportRequest.getConfidential().equals(Boolean.TRUE) && !canGetConfidential()){
-            String errMessage = String.format("ovaj korisnik ne moze kreirati confidential examination");
+            String errMessage = "ovaj korisnik ne moze kreirati confidential examination";
             log.info(errMessage);
             throw new BadRequestException(errMessage);
         }
@@ -328,14 +321,13 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         Diagnosis diagnosis = null;
         if(createExaminationReportRequest.getDiagnosis() != null) {
             diagnosis = diagnosisRepository.findByCode(createExaminationReportRequest.getDiagnosis()).orElseThrow(() -> {
-                String errMessage = String.format("diagnosis mkb10 code '%s' not found in database", createExaminationReportRequest.getDiagnosis());
+                String errMessage = format("diagnosis mkb10 code '%s' not found in database", createExaminationReportRequest.getDiagnosis());
                 log.info(errMessage);
                 throw new BadRequestException(errMessage);
             });
         }
 
-        MedicalExamination medicalExamination = healthRecordMapper.createExaminationReportRequestToExamination(lbp,
-                lbz,healthRecord,
+        MedicalExamination medicalExamination = healthRecordMapper.createExaminationReportRequestToExamination(lbz,healthRecord,
                 createExaminationReportRequest,
                 diagnosis);
 
@@ -345,7 +337,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         if(medicalExamination.getDiagnosis() != null) {
 
             if(createExaminationReportRequest.getExistingDiagnosis() == null) {
-                String errMessage = String.format("polje 'existingDiagnosis' ne sme biti prazno");
+                String errMessage = "polje 'existingDiagnosis' ne sme biti prazno";
                 log.info(errMessage);
                 throw new BadRequestException(errMessage);
             }
@@ -361,7 +353,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                     }
                 }
                 if(oldMedicalHistory==null) {
-                    String errMessage = String.format("korisnik '%s' nema postojecu dijagnozu '%s'", lbp, medicalExamination.getDiagnosis().getCode());
+                    String errMessage = format("korisnik '%s' nema postojecu dijagnozu '%s'", lbp, medicalExamination.getDiagnosis().getCode());
                     log.info(errMessage);
                     throw new BadRequestException(errMessage);
                 }
