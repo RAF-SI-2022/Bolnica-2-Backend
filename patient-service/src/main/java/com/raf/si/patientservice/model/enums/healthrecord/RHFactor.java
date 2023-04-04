@@ -1,7 +1,8 @@
 package com.raf.si.patientservice.model.enums.healthrecord;
 
-import com.raf.si.patientservice.model.enums.user.Title;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum RHFactor {
     PLUS("+"),
     MINUS("-");

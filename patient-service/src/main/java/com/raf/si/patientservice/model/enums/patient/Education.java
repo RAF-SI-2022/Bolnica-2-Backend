@@ -1,7 +1,8 @@
 package com.raf.si.patientservice.model.enums.patient;
 
-import com.raf.si.patientservice.model.enums.user.Profession;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum Education {
     BEZ_OSNOVNOG_OBRAZOVANJA("Bez osnovnog obrazovanja"),
     OSNOVNO_OBRAZOVANJE("Osnovno obrazovanje"),

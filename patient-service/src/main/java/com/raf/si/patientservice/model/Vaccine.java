@@ -1,10 +1,11 @@
 package com.raf.si.patientservice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Getter
@@ -15,7 +16,7 @@ public class Vaccine {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(nullable = false)
@@ -24,6 +25,10 @@ public class Vaccine {
     @Column(nullable = false)
     private String description;
 
+    @Column(nullable = false)
+    private String producer;
+
+    @JsonIgnore
     @OneToMany(mappedBy = "vaccine", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<Vaccination> vaccinations;
+    private List<Vaccination> vaccinations;
 }

@@ -1,5 +1,6 @@
 package com.raf.si.patientservice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,6 +24,7 @@ public class Operation {
     @Column(nullable = false)
     private String description;
 
+    @JsonIgnore
     @Column
     private Boolean deleted = false;
 
@@ -30,6 +32,7 @@ public class Operation {
     @Column(nullable = false)
     private UUID pbo;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "health_record_id", nullable = false)
     private HealthRecord healthRecord;

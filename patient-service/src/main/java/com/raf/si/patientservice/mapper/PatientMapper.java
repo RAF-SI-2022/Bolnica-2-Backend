@@ -1,20 +1,23 @@
 package com.raf.si.patientservice.mapper;
 
 import com.raf.si.patientservice.dto.request.PatientRequest;
+import com.raf.si.patientservice.dto.response.PatientListResponse;
 import com.raf.si.patientservice.dto.response.PatientResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.model.Patient;
 import com.raf.si.patientservice.model.enums.patient.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 public class PatientMapper {
 
-    public Patient patientRequestToPatient(PatientRequest patientRequest){
-        Patient patient = new Patient();
-
+    public Patient patientRequestToPatient(Patient patient, PatientRequest patientRequest){
         patient.setJmbg(patientRequest.getJmbg());
         patient.setFirstName(patientRequest.getFirstName());
         patient.setParentName(patientRequest.getParentName());
@@ -22,15 +25,24 @@ public class PatientMapper {
         patient.setBirthDate(patientRequest.getBirthDate());
         patient.setBirthplace(patientRequest.getBirthplace());
 
-        patient.setDeathDate(patientRequest.getDeathDate());
-        patient.setAddress(patientRequest.getAddress());
-        patient.setPlaceOfLiving(patientRequest.getPlaceOfLiving());
-        patient.setPhoneNumber(patientRequest.getPhoneNumber());
-        patient.setEmail(patientRequest.getEmail());
-        patient.setCustodianJmbg(patientRequest.getCustodianJmbg());
-        patient.setCustodianName(patientRequest.getCustodianName());
-        patient.setChildrenNum(patientRequest.getChildrenNum());
-        patient.setProfession(patientRequest.getProfession());
+        if(patientRequest.getDeathDate() != null)
+            patient.setDeathDate(patientRequest.getDeathDate());
+        if(patientRequest.getAddress() != null)
+            patient.setAddress(patientRequest.getAddress());
+        if(patientRequest.getPlaceOfLiving() != null)
+            patient.setPlaceOfLiving(patientRequest.getPlaceOfLiving());
+        if(patientRequest.getPhoneNumber() != null)
+            patient.setPhoneNumber(patientRequest.getPhoneNumber());
+        if(patientRequest.getEmail() != null)
+            patient.setEmail(patientRequest.getEmail());
+        if(patientRequest.getCustodianJmbg() != null)
+            patient.setCustodianJmbg(patientRequest.getCustodianJmbg());
+        if(patientRequest.getCustodianName() != null)
+            patient.setCustodianName(patientRequest.getCustodianName());
+        if(patientRequest.getChildrenNum() != null)
+            patient.setChildrenNum(patientRequest.getChildrenNum());
+        if(patient.getProfession() != null)
+            patient.setProfession(patientRequest.getProfession());
 
         Gender gender = Gender.valueOfNotation(patientRequest.getGender());
         if(gender == null){
@@ -126,8 +138,18 @@ public class PatientMapper {
         patientResponse.setChildrenNum(patient.getChildrenNum());
         patientResponse.setEducation(patient.getEducation());
         patientResponse.setProfession(patient.getProfession());
+        patientResponse.setDeleted(patient.getDeleted());
         patientResponse.setHealthRecordId(patient.getHealthRecord().getId());
 
         return patientResponse;
+    }
+
+    public PatientListResponse patientPageToPatientListResponse(Page<Patient> patientPage){
+        List<PatientResponse> patients = patientPage.toList()
+                .stream()
+                .map(this::patientToPatientResponse)
+                .collect(Collectors.toList());
+
+        return new PatientListResponse(patients, patientPage.getTotalElements());
     }
 }
