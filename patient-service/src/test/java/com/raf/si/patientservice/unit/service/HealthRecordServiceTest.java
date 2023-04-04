@@ -452,6 +452,7 @@ public class HealthRecordServiceTest {
     public void addVaccination_noDateInRequest_ThrowsException(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
+        healthRecord.setId(new Long(123));
         AddVaccinationRequest addVaccinationRequest = new AddVaccinationRequest();
         addVaccinationRequest.setVaccine("PRIORIX");
         addVaccinationRequest.setDate(null);
@@ -482,6 +483,8 @@ public class HealthRecordServiceTest {
         when(patient1.getHealthRecord()).thenReturn(healthRecord);
         when(patientService.findPatient((UUID) any())).thenReturn(patient1);
         when(patient1.getBirthDate()).thenReturn(patient.getBirthDate());
+
+        when(healthRecordRepository.save((HealthRecord) any())).thenReturn(healthRecord);
 
         // create expected response
         ExtendedVaccinationResponse extendedVaccinationResponse = new ExtendedVaccinationResponse();
