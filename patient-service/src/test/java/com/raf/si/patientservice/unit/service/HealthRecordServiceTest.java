@@ -891,7 +891,7 @@ public class HealthRecordServiceTest {
     public void updateHealthRecord_Success(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
-        healthRecord.setId(new Long(1));
+        healthRecord.setId(new Long(123));
         UpdateHealthRecordRequest updateHealthRecordRequest = new UpdateHealthRecordRequest();
         updateHealthRecordRequest.setBlodtype("A");
         updateHealthRecordRequest.setRhfactor("-");
@@ -901,6 +901,7 @@ public class HealthRecordServiceTest {
         Patient patient1 = mock(Patient.class);
         when(patient1.getHealthRecord()).thenReturn(healthRecord);
         when(patientService.findPatient((UUID) any())).thenReturn(patient1);
+        when(healthRecordRepository.save(any())).thenReturn(healthRecord);
 
         // create expected response
         BasicHealthRecordResponse basicHealthRecordResponse = new BasicHealthRecordResponse();
