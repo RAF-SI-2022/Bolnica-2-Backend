@@ -12,12 +12,10 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 public class OrderHistoryRequest {
-    @NotNull(message = "Start date can't be null.")
+    @NotNull(message = "Početni datum ne može biti null.")
     private Date startDate;
-    @NotNull(message = "End date can't be null.")
-
+    @NotNull(message = "Krajnji datum ne može biti null.")
     private Date endDate;
-    @NotNull(message = "LBP can't be null.")
-
+    @NotNull(message = "LBP ne može biti null.")
     private UUID lbp;
 }

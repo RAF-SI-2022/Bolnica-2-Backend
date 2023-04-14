@@ -14,12 +14,12 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 public class OrderHistoryForLabRequest {
-    @NotNull(message = "Start date can't be null.")
+    @NotNull(message = "Početni datum ne može biti null.")
     private Date startDate;
-    @NotNull(message = "End date can't be null.")
+    @NotNull(message = "Krajnji datum ne može biti null.")
     private Date endDate;
-    @NotNull(message = "LBP can't be null.")
+    @NotNull(message = "LBP ne može null.")
     private UUID lbp;
-    @NotEmpty(message = "OrderStatus can't be empty.")
+    @NotEmpty(message = "Status naloga ne može biti null.")
     private String orderStatus;
 }

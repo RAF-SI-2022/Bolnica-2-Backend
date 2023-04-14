@@ -56,7 +56,7 @@ public class WorkOrderController {
 
     @PreAuthorize("hasRole('ROLE_LAB_TEHNICAR') or hasRole('ROLE_VISI_LAB_TEHNICAR')" +
             " or hasRole('ROLE_MED_BIOHEM') or hasRole('ROLE_SPEC_MED_BIOHEM')")
-    @GetMapping("/historyForLab")
+    @PostMapping("/historyForLab")
     public ResponseEntity<OrderHistoryResponse> orderHistoryForLab(@Valid @RequestBody OrderHistoryForLabRequest historyRequest,
                                                                    @RequestParam(defaultValue = "0") int page,
                                                                    @RequestParam(defaultValue = "5") int size){

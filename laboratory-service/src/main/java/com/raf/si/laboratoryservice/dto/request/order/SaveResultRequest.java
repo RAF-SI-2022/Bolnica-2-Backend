@@ -10,10 +10,10 @@ import javax.validation.constraints.NotNull;
 @Setter
 @AllArgsConstructor
 public class SaveResultRequest {
-    @NotNull(message = "OrderID can't be null.")
+    @NotNull(message = "ID naloga ne može biti null.")
     private Long orderId;
-    @NotNull(message = "ParameterID can't be null.")
+    @NotNull(message = "ID parametra ne može biti null.")
     private Long parameterId;
-    @NotNull(message = "Result can't be null.")
+    @NotNull(message = "Rezultat ne može biti null.")
     private String result;
 }

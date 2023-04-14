@@ -14,6 +14,6 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class ResultResponse {
-    LabWorkOrder order;
-    List<AnalysisResultResponse> results;
+    private LabWorkOrder order;
+    private List<AnalysisResultResponse> results;
 }

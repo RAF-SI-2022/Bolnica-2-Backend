@@ -28,12 +28,12 @@ import java.util.*;
 @Service
 public class WorkOrderServiceImplementation implements WorkOrderService {
 
-    ReferralRepository referralRepository;
-    LabAnalysisRepository labAnalysisRepository;
-    LabWorkOrderRepository labWorkOrderRepository;
-    AnalysisParameterResultRepository analysisParameterResultRepository;
-    OrderMapper orderMapper;
-    AnalysisParameterRepository analysisParameterRepository;
+    private final ReferralRepository referralRepository;
+    private final LabAnalysisRepository labAnalysisRepository;
+    private final LabWorkOrderRepository labWorkOrderRepository;
+    private final AnalysisParameterResultRepository analysisParameterResultRepository;
+    private final OrderMapper orderMapper;
+    private final AnalysisParameterRepository analysisParameterRepository;
 
     public WorkOrderServiceImplementation(ReferralRepository referralRepository, LabAnalysisRepository labAnalysisRepository, LabWorkOrderRepository labWorkOrderRepository, AnalysisParameterResultRepository analysisParameterResultRepository, OrderMapper orderMapper, AnalysisParameterRepository analysisParameterRepository) {
         this.referralRepository = referralRepository;
@@ -49,15 +49,14 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
         TokenPayload tokenPayload = TokenPayloadUtil.getTokenPayload();
         UUID lbz = tokenPayload.getLbz();
 
-        Optional<Referral> referral = referralRepository.findById(orderId);
-        if(referral.isEmpty()){
+        Referral referral = referralRepository.findById(orderId).orElseThrow(() -> {
             String errMessage = String.format("Uput sa id-om '%s' ne postoji", orderId);
             log.info(errMessage);
             throw new BadRequestException(errMessage);
-        }
+        });
 
-        UUID lbp = referral.get().getLbp();
-        String[] requiredAnalysis = referral.get().getRequiredAnalysis().split(",");
+        UUID lbp = referral.getLbp();
+        String[] requiredAnalysis = referral.getRequiredAnalysis().split(",");
 
         LabWorkOrder newOrder = new LabWorkOrder();
         newOrder.setLbp(lbp);
@@ -101,30 +100,22 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
             labWorkOrderRepository.save(order);
         }
 
-        Optional<AnalysisParameter> analysisParameterOptional =  analysisParameterRepository.findById(
-                saveRequest.getParameterId());
+        AnalysisParameter analysisParameter =  analysisParameterRepository.findById(
+                saveRequest.getParameterId()).orElseThrow(() -> {
+                    String errMessage = String.format("Ne postoji parametar sa datim id-em: %s",
+                            saveRequest.getOrderId());
+                    log.info(errMessage);
+                    throw new BadRequestException(errMessage);
+        });
 
-        if(analysisParameterOptional.isEmpty()){
-            String errMessage = String.format("Ne postoji parametar sa datim id-em: %s",
-                    saveRequest.getOrderId());
-            log.info(errMessage);
-            throw new BadRequestException(errMessage);
-        }
-
-        AnalysisParameter analysisParameter = analysisParameterOptional.get();
-
-        Optional<AnalysisParameterResult> resultOptional = analysisParameterResultRepository
+        AnalysisParameterResult result = analysisParameterResultRepository
                 .findAnalysisParameterResultByLabWorkOrderAndAnalysisParameter(
                         order, analysisParameter
-                );
-
-        if(resultOptional.isEmpty()){
-            String errMessage = "Ne postoji rezultat sa date parametre.";
-            log.info(errMessage);
-            throw new BadRequestException(errMessage);
-        }
-
-        AnalysisParameterResult result = resultOptional.get();
+                ).orElseThrow(() -> {
+                    String errMessage = "Ne postoji rezultat sa date parametre.";
+                    log.info(errMessage);
+                    throw new BadRequestException(errMessage);
+                });
 
         result.setResult(saveRequest.getResult());
         result.setDateAndTime(new Date(System.currentTimeMillis()));
@@ -176,21 +167,19 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
 
         Referral referral = order.getReferral();
         referral.setStatus(ReferralStatus.REALIZOVAN);
+        order.setReferral(referral);
 
         labWorkOrderRepository.save(order);
-        referralRepository.save(referral);
 
         return orderMapper.orderToOrderResponse(order);
     }
 
     private LabWorkOrder findOrder(Long orderId){
-        Optional<LabWorkOrder> order = labWorkOrderRepository.findById(orderId);
-        if(order.isEmpty()){
-            String errMessage = String.format("Radni nalog sa id-om '%s' ne postoji", orderId);
-            log.info(errMessage);
-            throw new BadRequestException(errMessage);
-        }
-
-        return order.get();
+        return labWorkOrderRepository.findById(orderId)
+                .orElseThrow(() -> {
+                    String errMessage = String.format("Radni nalog sa id-om '%s' ne postoji", orderId);
+                    log.info(errMessage);
+                    throw new BadRequestException(errMessage);
+                });
     }
 }
