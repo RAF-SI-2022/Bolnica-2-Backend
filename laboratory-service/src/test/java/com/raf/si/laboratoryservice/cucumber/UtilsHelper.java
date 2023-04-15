@@ -23,7 +23,7 @@ public class UtilsHelper {
         CreateReferralRequest createReferralRequest = new CreateReferralRequest();
         createReferralRequest.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
         createReferralRequest.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
-        createReferralRequest.setType(ReferralType.LABORATORIJA);
+        createReferralRequest.setType(String.valueOf(ReferralType.LABORATORIJA));
         createReferralRequest.setReferralDiagnosis("Mononukleoza");
         createReferralRequest.setReferralReason("Provera krvne slike pacijenta, da li je mononukleoza prosla");
         createReferralRequest.setPboReferredFrom(UUID.fromString("d79f77be-0a0e-4e2f-88a5-5f5d5cdd1e2c"));
@@ -31,10 +31,6 @@ public class UtilsHelper {
         createReferralRequest.setCreationTime(new Timestamp(2023-04-03));
 
         return createReferralRequest;
-    }
-
-    public String getToken() {
-        return "eyJhbGciOiJIUzUxMiJ9.eyJmaXJzdE5hbWUiOiJBZG1pbiIsImxhc3ROYW1lIjoiQWRtaW5vdmljIiwidGl0bGUiOiJEciBzY2kuIG1lZC4iLCJwcm9mZXNzaW9uIjoiU3BlYy4gaGlydXJnIiwicGJvIjoiYTMwNzBhZTktZGNkMi00MTIyLTgxMzgtYjBkNmYzMTkzYjEwIiwiZGVwYXJ0bWVudE5hbWUiOiJIaXJ1cmdpamEiLCJwYmIiOiJjOWE0ZmUzMC00YmQwLTQwMzAtOTM3OS0wZmRjZWEzZjc3NGQiLCJob3NwaXRhbE5hbWUiOiJLQkMgWnZlemRhcmEgLSBLbGluaWthIHphIGhpcnVyZ2lqdSBcIk5pa29sYSBTcGFzaWNcIiIsInBlcm1pc3Npb25zIjpbIlJPTEVfVklTQV9NRURfU0VTVFJBIiwiUk9MRV9NRURfU0VTVFJBIiwiUk9MRV9BRE1JTiIsIlJPTEVfRFJfU1BFQ19PREVMSkVOSkEiLCJST0xFX0RSX1NQRUMiLCJST0xFX0RSX1NQRUNfUE9WIiwiUk9MRV9WSVNJX0xBQl9URUhOSUNBUiIsIlJPTEVfTEFCX1RFSE5JQ0FSIiwiUk9MRV9NRURfQklPSEVNSUNBUiIsIlJPTEVfU1BFQ19NRURfQklPSEVNSUpFIl0sInN1YiI6IjVhMmU3MWJiLWU0ZWUtNDNkZC1hM2FkLTI4ZTA0M2Y4YjQzNSIsImlhdCI6MTY4MDUxODA5MCwiZXhwIjoxNjgwNTU0MDkwfQ.5xrclb4BKoYP8nynsKhYANPgawDbGfJ9Jm3jBYDbC1jlfrI6YU6B1BMjlMVLk487BFg1FogmcsyvpNQB8zNbqw";
     }
 
     public String generateToken() {
