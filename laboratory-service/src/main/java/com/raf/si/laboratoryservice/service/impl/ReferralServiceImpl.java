@@ -14,16 +14,14 @@ import com.raf.si.laboratoryservice.repository.ReferralRepository;
 import com.raf.si.laboratoryservice.service.ReferralService;
 import com.raf.si.laboratoryservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.criterion.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -48,8 +46,9 @@ public class ReferralServiceImpl implements ReferralService {
     }
 
     @Override
-    public ReferralListResponse referralHistory(UUID lbp, Timestamp dateFrom, Timestamp dateTo, Pageable pageable) {
-        Page<Referral> referralPage = referralRepository.findByLbpAndCreationTimeBetweenAndDeletedFalse(lbp, dateFrom, dateTo, pageable);
+    public ReferralListResponse referralHistory(UUID lbp, Date dateFrom, Date dateTo, Pageable pageable) {
+        Date endDate = DateUtils.addDays(dateTo, 1);
+        Page<Referral> referralPage = referralRepository.findByLbpAndCreationTimeBetweenAndDeletedFalse(lbp, dateFrom, endDate, pageable);
         return referralMapper.referralPageToReferralListResponse(referralPage);
     }
     @Override
@@ -70,28 +69,33 @@ public class ReferralServiceImpl implements ReferralService {
         UUID lbzFromToken = TokenPayloadUtil.getTokenPayload().getLbz();
         boolean lbzMatch = referral.getLbz().equals(lbzFromToken);
 
-        if (lbzMatch && labWorkOrderRepository.findByReferral(referral) == null) {
-            referral.setDeleted(true);
-            referral = referralRepository.save(referral);
-            log.info("Uput sa id-ijem '{}' je uspesno obrisan", id);
-            return referralMapper.modelToResponse(referral);
-        } else {
-            log.error("Lbz uputa i lbz iz tokena se ne poklapaju '{}'", id);
-            throw new NotFoundException("Uput nije obrisan");
+        if (!lbzMatch) {
+            log.error("Lbz uputa i lbz iz tokena se ne poklapaju");
+            throw new NotFoundException("Lbz uputa i lbz iz tokena se ne poklapaju, uput nije obrisan!");
         }
+
+        if (labWorkOrderRepository.findByReferral(referral) != null) {
+            log.error("Radni nalog sa id-ijem ('{}') uputa postoji ", id);
+            throw new NotFoundException("Radni nalog sa id-ijem uputa postoji, uput nije obrisan!");
+        }
+
+        referral.setDeleted(true);
+        referral = referralRepository.save(referral);
+        log.info("Uput sa id-ijem '{}' je uspesno obrisan", id);
+        return referralMapper.modelToResponse(referral);
     }
 
     @Override
     public ReferralListResponse unprocessedReferrals(UUID lbp) {
         UUID pboFromToken = TokenPayloadUtil.getTokenPayload().getPbo();
         List<Referral> unprocessedReferralsByThreeParams =
-                referralRepository.findByLbpAndPboReferredToAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN).orElseThrow(() -> {
+                referralRepository.findByLbpAndPboAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN).orElseThrow(() -> {
                     log.error("Ne postoji trazeni uput");
                     throw new NotFoundException("Uput sa zadatim parametrima nije pronadjen");
                 });
 
         List<Referral> unprocessedReferrals = unprocessedReferralsByThreeParams.stream()
-                .filter(referral -> labWorkOrderRepository.findByReferral(referral) == null)
+                .filter(referral -> referral.getLabWorkOrder() == null)
                 .collect(Collectors.toList());
 
         return referralMapper.referralListToListResponse(unprocessedReferrals);
