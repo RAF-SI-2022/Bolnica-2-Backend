@@ -2,7 +2,6 @@ package com.raf.si.laboratoryservice.mapper;
 
 import com.raf.si.laboratoryservice.dto.request.CreateLabExamRequest;
 import com.raf.si.laboratoryservice.dto.response.LabExamResponse;
-import com.raf.si.laboratoryservice.dto.response.ReferralResponse;
 import com.raf.si.laboratoryservice.model.ScheduledLabExam;
 import com.raf.si.laboratoryservice.model.enums.scheduledlabexam.ExamStatus;
 import org.springframework.stereotype.Component;

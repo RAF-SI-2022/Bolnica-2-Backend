@@ -17,5 +17,5 @@ public class UpdateLabExamStatusRequest {
     @NotEmpty(message = "Polje id ne sme biti prazno")
     private Long id;
     @NotNull(message = "Polje status ne sme biti prazno")
-    private ExamStatus status;
+    private String status;
 }
