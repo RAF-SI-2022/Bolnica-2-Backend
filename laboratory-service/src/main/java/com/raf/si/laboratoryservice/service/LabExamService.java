@@ -5,6 +5,7 @@ import com.raf.si.laboratoryservice.dto.request.UpdateLabExamStatusRequest;
 import com.raf.si.laboratoryservice.dto.response.LabExamResponse;
 
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -13,9 +14,9 @@ import java.util.UUID;
 public interface LabExamService {
     LabExamResponse createExamination(CreateLabExamRequest createLabExamRequest);
 
-    Optional<Long> getScheduledExamCount(Timestamp date);
+    Optional<Long> getScheduledExamCount(Date date);
 
-    List<LabExamResponse> getScheduledExams(Timestamp date, UUID lbp);
+    List<LabExamResponse> getScheduledExams(Date date, UUID lbp);
 
     LabExamResponse updateStatus(UpdateLabExamStatusRequest updateLabExamStatusRequest);
 }

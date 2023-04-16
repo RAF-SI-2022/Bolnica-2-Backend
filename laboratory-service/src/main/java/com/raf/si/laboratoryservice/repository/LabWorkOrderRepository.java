@@ -13,11 +13,5 @@ import java.util.UUID;
 
 @Repository
 public interface LabWorkOrderRepository extends JpaRepository<LabWorkOrder, Long> {
-
-    List<LabWorkOrder> findAll();
-
-//    @Query("SELECT w.id FROM LabWorkOrder w WHERE w.referral.department.id = :departmentId AND w.status <> :status")
-//    List<UUID> findIdsByReferralDepartmentIdAndNotStatus(@Param("departmentId") Long departmentId, @Param("status") OrderStatus status);
-
     LabWorkOrder findByReferral(Referral referral);
 }
