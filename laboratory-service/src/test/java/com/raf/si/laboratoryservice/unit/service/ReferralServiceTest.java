@@ -14,6 +14,7 @@ import com.raf.si.laboratoryservice.service.impl.ReferralServiceImpl;
 import com.raf.si.laboratoryservice.utils.TokenPayload;
 import com.raf.si.laboratoryservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -118,17 +119,18 @@ class ReferralServiceTest {
 
     @Test
     void testReferralHistory() {
-        UUID lbp = UUID.randomUUID();
-        Timestamp dateFrom = new Timestamp(0);
-        Timestamp dateTo = new Timestamp(System.currentTimeMillis());
+        UUID lbp = UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8");
+        Date dateFrom = new Date();
+        Date dateTo = new Date();
         Pageable pageable = PageRequest.of(0, 10);
+
         Referral referral = new Referral();
+        referral.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
         Page<Referral> referralPage = new PageImpl<>(Collections.singletonList(referral));
 
         ReferralListResponse referralListResponse = createReferralListResponse();
 
-        when(referralRepository.findByLbpAndCreationTimeBetweenAndDeletedFalse(lbp, dateFrom, dateTo, pageable))
-                .thenReturn(referralPage);
+        when(referralRepository.findByLbpAndCreationTimeBetweenAndDeletedFalse(eq(lbp), eq(dateFrom), any(Date.class), eq(pageable))).thenReturn(referralPage);
         when(referralMapper.referralPageToReferralListResponse(referralPage)).thenReturn(referralListResponse);
 
         // Act
@@ -137,6 +139,7 @@ class ReferralServiceTest {
         assertNotNull(result);
         assertEquals(referralListResponse, result);
     }
+
 
     @Test
     public void testUnprocessedReferrals() {
@@ -151,10 +154,12 @@ class ReferralServiceTest {
         referral2.setLbp(lbp);
         referral2.setPboReferredTo(pboFromToken);
         referral2.setStatus(ReferralStatus.NEREALIZOVAN);
+        referral2.setLabWorkOrder(new LabWorkOrder());
 
         List<Referral> unprocessedReferrals = Arrays.asList(referral1, referral2);
         List<Referral> unprocessedReferralsWithoutLabWorkOrder = Collections.singletonList(referral1);
-        ReferralListResponse expectedResponse = new ReferralListResponse();
+
+        ReferralListResponse expectedResponse = createReferralListResponse();
 
         TokenPayload tokenPayload = new TokenPayload();
         tokenPayload.setPbo(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
@@ -162,32 +167,23 @@ class ReferralServiceTest {
         when(authentication.getPrincipal()).thenReturn(tokenPayload);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        when(referralRepository.findByLbpAndPboReferredToAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN)).thenReturn(Optional.of(unprocessedReferrals));
-        when(labWorkOrderRepository.findByReferral(referral1)).thenReturn(null);
-        when(labWorkOrderRepository.findByReferral(referral2)).thenReturn(new LabWorkOrder());
+        when(referralRepository.findByLbpAndPboAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN)).thenReturn(Optional.of(unprocessedReferrals));
         when(referralMapper.referralListToListResponse(unprocessedReferralsWithoutLabWorkOrder)).thenReturn(expectedResponse);
-
 
         ReferralListResponse actualResponse = referralService.unprocessedReferrals(lbp);
 
         assertEquals(expectedResponse, actualResponse);
-        verify(referralRepository, times(1)).findByLbpAndPboReferredToAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN);
-        verify(labWorkOrderRepository, times(1)).findByReferral(referral1);
-        verify(labWorkOrderRepository, times(1)).findByReferral(referral2);
+        verify(referralRepository, times(1)).findByLbpAndPboAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN);
         verify(referralMapper, times(1)).referralListToListResponse(unprocessedReferralsWithoutLabWorkOrder);
     }
 
     private ReferralListResponse createReferralListResponse() {
         List<ReferralResponse> referralResponses = new ArrayList<>();
         ReferralResponse referral1 = new ReferralResponse();
+        referral1.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
         referral1.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
-
-        ReferralResponse referral2 = new ReferralResponse();
-        referral2.setLbz(UUID.fromString("d79f77be-0a0e-4e2f-88a5-5f5d5cdd1e2c"));
-
         referralResponses.add(referral1);
-        referralResponses.add(referral2);
-        ReferralListResponse referralListResponse = new ReferralListResponse(referralResponses, 2L);
+        ReferralListResponse referralListResponse = new ReferralListResponse(referralResponses, 1L);
         return referralListResponse;
     }
 }

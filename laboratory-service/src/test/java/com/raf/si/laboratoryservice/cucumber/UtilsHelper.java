@@ -12,7 +12,6 @@ import java.sql.Timestamp;
 import java.util.UUID;
 
 public class UtilsHelper {
-
     private final JwtUtil jwtUtil;
 
     public UtilsHelper(JwtUtil jwtUtil) {

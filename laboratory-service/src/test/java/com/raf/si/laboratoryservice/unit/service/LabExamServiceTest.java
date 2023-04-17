@@ -13,8 +13,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.testcontainers.shaded.org.apache.commons.lang3.time.DateUtils;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -74,27 +76,29 @@ public class LabExamServiceTest {
         when(authentication.getPrincipal()).thenReturn(tokenPayload);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        when(scheduledLabExamRepository.countByPboIdAndDateRange(any(UUID.class), any(Timestamp.class), any(Timestamp.class))).thenReturn(5L);
+        when(scheduledLabExamRepository.countByPboIdAndDateRange(any(UUID.class), any(Date.class), any(Date.class))).thenReturn(5L);
 
 
-        Optional<Long> response = labExamService.getScheduledExamCount(new Timestamp(System.currentTimeMillis()));
+        Optional<Long> response = labExamService.getScheduledExamCount(new Date());
         assertThat(response).isPresent().contains(5L);
 
-        verify(scheduledLabExamRepository, times(1)).countByPboIdAndDateRange(any(UUID.class), any(Timestamp.class), any(Timestamp.class));
+        verify(scheduledLabExamRepository, times(1)).countByPboIdAndDateRange(any(UUID.class), any(Date.class), any(Date.class));
     }
 
     @Test
-    void testGetScheduledExams_withDateAndLbp_shouldReturnListOfScheduledLabExams() {
-        Timestamp date = Timestamp.valueOf(LocalDateTime.now());
+    void testGetScheduledExams() {
+        Date date = new Date();
         UUID lbp = UUID.randomUUID();
         UUID pboFromToken = UUID.fromString("4e5911c8-ce7a-11ed-afa1-0242ac120002");
         List<ScheduledLabExam> scheduledLabExams = createListOfScheduledExams();
 
-        TokenPayload payload = new TokenPayload();
-        payload.setPbo(pboFromToken);
-        when(TokenPayloadUtil.getTokenPayload()).thenReturn(payload);
+        TokenPayload tokenPayload = new TokenPayload();
+        tokenPayload.setPbo(pboFromToken);
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getPrincipal()).thenReturn(tokenPayload);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        when(scheduledLabExamRepository.findByPboAndDateRangeAndLbp(pboFromToken, date, Timestamp.valueOf(date.toLocalDateTime().plusDays(1).withHour(0).withMinute(0).withSecond(0)), lbp)).thenReturn(scheduledLabExams);
+        when(scheduledLabExamRepository.findAll(any(Specification.class))).thenReturn(scheduledLabExams);
 
         List<LabExamResponse> labExamResponses = labExamService.getScheduledExams(date, lbp);
 
@@ -108,7 +112,7 @@ public class LabExamServiceTest {
         scheduledLabExam.setExamStatus(ExamStatus.ZAKAZANO);
         UpdateLabExamStatusRequest updateLabExamStatusRequest = new UpdateLabExamStatusRequest();
         updateLabExamStatusRequest.setId(1L);
-        updateLabExamStatusRequest.setStatus(ExamStatus.ZAVRSENO);
+        updateLabExamStatusRequest.setStatus("Završeno");
 
         when(scheduledLabExamRepository.findById(1L)).thenReturn(Optional.of(scheduledLabExam));
         when(scheduledLabExamRepository.save(any(ScheduledLabExam.class))).thenReturn(scheduledLabExam);

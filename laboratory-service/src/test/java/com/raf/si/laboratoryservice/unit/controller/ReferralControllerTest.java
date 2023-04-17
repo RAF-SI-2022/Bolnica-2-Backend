@@ -106,7 +106,7 @@ public class ReferralControllerTest {
     private CreateReferralRequest createReferralRequest() {
         CreateReferralRequest createReferralRequest = new CreateReferralRequest();
 
-        createReferralRequest.setType(ReferralType.LABORATORIJA);
+        createReferralRequest.setType(String.valueOf(ReferralType.LABORATORIJA));
         createReferralRequest.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
 
         return createReferralRequest;

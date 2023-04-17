@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -13,7 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateReferralRequest {
-    @NotNull(message = "Polje tip uputa ne sme biti prazno")
+    @NotEmpty(message = "Polje tip uputa ne sme biti prazno")
     private String type;
     @NotNull(message = "Polje lbz ne sme biti prazno")
     private UUID lbz;

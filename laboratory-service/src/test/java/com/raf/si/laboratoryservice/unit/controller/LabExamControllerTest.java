@@ -91,7 +91,7 @@ public class LabExamControllerTest {
     private UpdateLabExamStatusRequest updateLabExamStatusRequest() {
         UpdateLabExamStatusRequest updateLabExamStatusRequest = new UpdateLabExamStatusRequest();
         updateLabExamStatusRequest.setId(1L);
-        updateLabExamStatusRequest.setStatus(ExamStatus.ZAVRSENO);
+        updateLabExamStatusRequest.setStatus(String.valueOf(ExamStatus.ZAVRSENO));
 
         return updateLabExamStatusRequest;
     }
