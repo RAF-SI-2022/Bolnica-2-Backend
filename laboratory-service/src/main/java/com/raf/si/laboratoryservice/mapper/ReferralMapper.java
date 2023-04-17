@@ -56,6 +56,7 @@ public class ReferralMapper {
         referralResponse.setReferralDiagnosis(referral.getReferralDiagnosis());
         referralResponse.setReferralReason(referral.getReferralReason());
         referralResponse.setStatus(referral.getStatus());
+        referralResponse.setDeleted(referral.getDeleted());
 
         return referralResponse;
     }

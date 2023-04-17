@@ -26,4 +26,5 @@ public class ReferralResponse {
     private String comment;
     private String referralDiagnosis;
     private String referralReason;
+    private Boolean deleted;
 }

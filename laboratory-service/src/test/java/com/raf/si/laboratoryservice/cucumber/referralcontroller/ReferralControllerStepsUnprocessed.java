@@ -9,18 +9,11 @@ import com.raf.si.laboratoryservice.utils.JwtUtil;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import javax.validation.Valid;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -28,10 +21,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class ReferralControllerStepsHistory extends CucumberConfig {
+public class ReferralControllerStepsUnprocessed extends CucumberConfig {
     @Autowired
     private ReferralRepository referralRepository;
-
     private Gson gson;
     private UtilsHelper util;
     private ResultActions resultActions;
@@ -47,45 +39,36 @@ public class ReferralControllerStepsHistory extends CucumberConfig {
                 .create();
     }
 
-    @When("doctor provides invalid information for referral history")
-    public void doctor_provides_invalid_information_for_referral_history() throws Exception {
+    @When("doctor provides invalid information for fetching unprocessed referrals")
+    public void doctor_provides_invalid_information_for_fetching_unprocessed_referrals() throws Exception {
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-        queryParams.add("lbp", "c208f04d-9551-404e-8c54-9321f3ae9be8");
-        queryParams.add("dateFrom", "04-05-2023");
-        queryParams.add("dateTo", "05-05-2023");
-        queryParams.add("page", "0");
+        queryParams.add("lbp", "d79f77be-0a0e-4e2f-88a5-5f5d5cdd1e2c");
 
-        resultActions = mvc.perform(get("/referral/history").queryParams(queryParams)
+        resultActions = mvc.perform(get("/referral/unprocessed").queryParams(queryParams)
                 .header("Authorization", "Bearer " + util.generateToken())
                 .contentType(MediaType.APPLICATION_JSON));
     }
 
-    @Then("BadRequestException is thrown with status code {int} for referral history")
-    public void bad_request_exception_is_thrown_with_status_code_for_referral_history(Integer statusCode) throws Exception {
+    @Then("NotFoundException is thrown with status code {int}")
+    public void not_found_exception_is_thrown_with_status_code(Integer statusCode) throws Exception {
         resultActions.andExpect(status().is(statusCode));
     }
 
-    @When("doctor provides valid information for referral history")
-    public void doctor_provides_valid_information_for_referral_history() throws Exception {
-        Date currentDate = new Date();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        String dateString = dateFormat.format(currentDate);
-
+    @When("doctor provides valid information for fetching unprocessed referrals")
+    public void doctor_provides_valid_information_for_fetching_unprocessed_referrals() throws Exception {
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         queryParams.add("lbp", "c208f04d-9551-404e-8c54-9321f3ae9be8");
-        queryParams.add("dateFrom", dateString);
-        queryParams.add("dateTo", dateString);
-        queryParams.add("page", "0");
-        queryParams.add("size", "10");
 
-        resultActions = mvc.perform(get("/referral/history").queryParams(queryParams)
+        resultActions = mvc.perform(get("/referral/unprocessed").queryParams(queryParams)
                 .header("Authorization", "Bearer " + util.generateToken())
                 .contentType(MediaType.APPLICATION_JSON));
     }
 
-    @Then("page with given parameters is returned containing referral history")
-    public void page_with_given_parameters_is_returned_containing_referral_history() throws Exception {
+    @Then("return the list of unprocessed referrals")
+    public void return_the_list_of_unprocessed_referrals() throws Exception {
         resultActions.andExpect(status().isOk())
                 .andExpect(jsonPath("$.referrals", hasSize(1)));
     }
+
+
 }

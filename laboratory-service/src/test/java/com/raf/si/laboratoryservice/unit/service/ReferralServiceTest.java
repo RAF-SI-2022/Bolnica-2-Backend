@@ -167,7 +167,7 @@ class ReferralServiceTest {
         when(authentication.getPrincipal()).thenReturn(tokenPayload);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        when(referralRepository.findByLbpAndPboAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN)).thenReturn(Optional.of(unprocessedReferrals));
+        when(referralRepository.findByLbpAndPboAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN)).thenReturn((unprocessedReferrals));
         when(referralMapper.referralListToListResponse(unprocessedReferralsWithoutLabWorkOrder)).thenReturn(expectedResponse);
 
         ReferralListResponse actualResponse = referralService.unprocessedReferrals(lbp);

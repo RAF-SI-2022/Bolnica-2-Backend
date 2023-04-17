@@ -17,7 +17,11 @@ import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -65,6 +69,7 @@ public class ReferralControllerStepsCreate extends CucumberConfig {
                 .contentType(MediaType.APPLICATION_JSON));
 
     }
+
     @Then("created referral is returned")
     public void created_referral_is_returned() throws Exception {
         Referral referral = referralRepository.findById(1L).orElse(null);

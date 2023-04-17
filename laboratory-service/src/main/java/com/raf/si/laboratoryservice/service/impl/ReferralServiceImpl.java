@@ -88,12 +88,11 @@ public class ReferralServiceImpl implements ReferralService {
     @Override
     public ReferralListResponse unprocessedReferrals(UUID lbp) {
         UUID pboFromToken = TokenPayloadUtil.getTokenPayload().getPbo();
-        List<Referral> unprocessedReferralsByThreeParams =
-                referralRepository.findByLbpAndPboAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN).orElseThrow(() -> {
-                    log.error("Ne postoji trazeni uput");
-                    throw new NotFoundException("Uput sa zadatim parametrima nije pronadjen");
-                });
-
+        List<Referral> unprocessedReferralsByThreeParams = referralRepository.findByLbpAndPboAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN);
+        if (unprocessedReferralsByThreeParams.isEmpty()) {
+            log.error("Ne postoji trazeni uput");
+            throw new NotFoundException("Uput sa zadatim parametrima nije pronadjen");
+        }
         List<Referral> unprocessedReferrals = unprocessedReferralsByThreeParams.stream()
                 .filter(referral -> referral.getLabWorkOrder() == null)
                 .collect(Collectors.toList());

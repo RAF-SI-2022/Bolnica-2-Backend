@@ -3,6 +3,7 @@ package com.raf.si.laboratoryservice.service;
 import com.raf.si.laboratoryservice.dto.request.CreateReferralRequest;
 import com.raf.si.laboratoryservice.dto.response.ReferralListResponse;
 import com.raf.si.laboratoryservice.dto.response.ReferralResponse;
+import com.raf.si.laboratoryservice.model.Referral;
 import org.springframework.data.domain.Pageable;
 
 import java.sql.Timestamp;
