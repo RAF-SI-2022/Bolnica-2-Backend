@@ -1,4 +1,4 @@
-package com.raf.si.laboratoryservice.dto.response.http;
+package com.raf.si.laboratoryservice.dto.response;
 
 import com.raf.si.laboratoryservice.model.enums.user.Profession;
 import com.raf.si.laboratoryservice.model.enums.user.Title;

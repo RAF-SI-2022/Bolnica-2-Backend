@@ -1,4 +1,4 @@
-package com.raf.si.laboratoryservice.controller;
+package com.raf.si.laboratoryservice.controllers;
 
 import com.raf.si.laboratoryservice.utils.TokenPayload;
 import com.raf.si.laboratoryservice.utils.TokenPayloadUtil;
