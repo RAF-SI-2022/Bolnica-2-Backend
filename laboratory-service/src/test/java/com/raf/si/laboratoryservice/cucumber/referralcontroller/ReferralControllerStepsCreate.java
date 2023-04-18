@@ -6,11 +6,8 @@ import com.raf.si.laboratoryservice.cucumber.CucumberConfig;
 import com.raf.si.laboratoryservice.cucumber.UtilsHelper;
 import com.raf.si.laboratoryservice.dto.request.CreateReferralRequest;
 import com.raf.si.laboratoryservice.model.Referral;
-import com.raf.si.laboratoryservice.model.enums.referral.ReferralType;
 import com.raf.si.laboratoryservice.repository.ReferralRepository;
 import com.raf.si.laboratoryservice.utils.JwtUtil;
-import com.raf.si.laboratoryservice.utils.TokenPayload;
-import com.raf.si.laboratoryservice.utils.TokenPayloadUtil;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -18,10 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -72,7 +66,7 @@ public class ReferralControllerStepsCreate extends CucumberConfig {
 
     @Then("created referral is returned")
     public void created_referral_is_returned() throws Exception {
-        Referral referral = referralRepository.findById(1L).orElse(null);
+        Referral referral = referralRepository.findById(2L).orElse(null);
         assertNotNull(referral);
         resultActions.andExpect(status().isOk())
                 .andExpect(jsonPath("$.referralDiagnosis").value(referral.getReferralDiagnosis()));

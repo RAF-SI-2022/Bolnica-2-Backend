@@ -7,7 +7,7 @@ import lombok.Setter;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.UUID;
 
 @Getter
@@ -26,7 +26,7 @@ public class CreateReferralRequest {
     @NotNull(message = "Polje lbp ne sme biti prazno")
     private UUID lbp;
     @NotNull(message = "Polje datum ne sme biti prazno")
-    private Timestamp creationTime;
+    private Date creationTime;
 
     private String requiredAnalysis;
     private String comment;

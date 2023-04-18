@@ -5,10 +5,8 @@ import com.google.gson.GsonBuilder;
 import com.raf.si.laboratoryservice.cucumber.CucumberConfig;
 import com.raf.si.laboratoryservice.cucumber.UtilsHelper;
 import com.raf.si.laboratoryservice.dto.request.CreateLabExamRequest;
-import com.raf.si.laboratoryservice.dto.request.CreateReferralRequest;
-import com.raf.si.laboratoryservice.model.Referral;
+import com.raf.si.laboratoryservice.dto.request.UpdateLabExamStatusRequest;
 import com.raf.si.laboratoryservice.model.ScheduledLabExam;
-import com.raf.si.laboratoryservice.repository.ReferralRepository;
 import com.raf.si.laboratoryservice.repository.ScheduledLabExamRepository;
 import com.raf.si.laboratoryservice.utils.JwtUtil;
 import io.cucumber.java.Before;
@@ -17,14 +15,13 @@ import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class LabExamControllerStepsCreate extends CucumberConfig {
+public class LabExamControllerStepsUpdate extends CucumberConfig {
+
     @Autowired
     private ScheduledLabExamRepository scheduledLabExamRepository;
     private Gson gson;
@@ -42,39 +39,40 @@ public class LabExamControllerStepsCreate extends CucumberConfig {
                 .create();
     }
 
-    @When("doctor provides invalid information for creating a lab exam")
-    public void doctor_provides_invalid_information_for_creating_a_lab_exam() throws Exception {
-        CreateLabExamRequest createLabExamRequest = new CreateLabExamRequest();
-        createLabExamRequest.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+    @When("doctor provides invalid information for updating lab exam")
+    public void doctor_provides_invalid_information_for_updating_lab_exam() throws Exception {
+        UpdateLabExamStatusRequest updateLabExamStatusRequest = new UpdateLabExamStatusRequest();
+        updateLabExamStatusRequest.setId(5L);
+        updateLabExamStatusRequest.setStatus("Završeno");
 
-        resultActions = mvc.perform(post("/examination/create")
+        resultActions = mvc.perform(put("/examination/status")
                 .header("Authorization", "Bearer " + util.generateToken())
-                .content(gson.toJson(createLabExamRequest))
+                .content(gson.toJson(updateLabExamStatusRequest))
                 .contentType(MediaType.APPLICATION_JSON));
     }
 
-    @Then("BadRequestException is thrown with status code {int} for creating lab exam")
-    public void bad_request_exception_is_thrown_with_status_code_for_creating_lab_exam(Integer statusCode) throws Exception {
+    @Then("NotFoundException is thrown with status code {int} for lab exam update")
+    public void not_found_exception_is_thrown_with_status_code_for_lab_exam_update(Integer statusCode) throws Exception {
         resultActions.andExpect(status().is(statusCode));
     }
 
-    @When("doctor provides valid information for creating a lab exam")
-    public void doctor_provides_valid_information_for_creating_a_lab_exam() throws Exception {
-        CreateLabExamRequest createLabExamRequest = util.createLabExamRequest();
+    @When("doctor provides valid information for updating lab exam")
+    public void doctor_provides_valid_information_for_updating_lab_exam() throws Exception {
+        UpdateLabExamStatusRequest updateLabExamStatusRequest = new UpdateLabExamStatusRequest();
+        updateLabExamStatusRequest.setId(1L);
+        updateLabExamStatusRequest.setStatus("Završeno");
 
-        resultActions = mvc.perform(post("/examination/create")
+        resultActions = mvc.perform(put("/examination/status")
                 .header("Authorization", "Bearer " + util.generateToken())
-                .content(gson.toJson(createLabExamRequest))
+                .content(gson.toJson(updateLabExamStatusRequest))
                 .contentType(MediaType.APPLICATION_JSON));
     }
 
-    @Then("new lab exam is returned")
-    public void new_lab_exam_is_returned() throws Exception {
-        ScheduledLabExam scheduledLabExam = scheduledLabExamRepository.findById(2L).orElse(null);
+    @Then("return updated lab exam")
+    public void return_updated_lab_exam() throws Exception {
+        ScheduledLabExam scheduledLabExam = scheduledLabExamRepository.findById(1L).orElse(null);
         assertNotNull(scheduledLabExam);
         resultActions.andExpect(status().isOk())
                 .andExpect(jsonPath("$.note").value(scheduledLabExam.getNote()));
     }
-
-
 }

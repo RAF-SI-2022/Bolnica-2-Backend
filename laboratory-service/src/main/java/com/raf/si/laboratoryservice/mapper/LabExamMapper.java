@@ -6,6 +6,7 @@ import com.raf.si.laboratoryservice.model.ScheduledLabExam;
 import com.raf.si.laboratoryservice.model.enums.scheduledlabexam.ExamStatus;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -43,4 +44,5 @@ public class LabExamMapper {
                 .collect(Collectors.toList());
         return labExamResponses;
     }
+
 }

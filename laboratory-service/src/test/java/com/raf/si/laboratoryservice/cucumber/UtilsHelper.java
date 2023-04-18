@@ -1,5 +1,6 @@
 package com.raf.si.laboratoryservice.cucumber;
 
+import com.raf.si.laboratoryservice.dto.request.CreateLabExamRequest;
 import com.raf.si.laboratoryservice.dto.request.CreateReferralRequest;
 import com.raf.si.laboratoryservice.model.enums.referral.ReferralType;
 import com.raf.si.laboratoryservice.model.enums.user.Profession;
@@ -8,7 +9,8 @@ import com.raf.si.laboratoryservice.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 
-import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 
 public class UtilsHelper {
@@ -26,11 +28,26 @@ public class UtilsHelper {
         createReferralRequest.setReferralDiagnosis("Mononukleoza");
         createReferralRequest.setReferralReason("Provera krvne slike pacijenta, da li je mononukleoza prosla");
         createReferralRequest.setPboReferredFrom(UUID.fromString("d79f77be-0a0e-4e2f-88a5-5f5d5cdd1e2c"));
-        createReferralRequest.setPboReferredTo(UUID.fromString("a3070ae9-dcd2-4122-8138-b0d6f3193b10"));
-        createReferralRequest.setCreationTime(new Timestamp(2023-04-03));
-
+        createReferralRequest.setPboReferredTo(UUID.fromString("4e5911c8-ce7a-11ed-afa1-0242ac120002"));
+        createReferralRequest.setCreationTime(new Date(2023-04-03));
         return createReferralRequest;
     }
+
+    public CreateLabExamRequest createLabExamRequest() {
+        CreateLabExamRequest createLabExamRequest = new CreateLabExamRequest();
+        createLabExamRequest.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+        createLabExamRequest.setScheduledDate(new Date());
+        createLabExamRequest.setNote("Napomena");
+        return createLabExamRequest;
+    }
+
+    public String getDate() {
+        Date currentDate = new Date();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        return dateFormat.format(currentDate);
+    }
+
+
 
     public String generateToken() {
         Claims claims = Jwts.claims();
@@ -38,7 +55,7 @@ public class UtilsHelper {
         claims.put("lastName", "adminovic");
         claims.put("title", Title.DR_SCI_MED.getNotation());
         claims.put("profession", Profession.SPEC_HIRURG.getNotation());
-        claims.put("pbo", "a3070ae9-dcd2-4122-8138-b0d6f3193b10");
+        claims.put("pbo", "4e5911c8-ce7a-11ed-afa1-0242ac120002");
         claims.put("departmentName", "departman");
         claims.put("pbb", UUID.randomUUID());
         claims.put("hospitalName", "Bolnica");
