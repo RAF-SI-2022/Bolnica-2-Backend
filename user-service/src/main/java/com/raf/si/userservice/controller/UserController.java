@@ -60,7 +60,8 @@ public class UserController {
 
     @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA') or hasRole('ROLE_DR_SPEC') or " +
             "hasRole('ROLE_DR_SPEC_POV') or hasRole('ROLE_VISA_MED_SESTRA') or " +
-            "hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_RECEPCIONER')")
+            "hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_RECEPCIONER') or " +
+            "hasRole('ROLE_VISI_LAB_TEHNICAR') or hasRole('ROLE_LAB_TEHNICAR')")
     @GetMapping("/doctors")
     public ResponseEntity<List<DoctorResponse>> getAllDoctors() {
         return ResponseEntity.ok(userService.getAllDoctors());
