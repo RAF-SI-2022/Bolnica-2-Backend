@@ -39,4 +39,9 @@ public class DepartmentController {
     public ResponseEntity<List<HospitalResponse>> getHospitals() {
         return ResponseEntity.ok(departmentService.getAllHospitals());
     }
+
+    @GetMapping("/name/{name}")
+    public ResponseEntity<List<DepartmentResponse>> getDepartmentsByName(@PathVariable("name") String name) {
+        return ResponseEntity.ok(departmentService.getDepartmentsByName(name));
+    }
 }
