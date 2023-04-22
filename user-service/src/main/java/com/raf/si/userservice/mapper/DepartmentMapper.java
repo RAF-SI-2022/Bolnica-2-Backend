@@ -13,6 +13,7 @@ public class DepartmentMapper {
         DepartmentResponse departmentResponse = new DepartmentResponse();
         departmentResponse.setPbo(department.getPbo());
         departmentResponse.setName(department.getName());
+        departmentResponse.setHospitalResponse(modelToHospitalResponse(department.getHospital()));
 
         return departmentResponse;
     }
