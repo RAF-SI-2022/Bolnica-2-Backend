@@ -62,4 +62,13 @@ public class DepartmentServiceImpl implements DepartmentService {
                 .map(departmentMapper::modelToHospitalResponse)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<DepartmentResponse> getDepartmentsByName(String name) {
+        log.info("Listanje svih departmana po imenu {}", name);
+        return departmentRepository.findDepartmenstByName(name)
+                .stream()
+                .map(departmentMapper::modelToDepartmentResponse)
+                .collect(Collectors.toList());
+    }
 }

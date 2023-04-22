@@ -16,6 +16,6 @@ public interface DepartmentRepository extends JpaRepository<Department,Long> {
 
     Optional<Department> findDepartmentByPbo(UUID pbb);
 
-    Optional<Department> findDepartmentByName(String name);
+    List<Department> findDepartmenstByName(String name);
 
 }
