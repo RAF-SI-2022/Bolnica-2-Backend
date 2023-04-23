@@ -57,7 +57,6 @@ public class LabExamServiceImpl implements LabExamService {
         LabExamSpecification labExamSpecification = new LabExamSpecification(labExamFilter);
 
         List<ScheduledLabExam> scheduledLabExams = scheduledLabExamRepository.findAll(labExamSpecification);
-        labExamMapper.scheduledLabExamsToLabExamListResponse(scheduledLabExams);
 
         if (scheduledLabExams.isEmpty()) {
             throw new NotFoundException("Nisu pronadjeni zakazani pregledi na osnovu prosledjenih parametara.");
