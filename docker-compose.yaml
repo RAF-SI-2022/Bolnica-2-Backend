@@ -51,9 +51,8 @@ services:
       - local_newtork
 
   user-service:
-    build: ./user-service
+    image: harbor.k8s.elab.rs/bolnica-2/user-service:1.0
     restart: always
-    container_name: user-service
     ports:
       - "8081:8081"
     networks:
@@ -62,9 +61,8 @@ services:
       - user-db
 
   patient-service:
-    build: ./patient-service
+    image: harbor.k8s.elab.rs/bolnica-2/patient-service:1.0
     restart: always
-    container_name: patient-service
     ports:
       - "8082:8082"
     networks:
@@ -73,9 +71,8 @@ services:
       - patient-db
 
   laboratory-service:
-    build: ./laboratory-service
+    image: harbor.k8s.elab.rs/bolnica-2/laboratory-service:1.0
     restart: always
-    container_name: laboratory-service
     ports:
       - "8083:8083"
     networks:
