@@ -22,4 +22,4 @@ server:
     context-path: "/api"
 jwt.secret.key: "secret_key"
 
-user-service-url: "http://localhost:8081/api/users"
+user-service-url: "http://localhost:8081/api/"

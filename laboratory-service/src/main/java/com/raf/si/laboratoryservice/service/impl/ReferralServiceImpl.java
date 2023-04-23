@@ -1,8 +1,9 @@
 package com.raf.si.laboratoryservice.service.impl;
 
 import com.raf.si.laboratoryservice.dto.request.CreateReferralRequest;
-import com.raf.si.laboratoryservice.dto.response.ReferralListResponse;
-import com.raf.si.laboratoryservice.dto.response.ReferralResponse;
+import com.raf.si.laboratoryservice.dto.response.*;
+import com.raf.si.laboratoryservice.exception.BadRequestException;
+import com.raf.si.laboratoryservice.exception.InternalServerErrorException;
 import com.raf.si.laboratoryservice.exception.NotFoundException;
 import com.raf.si.laboratoryservice.mapper.ReferralMapper;
 import com.raf.si.laboratoryservice.model.LabWorkOrder;
@@ -12,15 +13,19 @@ import com.raf.si.laboratoryservice.model.enums.referral.ReferralStatus;
 import com.raf.si.laboratoryservice.repository.LabWorkOrderRepository;
 import com.raf.si.laboratoryservice.repository.ReferralRepository;
 import com.raf.si.laboratoryservice.service.ReferralService;
+import com.raf.si.laboratoryservice.utils.HttpUtils;
 import com.raf.si.laboratoryservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.criterion.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.client.HttpClientErrorException;
 
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,6 +56,7 @@ public class ReferralServiceImpl implements ReferralService {
         Page<Referral> referralPage = referralRepository.findByLbpAndCreationTimeBetweenAndDeletedFalse(lbp, dateFrom, endDate, pageable);
         return referralMapper.referralPageToReferralListResponse(referralPage);
     }
+
     @Override
     public ReferralResponse getReferral(Long id) {
         Referral referral = referralRepository.findById(id).orElseThrow(() -> {
@@ -86,17 +92,73 @@ public class ReferralServiceImpl implements ReferralService {
     }
 
     @Override
-    public ReferralListResponse unprocessedReferrals(UUID lbp) {
+    public List<UnprocessedReferralsResponse> unprocessedReferrals(UUID lbp, String authorizationHeader) {
         UUID pboFromToken = TokenPayloadUtil.getTokenPayload().getPbo();
-        List<Referral> unprocessedReferralsByThreeParams = referralRepository.findByLbpAndPboAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN);
+        System.out.println(pboFromToken);
+        List<Referral> unprocessedReferralsByThreeParams = referralRepository.findByLbpAndPboReferredFromAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN);
         if (unprocessedReferralsByThreeParams.isEmpty()) {
             log.error("Ne postoji trazeni uput");
             throw new NotFoundException("Uput sa zadatim parametrima nije pronadjen");
         }
+
         List<Referral> unprocessedReferrals = unprocessedReferralsByThreeParams.stream()
                 .filter(referral -> referral.getLabWorkOrder() == null)
                 .collect(Collectors.toList());
 
-        return referralMapper.referralListToListResponse(unprocessedReferrals);
+        List<UnprocessedReferralsResponse> unprocessedReferralsResponses = new ArrayList<>();
+        List<DepartmentResponse> allDepartments = getDepartments(authorizationHeader);
+        List<DoctorResponse> allDoctors = getAllDoctors(authorizationHeader);
+
+        for (Referral referral : unprocessedReferrals) {
+            UnprocessedReferralsResponse unprocessedReferral = new UnprocessedReferralsResponse();
+            unprocessedReferral.setReferralId(referral.getId());
+
+            for (DepartmentResponse departmentResponse: allDepartments) {
+                if (referral.getPboReferredFrom().equals(departmentResponse.getPbo())) {
+                    unprocessedReferral.setDepartmentName(departmentResponse.getName());
+                }
+            }
+
+            for (DoctorResponse doctor: allDoctors) {
+                if (referral.getLbz().equals(doctor.getLbz())) {
+                    unprocessedReferral.setDoctorFirstName(doctor.getFirstName());
+                    unprocessedReferral.setDoctorLastName(doctor.getLastName());
+                }
+            }
+            unprocessedReferral.setRequiredAnalysis(referral.getRequiredAnalysis());
+            unprocessedReferralsResponses.add(unprocessedReferral);
+        }
+
+        return unprocessedReferralsResponses;
+    }
+
+    private List<DoctorResponse> getAllDoctors(String token) {
+        ResponseEntity<List<DoctorResponse>> response;
+        List<DoctorResponse> responseBody;
+        try {
+            response = HttpUtils.getAllDoctors(token);
+            responseBody = response.getBody();
+
+        } catch (IllegalArgumentException e) {
+            String errMessage = String.format("Error when calling user service: " + e.getMessage());
+            log.info(errMessage);
+            throw new InternalServerErrorException("Error when calling user service: " + e.getMessage());
+        }
+        return responseBody;
+    }
+
+    private List<DepartmentResponse> getDepartments(String token) {
+        ResponseEntity<List<DepartmentResponse>> response;
+        List<DepartmentResponse> responseBody;
+        try {
+            response = HttpUtils.findDepartmentName(token);
+            responseBody = response.getBody();
+
+        } catch (IllegalArgumentException e) {
+            String errMessage = String.format("Error when calling user service: " + e.getMessage());
+            log.info(errMessage);
+            throw new InternalServerErrorException("Error when calling user service: " + e.getMessage());
+        }
+        return responseBody;
     }
 }
