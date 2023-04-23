@@ -149,21 +149,26 @@ class ReferralServiceTest {
     public void testUnprocessedReferrals() {
         UUID lbp = UUID.randomUUID();
         UUID pboFromToken = UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435");
-        String token = "Bearer woauhruoawbhfupaw";
+        String token = "Bearer test";
         Referral referral1 = new Referral();
         referral1.setLbp(lbp);
         referral1.setPboReferredFrom(pboFromToken);
         referral1.setStatus(ReferralStatus.NEREALIZOVAN);
         referral1.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        referral1.setCreationTime(new Date());
+        referral1.setRequiredAnalysis("Krvna slika");
+        referral1.setComment("Komentar");
 
         List<Referral> unprocessedReferrals = Arrays.asList(referral1);
 
-        mockConnectionWithUserService_Doctors(HttpStatus.OK);
-        mockConnectionWithUserService_Departments(HttpStatus.OK);
+        mockConnectionWithUserService_Doctors();
+        mockConnectionWithUserService_Departments();
 
         List<UnprocessedReferralsResponse> expectedResponse = new ArrayList<>();
-        UnprocessedReferralsResponse unprocessedReferralsResponse = new UnprocessedReferralsResponse();
-        expectedResponse.add(unprocessedReferralsResponse);
+        UnprocessedReferralsResponse unprocessedReferralResponse = new UnprocessedReferralsResponse();
+        unprocessedReferralResponse.setRequiredAnalysis("Krvna slika");
+        unprocessedReferralResponse.setComment("Komentar");
+        expectedResponse.add(unprocessedReferralResponse);
 
         TokenPayload tokenPayload = new TokenPayload();
         tokenPayload.setPbo(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
@@ -174,13 +179,13 @@ class ReferralServiceTest {
         when(referralRepository.findByLbpAndPboReferredFromAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN)).thenReturn((unprocessedReferrals));
 
         List<UnprocessedReferralsResponse> actualResponse = referralService.unprocessedReferrals(lbp, token);
+        actualResponse.get(0).setCreationDate(null);
 
         assertEquals(expectedResponse, actualResponse);
         verify(referralRepository, times(1)).findByLbpAndPboReferredFromAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN);
-
     }
 
-    private  void mockConnectionWithUserService_Doctors(HttpStatus status) {
+    private  void mockConnectionWithUserService_Doctors() {
         Mockito.mockStatic(HttpUtils.class);
 
         DoctorResponse doctorResponseMock = Mockito.mock(DoctorResponse.class);
@@ -188,7 +193,7 @@ class ReferralServiceTest {
         doctorResponsesMock.add(doctorResponseMock);
 
         ResponseEntity<List<DoctorResponse>> responseBodyMock = Mockito.mock(ResponseEntity.class);
-        System.out.println(doctorResponsesMock.size());
+
         when(responseBodyMock.getBody()).thenReturn(doctorResponsesMock);
 
         doReturn(HttpStatus.OK).when(responseBodyMock).getStatusCode();
@@ -196,7 +201,7 @@ class ReferralServiceTest {
         when(HttpUtils.getAllDoctors(any(String.class))).thenReturn(responseBodyMock);
     }
 
-    private  void mockConnectionWithUserService_Departments(HttpStatus status) {
+    private  void mockConnectionWithUserService_Departments() {
         DepartmentResponse departmentResponse = Mockito.mock(DepartmentResponse.class);
         List<DepartmentResponse> departmentResponseMock = new ArrayList<>();
         departmentResponseMock.add(departmentResponse);
@@ -205,7 +210,7 @@ class ReferralServiceTest {
 
         when(responseBodyMock.getBody()).thenReturn(departmentResponseMock);
 
-        doReturn(status).when(responseBodyMock).getStatusCode();
+        doReturn(HttpStatus.OK).when(responseBodyMock).getStatusCode();
 
         when(HttpUtils.findDepartmentName(any(String.class))).thenReturn(responseBodyMock);
     }

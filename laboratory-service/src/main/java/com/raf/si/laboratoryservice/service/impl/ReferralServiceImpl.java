@@ -126,6 +126,8 @@ public class ReferralServiceImpl implements ReferralService {
                 }
             }
             unprocessedReferral.setRequiredAnalysis(referral.getRequiredAnalysis());
+            unprocessedReferral.setCreationDate(referral.getCreationTime());
+            unprocessedReferral.setComment(referral.getComment());
             unprocessedReferralsResponses.add(unprocessedReferral);
         }
 
