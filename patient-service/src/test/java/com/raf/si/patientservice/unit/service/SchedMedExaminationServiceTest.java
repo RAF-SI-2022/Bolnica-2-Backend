@@ -29,6 +29,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
+import org.springframework.integration.support.locks.LockRegistry;
 
 
 import java.util.*;
@@ -47,6 +49,7 @@ public class SchedMedExaminationServiceTest {
     private ScheduledMedExamRepository scheduledMedExamRepository;
     private SchedMedExamMapper schedMedExamMapper;
     private SchedMedExaminationService schedMedExaminationService;
+    private JdbcLockRegistry lockRegistry;
     //kako se vrednost 44 injectuje tek prilikom pokretanja servisa, default vredonst tokom
     //testrianja bice 0.
     private final int DURATION_OF_EXAM= 0;
@@ -57,6 +60,7 @@ public class SchedMedExaminationServiceTest {
         scheduledMedExamRepository= mock(ScheduledMedExamRepository.class);
         PatientMapper patientMapper = new PatientMapper();
         schedMedExamMapper= new SchedMedExamMapper(patientMapper);
+        lockRegistry = mock(JdbcLockRegistry.class);
         patientService= new PatientServiceImpl(patientRepository,
                 mock(HealthRecordRepository.class) ,
                 mock(VaccinationRepository.class),
@@ -66,7 +70,7 @@ public class SchedMedExaminationServiceTest {
                 mock(AllergyRepository.class),
                 patientMapper);
         schedMedExaminationService=new SchedMedExaminationServiceImpl(scheduledMedExamRepository
-                , patientService, schedMedExamMapper);
+                , patientService, schedMedExamMapper, lockRegistry);
     }
     @AfterEach
     public void clear(){
@@ -87,7 +91,7 @@ public class SchedMedExaminationServiceTest {
 
         // The log shows that the DURATION_OF_EXAM is zero, but while service is running
         // the exam has an appropriate duration value.
-        assertThrows(BadRequestException.class, () -> schedMedExaminationService.createSchedMedExamination(schedMedExamRequest
+        assertThrows(BadRequestException.class, () -> schedMedExaminationService.createSchedMedExaminationLocked(schedMedExamRequest
                 , token));
     }
 
@@ -107,7 +111,7 @@ public class SchedMedExaminationServiceTest {
 
         mockConnectionWithUserService(-1, HttpStatus.BAD_REQUEST);
 
-        assertThrows(BadRequestException.class, () -> schedMedExaminationService.createSchedMedExamination(schedMedExamRequest
+        assertThrows(BadRequestException.class, () -> schedMedExaminationService.createSchedMedExaminationLocked(schedMedExamRequest
                 , token));
 
     }
@@ -128,7 +132,7 @@ public class SchedMedExaminationServiceTest {
 
         mockConnectionWithUserService(1, HttpStatus.OK);
 
-        assertThrows(BadRequestException.class, () -> schedMedExaminationService.createSchedMedExamination(schedMedExamRequest, token));
+        assertThrows(BadRequestException.class, () -> schedMedExaminationService.createSchedMedExaminationLocked(schedMedExamRequest, token));
 
     }
 
@@ -156,7 +160,7 @@ public class SchedMedExaminationServiceTest {
 
         mockConnectionWithUserService(1, HttpStatus.OK);
 
-        assertEquals(schedMedExaminationService.createSchedMedExamination(schedMedExamRequest, token)
+        assertEquals(schedMedExaminationService.createSchedMedExaminationLocked(schedMedExamRequest, token)
                 ,schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination));
     }
 
@@ -357,7 +361,7 @@ public class SchedMedExaminationServiceTest {
         SchedMedExamRequest schedMedExamRequest= new SchedMedExamRequest();
         schedMedExamRequest.setLbp(UUID.fromString("01d30a14-ce77-11ed-afa1-0242ac120002"));
         schedMedExamRequest.setLbzDoctor(UUID.fromString("11d47e16-ce77-11ed-afa1-0242ac120002"));
-        schedMedExamRequest.setAppointmentDate(new Date());
+        schedMedExamRequest.setAppointmentDate(new Date(System.currentTimeMillis() + 1000000L));
         schedMedExamRequest.setNote("Note");
         schedMedExamRequest.setLbzNurse(UUID.fromString("2024a3b0-ce77-11ed-afa1-0242ac120002"));
 

@@ -61,20 +61,9 @@ public class PatientServiceImpl implements PatientService {
             throw new BadRequestException(errMessage);
         });
 
+        checkPatientDates(patientRequest.getBirthDate(), patientRequest.getDeathDate());
+
         Patient patient = patientMapper.patientRequestToPatient(new Patient(), patientRequest);
-
-        Date currentDate = new Date();
-        if(currentDate.before(patient.getBirthDate())){
-            String errMessage = "Za datum rodjenja je unet datum iz budućnosti";
-            log.info(errMessage);
-            throw new BadRequestException(errMessage);
-        }
-
-        if(patient.getDeathDate() != null && patient.getBirthDate().after(patient.getDeathDate())){
-            String errMessage = "Pacijent ne može da umre pre nego što se rodio";
-            log.info(errMessage);
-            throw new BadRequestException(errMessage);
-        }
 
         HealthRecord healthRecord = new HealthRecord();
         patient.setHealthRecord(healthRecord);
@@ -90,6 +79,8 @@ public class PatientServiceImpl implements PatientService {
     public PatientResponse updatePatientByJmbg(PatientRequest patientRequest) {
         Patient patient = findPatient(patientRequest.getJmbg());
 
+        checkPatientDates(patientRequest.getBirthDate(), patientRequest.getDeathDate());
+
         patient = patientMapper.patientRequestToPatient(patient, patientRequest);
         patient = patientRepository.save(patient);
         log.info(String.format("Pacijent sa lbp-om '%s' uspesno sacuvan", patient.getLbp()));
@@ -99,6 +90,8 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public PatientResponse updatePatientByLbp(PatientRequest patientRequest, UUID lbp) {
         Patient patient = findPatient(lbp);
+
+        checkPatientDates(patientRequest.getBirthDate(), patientRequest.getDeathDate());
 
         patient = patientMapper.patientRequestToPatient(patient, patientRequest);
         patient = patientRepository.save(patient);
@@ -168,5 +161,27 @@ public class PatientServiceImpl implements PatientService {
                     log.info(errMessage);
                     throw new BadRequestException(errMessage);
                 });
+    }
+
+    private void checkPatientDates(Date birthDate, Date deathDate){
+        Date currentDate = new Date();
+        if(currentDate.before(birthDate)){
+            String errMessage = "Za datum rodjenja je unet datum iz budućnosti";
+            log.info(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+
+        if(deathDate != null){
+            if(birthDate.after(deathDate)) {
+                String errMessage = "Pacijent ne može da umre pre nego što se rodio";
+                log.info(errMessage);
+                throw new BadRequestException(errMessage);
+            }
+            if(currentDate.before(deathDate)){
+                String errMessage = "Za datum smrti je unet datum iz budućnosti";
+                log.info(errMessage);
+                throw new BadRequestException(errMessage);
+            }
+        }
     }
 }

@@ -21,6 +21,8 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.mock;
 
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class PatientServiceTest {
@@ -255,7 +257,7 @@ public class PatientServiceTest {
 
 
 
-    private PatientRequest makePatientRequest(){
+    private PatientRequest makePatientRequest() {
         PatientRequest patientRequest = new PatientRequest();
 
         patientRequest.setJmbg("1342002345612");
@@ -263,8 +265,13 @@ public class PatientServiceTest {
         patientRequest.setLastName("Pacijentovic");
         patientRequest.setParentName("Roditelj");
         patientRequest.setGender("Muški");
-        patientRequest.setBirthDate(new Date());
-        patientRequest.setDeathDate(new Date());
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+        try {
+            patientRequest.setBirthDate(formatter.parse("12-12-1976"));
+            patientRequest.setDeathDate(formatter.parse("12-12-2020"));
+        }catch(Exception e){
+            return null;
+        }
         patientRequest.setBirthplace("Resnjak");
         patientRequest.setCitizenshipCountry("SRB");
         patientRequest.setCountryOfLiving("AFG");

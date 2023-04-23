@@ -5,9 +5,7 @@ import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
 import com.raf.si.patientservice.dto.response.SchedMedExamListResponse;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 import com.raf.si.patientservice.dto.response.http.UserResponse;
-import com.raf.si.patientservice.exception.BadRequestException;
-import com.raf.si.patientservice.exception.InternalServerErrorException;
-import com.raf.si.patientservice.exception.NotFoundException;
+import com.raf.si.patientservice.exception.*;
 import com.raf.si.patientservice.mapper.SchedMedExamMapper;
 import com.raf.si.patientservice.model.Patient;
 import com.raf.si.patientservice.model.ScheduledMedExamination;
@@ -19,16 +17,21 @@ import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.SchedMedExaminationService;
 import com.raf.si.patientservice.utils.HttpUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
+import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 
 
 @Slf4j
@@ -38,13 +41,19 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
     private final ScheduledMedExamRepository scheduledMedExamRepository;
     private final PatientService patientService;
     private final SchedMedExamMapper schedMedExamMapper;
+
+    private final LockRegistry lockRegistry;
     @Value("${duration.of.exam}")
     private int DURATION_OF_EXAM;
 
-    public SchedMedExaminationServiceImpl(ScheduledMedExamRepository scheduledMedExamRepository, PatientService patientService, SchedMedExamMapper schedMedExamMapper) {
+    public SchedMedExaminationServiceImpl(ScheduledMedExamRepository scheduledMedExamRepository,
+                                          PatientService patientService,
+                                          SchedMedExamMapper schedMedExamMapper,
+                                          JdbcLockRegistry lockRegistry) {
         this.scheduledMedExamRepository = scheduledMedExamRepository;
         this.patientService = patientService;
         this.schedMedExamMapper = schedMedExamMapper;
+        this.lockRegistry = lockRegistry;
     }
 
 
@@ -59,8 +68,47 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
          * @param DURATION_OF_EXAM
          */
 
+        Lock doctorLock = lockRegistry.obtain(String.valueOf(schedMedExamRequest.getLbzDoctor()));
+        Lock patientLock = lockRegistry.obtain(String.valueOf(schedMedExamRequest.getLbp()));
+        try{
+            if(!doctorLock.tryLock(1, TimeUnit.SECONDS) || !patientLock.tryLock(1, TimeUnit.SECONDS)){
+                String errMessage = "Neko već pokušava da ubaci pregled za doktora ili za pacijenta";
+                log.info(errMessage);
+                throw new BadRequestException(errMessage);
+            }
+            log.info(String.format("Locking for patient %s and doctor %s",
+                    schedMedExamRequest.getLbp()),
+                    schedMedExamRequest.getLbzDoctor());
+
+        } catch (BadRequestException e) {
+            throw e;
+        }catch(InterruptedException e){
+            log.info(e.getMessage());
+            throw new InternalServerErrorException("Greška pri zaključavanju baze");
+        }
+
+        SchedMedExamResponse response;
+        try{
+            response = createSchedMedExaminationLocked(schedMedExamRequest, token);
+        }catch(RuntimeException e) {
+            throw e;
+        }finally{
+            doctorLock.unlock();
+            patientLock.unlock();
+            log.info(String.format("Unlocking for patient %s and doctor %s",
+                    schedMedExamRequest.getLbp()),
+                    schedMedExamRequest.getLbzDoctor());
+
+        }
+        return response;
+    }
+
+    @Override
+    public SchedMedExamResponse createSchedMedExaminationLocked(SchedMedExamRequest schedMedExamRequest, String token){
         Date appointmnet = schedMedExamRequest.getAppointmentDate();
         Date timeBetweenAppointmnets = new Date(appointmnet.getTime() - DURATION_OF_EXAM * 60 * 1000);
+
+        checkAppointmentDate(appointmnet);
 
         List<ScheduledMedExamination> exams = scheduledMedExamRepository.findByAppointmentDateBetweenAndLbzDoctor(timeBetweenAppointmnets,
                 appointmnet, schedMedExamRequest.getLbzDoctor()).orElse(Collections.emptyList());
@@ -82,6 +130,9 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
 
 
         Patient patient=patientService.findPatient(schedMedExamRequest.getLbp());
+
+        checkPatientExams(patient, appointmnet, schedMedExamRequest.getLbzDoctor());
+
         ScheduledMedExamination scheduledMedExamination = schedMedExamMapper.schedMedExamRequestToScheduledMedExamination
                 (new ScheduledMedExamination(), schedMedExamRequest, patient);
 
@@ -128,7 +179,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
 
         Page<ScheduledMedExamination> medExaminationPage= scheduledMedExamRepository.findAll(specification, pageable);
 
-        log.info(String.format("Uspesno pronadjeni zakazani pregledi za docu lbza '%s'", lbz));
+        log.info(String.format("Uspešno pronadjeni zakazani pregledi za doktora sa lbz-om '%s'", lbz));
         return schedMedExamMapper.schedMedExamPageToSchedMedExamListResponse(medExaminationPage);
     }
 
@@ -164,7 +215,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
         return ret;
     }
 
-    private void isGivenLbzDoctors(UUID lbz, String token){
+    private void isGivenLbzDoctors(UUID lbz, String token) throws RuntimeException{
         ResponseEntity<UserResponse> response;
 
         /**
@@ -198,6 +249,41 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
                 throw new NotFoundException(errMessage);
             }
             throw new InternalServerErrorException("Error when calling user service: " + e.getMessage());
+        }
+    }
+
+    private void checkAppointmentDate(Date appointmentDate){
+        if(appointmentDate.before(new Date())){
+            String errMessage = "Pregled ne može da se zakaže za datum koji je prosao";
+            log.info(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+    }
+
+    private void checkPatientExams(Patient patient, Date appointmentDate,  UUID lbz) throws RuntimeException{
+        Date startDate = DateUtils.truncate(appointmentDate, Calendar.DAY_OF_MONTH);
+        Date endDate = DateUtils.addDays(startDate, 1);
+        List<ScheduledMedExamination> patientExams = scheduledMedExamRepository
+                .findByPatientAndAppointmentDateBetween(
+                    patient,
+                    startDate,
+                    endDate
+                ).orElse(Collections.emptyList());
+
+        Date appointmendDurationDate = new Date(appointmentDate.getTime() - DURATION_OF_EXAM * 60 * 1000);
+        for(ScheduledMedExamination exam: patientExams){
+            if(exam.getLbzDoctor().equals(lbz)){
+                String errMessage = "Pacijent ne može imati više pregleda kod istog doktora u jednom danu";
+                log.info(errMessage);
+                throw new BadRequestException(errMessage);
+            }
+
+            Date examDate = exam.getAppointmentDate();
+            if(examDate.after(appointmendDurationDate) && examDate.before(appointmendDurationDate)){
+                String errMessage = "Pacijent već ima zakazan pregled u prosledjenom terminu";
+                log.info(errMessage);
+                throw new BadRequestException(errMessage);
+            }
         }
     }
 }

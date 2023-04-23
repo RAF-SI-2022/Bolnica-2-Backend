@@ -16,6 +16,11 @@ spring:
     username: "student"
     password: "student"
     driver-class-name: org.postgresql.Driver
+
+  integration:
+    jdbc:
+      initialize-schema: always
+
 server:
   port: 8082
   servlet:
