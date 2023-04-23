@@ -2,16 +2,14 @@ package com.raf.si.laboratoryservice.controller;
 
 import com.raf.si.laboratoryservice.dto.request.order.*;
 import com.raf.si.laboratoryservice.dto.response.order.*;
-import com.raf.si.laboratoryservice.services.WorkOrderService;
+import com.raf.si.laboratoryservice.service.WorkOrderService;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.criterion.Order;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -32,7 +30,7 @@ public class WorkOrderController {
     }
 
     @PreAuthorize("hasRole('ROLE_NACELNIK_ODELJENJA') or hasRole('ROLE_DOKTOR_SPEC') or hasRole('DOKTOR_SPEC_POV')")
-    @GetMapping("/history")
+    @PostMapping("/history")
     public ResponseEntity<OrderHistoryResponse> orderHistory(@Valid @RequestBody OrderHistoryRequest historyRequest,
                                                                      @RequestParam(defaultValue = "0") int page,
                                                                      @RequestParam(defaultValue = "5") int size){

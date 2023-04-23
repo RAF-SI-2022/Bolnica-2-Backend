@@ -47,6 +47,7 @@ public class ReferralMapper {
     public ReferralResponse modelToResponse(Referral referral) {
         ReferralResponse referralResponse = new ReferralResponse();
 
+        referralResponse.setId(referral.getId());
         referralResponse.setType(referral.getType());
         referralResponse.setPboReferredFrom(referral.getPboReferredFrom());
         referralResponse.setPboReferredTo(referral.getPboReferredTo());
@@ -55,6 +56,8 @@ public class ReferralMapper {
         referralResponse.setCreationTime(referral.getCreationTime());
         referralResponse.setReferralDiagnosis(referral.getReferralDiagnosis());
         referralResponse.setReferralReason(referral.getReferralReason());
+        referralResponse.setRequiredAnalysis(referral.getRequiredAnalysis());
+        referralResponse.setComment(referral.getComment());
         referralResponse.setStatus(referral.getStatus());
         referralResponse.setDeleted(referral.getDeleted());
 
