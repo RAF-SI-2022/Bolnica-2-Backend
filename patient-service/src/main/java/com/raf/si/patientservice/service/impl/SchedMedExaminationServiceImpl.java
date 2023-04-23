@@ -77,8 +77,8 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
                 throw new BadRequestException(errMessage);
             }
             log.info(String.format("Locking for patient %s and doctor %s",
-                    schedMedExamRequest.getLbp()),
-                    schedMedExamRequest.getLbzDoctor());
+                    schedMedExamRequest.getLbp(),
+                    schedMedExamRequest.getLbzDoctor()));
 
         } catch (BadRequestException e) {
             throw e;
@@ -96,8 +96,8 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
             doctorLock.unlock();
             patientLock.unlock();
             log.info(String.format("Unlocking for patient %s and doctor %s",
-                    schedMedExamRequest.getLbp()),
-                    schedMedExamRequest.getLbzDoctor());
+                    schedMedExamRequest.getLbp(),
+                    schedMedExamRequest.getLbzDoctor()));
 
         }
         return response;
@@ -106,12 +106,13 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
     @Override
     public SchedMedExamResponse createSchedMedExaminationLocked(SchedMedExamRequest schedMedExamRequest, String token){
         Date appointmnet = schedMedExamRequest.getAppointmentDate();
-        Date timeBetweenAppointmnets = new Date(appointmnet.getTime() - DURATION_OF_EXAM * 60 * 1000);
+        Date timeBeforeAppointments = new Date(appointmnet.getTime() - DURATION_OF_EXAM * 60 * 1000);
+        Date timeAfterAppointments = new Date(appointmnet.getTime() + DURATION_OF_EXAM * 60 * 1000);
 
         checkAppointmentDate(appointmnet);
 
-        List<ScheduledMedExamination> exams = scheduledMedExamRepository.findByAppointmentDateBetweenAndLbzDoctor(timeBetweenAppointmnets,
-                appointmnet, schedMedExamRequest.getLbzDoctor()).orElse(Collections.emptyList());
+        List<ScheduledMedExamination> exams = scheduledMedExamRepository.findByAppointmentDateBetweenAndLbzDoctor(timeBeforeAppointments,
+                timeAfterAppointments, schedMedExamRequest.getLbzDoctor()).orElse(Collections.emptyList());
 
         boolean hasUncompletedExams = exams.stream()
                 .anyMatch(exam -> exam.getExaminationStatus() != ExaminationStatus.ZAVRSENO);
@@ -260,9 +261,10 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
         }
     }
 
-    private void checkPatientExams(Patient patient, Date appointmentDate,  UUID lbz) throws RuntimeException{
+    private void checkPatientExams(Patient patient, Date appointmentDate, UUID lbz) throws RuntimeException{
         Date startDate = DateUtils.truncate(appointmentDate, Calendar.DAY_OF_MONTH);
         Date endDate = DateUtils.addDays(startDate, 1);
+
         List<ScheduledMedExamination> patientExams = scheduledMedExamRepository
                 .findByPatientAndAppointmentDateBetween(
                     patient,
@@ -270,7 +272,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
                     endDate
                 ).orElse(Collections.emptyList());
 
-        Date appointmendDurationDate = new Date(appointmentDate.getTime() - DURATION_OF_EXAM * 60 * 1000);
+        Date appointmentDurationDate = new Date(appointmentDate.getTime() + DURATION_OF_EXAM * 60 * 1000);
         for(ScheduledMedExamination exam: patientExams){
             if(exam.getLbzDoctor().equals(lbz)){
                 String errMessage = "Pacijent ne može imati više pregleda kod istog doktora u jednom danu";
@@ -279,7 +281,8 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
             }
 
             Date examDate = exam.getAppointmentDate();
-            if(examDate.after(appointmendDurationDate) && examDate.before(appointmendDurationDate)){
+            Date examDurationDate = new Date(examDate.getTime() + DURATION_OF_EXAM * 60 * 1000);
+            if(!(examDurationDate.before(appointmentDate) || appointmentDurationDate.before(examDate))){
                 String errMessage = "Pacijent već ima zakazan pregled u prosledjenom terminu";
                 log.info(errMessage);
                 throw new BadRequestException(errMessage);

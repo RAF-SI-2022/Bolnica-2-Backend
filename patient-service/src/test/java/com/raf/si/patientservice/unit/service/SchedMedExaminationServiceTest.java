@@ -137,6 +137,54 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
+    public void createSchedMedExam_AppointmentDateInThePast_ThrowBadRequestException(){
+        SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
+        String token= "Bearer woauhruoawbhfupaw";
+
+        Date appointmentDate = new Date(System.currentTimeMillis() - 10000000L);
+        schedMedExamRequest.setAppointmentDate(appointmentDate);
+
+        Mockito.framework().clearInlineMocks();
+        setUp();
+
+        assertThrows(BadRequestException.class,
+                () -> schedMedExaminationService.createSchedMedExaminationLocked(schedMedExamRequest, token));
+    }
+
+    @Test
+    public void createSchedMedExam_PatientAlreadyHasAnAppointmentWithThatDoctorThatDay_ThrowBadRequestException(){
+        SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
+        String token= "Bearer woauhruoawbhfupaw";
+
+        Date timeBetweenAppointmnets = new Date(schedMedExamRequest.getAppointmentDate().getTime() - DURATION_OF_EXAM * 60 * 1000);
+
+        Mockito.framework().clearInlineMocks();
+        setUp();
+
+        Patient patient=createPatient();
+        when(scheduledMedExamRepository.findByAppointmentDateBetweenAndLbzDoctor(timeBetweenAppointmnets
+                ,schedMedExamRequest.getAppointmentDate(), schedMedExamRequest.getLbzDoctor()))
+                .thenReturn(Optional.of(new ArrayList<>()));
+
+        when(patientRepository.findByLbpAndDeleted(schedMedExamRequest.getLbp(), false)).thenReturn(Optional.of(patient));
+
+        mockConnectionWithUserService(1, HttpStatus.OK);
+
+        ScheduledMedExamination exam = schedMedExamMapper.schedMedExamRequestToScheduledMedExamination(
+                new ScheduledMedExamination(),
+                schedMedExamRequest,
+                patient
+        );
+
+        when(scheduledMedExamRepository.findByPatientAndAppointmentDateBetween(any(), any(), any())).thenReturn(
+                Optional.of(new ArrayList<>(Arrays.asList(new ScheduledMedExamination[] {exam})))
+        );
+
+        assertThrows(BadRequestException.class,
+                () -> schedMedExaminationService.createSchedMedExaminationLocked(schedMedExamRequest, token));
+    }
+
+    @Test
     public void createSchedMedExam_Success(){
         SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
         String token= "Bearer woauhruoawbhfupaw";
