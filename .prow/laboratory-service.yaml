@@ -45,6 +45,7 @@ presubmits:
               docker compose up -d user-service
               docker compose up -d patient-db
               docker compose up -d patient-service
+              docker compose up -d laboratory-db
 
               git branch $PULL_HEAD_REF
               git reset --hard HEAD~1
@@ -101,6 +102,7 @@ postsubmits:
               docker compose up -d user-service
               docker compose up -d patient-db
               docker compose up -d patient-service
+              docker compose up -d laboratory-db
               cd "$SERVICE_NAME"
               
               ref=$(git rev-parse --abbrev-ref HEAD)
