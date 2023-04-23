@@ -14,6 +14,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
@@ -32,7 +34,7 @@ public class PatientControllerTest {
     private PatientController patientController;
 
     @Test
-    public void createPatientTest_Success(){
+    public void createPatientTest_Success() throws ParseException {
         PatientRequest request = makePatientRequest();
         PatientResponse response = new PatientResponse();
 
@@ -43,7 +45,7 @@ public class PatientControllerTest {
     }
 
     @Test
-    public void updatePatientByJmbgTest_Success(){
+    public void updatePatientByJmbgTest_Success() throws ParseException {
         PatientRequest request = makePatientRequest();
         PatientResponse response = new PatientResponse();
 
@@ -54,7 +56,7 @@ public class PatientControllerTest {
     }
 
     @Test
-    public void updatePatientByLbpTest_Success(){
+    public void updatePatientByLbpTest_Success() throws ParseException {
         PatientRequest request = makePatientRequest();
         PatientResponse response = new PatientResponse();
         UUID lbp = UUID.randomUUID();
@@ -101,7 +103,7 @@ public class PatientControllerTest {
 
 
 
-    private PatientRequest makePatientRequest(){
+    private PatientRequest makePatientRequest() throws ParseException {
         PatientRequest patientRequest = new PatientRequest();
 
         patientRequest.setJmbg("1342002345612");
@@ -110,7 +112,8 @@ public class PatientControllerTest {
         patientRequest.setParentName("Roditelj");
         patientRequest.setGender("Muški");
         patientRequest.setBirthDate(new Date());
-        patientRequest.setDeathDate(new Date());
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+        patientRequest.setDeathDate(formatter.parse("12-12-2200"));
         patientRequest.setBirthplace("Resnjak");
         patientRequest.setCitizenshipCountry("SRB");
         patientRequest.setCountryOfLiving("AFG");

@@ -12,4 +12,6 @@ public interface DepartmentService {
     List<DepartmentResponse> getAllDepartments();
 
     List<HospitalResponse> getAllHospitals();
+
+    List<DepartmentResponse> getDepartmentsByName(String name);
 }

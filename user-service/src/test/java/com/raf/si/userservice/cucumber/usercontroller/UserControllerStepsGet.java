@@ -158,7 +158,7 @@ public class UserControllerStepsGet extends CucumberConfig {
     @When("given department with pbo exists")
     public void given_department_with_pbo_exists() throws Exception {
         User admin = userRepository.findUserByUsername("admin").orElse(null);
-        Department department = departmentRepository.findDepartmentByName("Hirurgija").orElse(null);
+        Department department = departmentRepository.findDepartmenstByName("Hirurgija").get(0);
 
         assertNotNull(admin);
         assertNotNull(department);

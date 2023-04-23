@@ -10,12 +10,12 @@ import java.util.UUID;
 
 @Data
 public class SchedMedExamResponse {
-    protected Long id;
-    protected UUID lbp;
-    protected UUID lbzDoctor;
-    protected Date appointmentDate;
-    protected String note;
-    protected UUID lbzNurse;
-    protected ExaminationStatus examinationStatus;
-    protected PatientArrivalStatus patientArrivalStatus;
+    private Long id;
+    private UUID lbzDoctor;
+    private Date appointmentDate;
+    private String note;
+    private UUID lbzNurse;
+    private ExaminationStatus examinationStatus;
+    private PatientArrivalStatus patientArrivalStatus;
+    private PatientResponse patientResponse;
 }

@@ -10,6 +10,7 @@ import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
 import com.raf.si.patientservice.integration.CucumberConfig;
 import com.raf.si.patientservice.integration.UtilsHelper;
 import com.raf.si.patientservice.model.ScheduledMedExamination;
+import com.raf.si.patientservice.repository.PatientRepository;
 import com.raf.si.patientservice.repository.ScheduledMedExamRepository;
 import com.raf.si.patientservice.utils.JwtUtil;
 import io.cucumber.java.Before;
@@ -36,6 +37,8 @@ public class SchedMedExamControllerStepsDelete extends CucumberConfig {
     @Autowired
     private ScheduledMedExamRepository scheduledMedExamRepository;
     @Autowired
+    private PatientRepository patientRepository;
+    @Autowired
     private Gson gson;
     @Autowired
     private JwtUtil jwtUtil;
@@ -55,7 +58,8 @@ public class SchedMedExamControllerStepsDelete extends CucumberConfig {
 
     @When("given scheduled medical exam id exists")
     public void given_scheduled_medical_exam_id_exists() throws Exception {
-        ScheduledMedExamination scheduledMedExamination=util.createSchedMedExamination();
+        ScheduledMedExamination scheduledMedExamination=util.createSchedMedExamination(patientRepository.findByLbp
+                (UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8")).get());
         ScheduledMedExamination savedScheduledMedExam= scheduledMedExamRepository.save(scheduledMedExamination);
         assertNotNull(savedScheduledMedExam);
         id= savedScheduledMedExam.getId();

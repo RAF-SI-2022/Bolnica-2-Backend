@@ -1,6 +1,5 @@
 package com.raf.si.patientservice.mapper;
 
-import com.raf.si.patientservice.dto.request.AddAllergyRequest;
 import com.raf.si.patientservice.dto.request.AddVaccinationRequest;
 import com.raf.si.patientservice.dto.request.CreateExaminationReportRequest;
 import com.raf.si.patientservice.dto.request.UpdateHealthRecordRequest;
@@ -10,7 +9,6 @@ import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.model.enums.healthrecord.BloodType;
 import com.raf.si.patientservice.model.enums.healthrecord.RHFactor;
 import com.raf.si.patientservice.model.enums.medicalhistory.TreatmentResult;
-import jdk.jshell.Diag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
@@ -21,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+
+import static java.lang.String.format;
 
 @Slf4j
 @Component
@@ -189,7 +189,7 @@ public class HealthRecordMapper {
         return vaccination;
     }
 
-    public Allergy addAllergyRequestToAllergy(AddAllergyRequest addAllergyRequest, HealthRecord healthRecord, Allergen allergen) {
+    public Allergy addAllergyRequestToAllergy(HealthRecord healthRecord, Allergen allergen) {
         Allergy allergy = new Allergy();
         allergy.setAllergen(allergen);
         allergy.setHealthRecord(healthRecord);
@@ -202,13 +202,13 @@ public class HealthRecordMapper {
         BloodType bt = BloodType.forName(updateHealthRecordRequest.getBlodtype());
         //log.info(bt.toString());
         if(bt == null) {
-            String errMessage = String.format("Nepoznata krvna grupa '%s'", updateHealthRecordRequest.getBlodtype());
+            String errMessage = format("Nepoznata krvna grupa '%s'", updateHealthRecordRequest.getBlodtype());
             log.info(errMessage);
             throw new BadRequestException(errMessage);
         }
         RHFactor rhf = RHFactor.valueOfNotation(updateHealthRecordRequest.getRhfactor());
         if (rhf == null) {
-            String errMessage = String.format("Nepoznat rh faktor '%s'", updateHealthRecordRequest.getRhfactor());
+            String errMessage = format("Nepoznat rh faktor '%s'", updateHealthRecordRequest.getRhfactor());
             log.info(errMessage);
             throw new BadRequestException(errMessage);
         }
@@ -220,7 +220,7 @@ public class HealthRecordMapper {
 
     public ExtendedVaccinationResponse vaccinationToExtendedVaccinationResponse(HealthRecord healthRecord, Vaccination vaccination) {
         ExtendedVaccinationResponse extendedVaccinationResponse = new ExtendedVaccinationResponse();
-        extendedVaccinationResponse.setVaccinationCount(new Long(healthRecord.getVaccinations().size()));
+        extendedVaccinationResponse.setVaccinationCount((long) healthRecord.getVaccinations().size());
         VaccinationResponse vaccinationResponse = new VaccinationResponse(
                 vaccination.getId(),
                 vaccination.getVaccine(),
@@ -233,7 +233,7 @@ public class HealthRecordMapper {
 
     public ExtendedAllergyResponse allergyToExtendedAllergyResponse(HealthRecord healthRecord, Allergy allergy) {
         ExtendedAllergyResponse extendedAllergyResponse = new ExtendedAllergyResponse();
-        extendedAllergyResponse.setAllergyCount(new Long(healthRecord.getAllergies().size()));
+        extendedAllergyResponse.setAllergyCount((long) healthRecord.getAllergies().size());
         AllergyResponse allergyResponse = new AllergyResponse(
                 allergy.getId(),
                 allergy.getAllergen(),
@@ -243,8 +243,7 @@ public class HealthRecordMapper {
         return extendedAllergyResponse;
     }
 
-    public MedicalExamination createExaminationReportRequestToExamination(UUID lbp,
-                                                                          UUID lbz,
+    public MedicalExamination createExaminationReportRequestToExamination(UUID lbz,
                                                                           HealthRecord healthRecord,
                                                                           CreateExaminationReportRequest createExaminationReportRequest,
                                                                           Diagnosis diagnosis) {
@@ -302,13 +301,13 @@ public class HealthRecordMapper {
         }
 
         if(createExaminationReportRequest.getTreatmentResult() == null) {
-            String errMessage = String.format("Polje treatmentResult ne sme biti prazno ako se kreira pregled sa dijagnozom");
+            String errMessage = "Polje treatmentResult ne sme biti prazno ako se kreira pregled sa dijagnozom";
             log.info(errMessage);
             throw new BadRequestException(errMessage);
         }
         TreatmentResult treatmentResult = TreatmentResult.valueOfNotation(createExaminationReportRequest.getTreatmentResult());
         if(treatmentResult == null) {
-            String errMessage = String.format("Polje tretmantResult ne moze da bude '%s'", createExaminationReportRequest.getTreatmentResult());
+            String errMessage = format("Polje tretmantResult ne moze da bude '%s'", createExaminationReportRequest.getTreatmentResult());
             log.info(errMessage);
             throw new BadRequestException(errMessage);
         }
@@ -319,7 +318,7 @@ public class HealthRecordMapper {
         medicalHistory.setTreatmentResult(treatmentResult);
 
         if(createExaminationReportRequest.getCurrentStateDescription() == null) {
-            String errMessage = String.format("Polje 'currentStateDescription' ne moze da bude prazno ako se kreira pregled sa dijagnozom");
+            String errMessage = "Polje 'currentStateDescription' ne moze da bude prazno ako se kreira pregled sa dijagnozom";
             log.info(errMessage);
             throw new BadRequestException(errMessage);
         }
@@ -329,7 +328,7 @@ public class HealthRecordMapper {
 
         medicalHistory.setValidFrom(new Date());
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
-        Date date = null;
+        Date date;
         try {
             date = formatter.parse("31-12-9999.");
         } catch (ParseException e) {

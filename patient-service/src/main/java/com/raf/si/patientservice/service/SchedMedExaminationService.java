@@ -4,6 +4,7 @@ import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
 import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
 import com.raf.si.patientservice.dto.response.SchedMedExamListResponse;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
+import com.raf.si.patientservice.model.ScheduledMedExamination;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Date;
@@ -16,4 +17,5 @@ public interface SchedMedExaminationService {
     SchedMedExamResponse deleteSchedMedExamination(Long id);
     SchedMedExamListResponse getSchedMedExaminationByLbz(UUID lbz, Date appointmentDate, String token, Pageable pageable);
     SchedMedExamResponse updateSchedMedExaminationPatientArrivalStatus(UpdateSchedMedExamRequest updateSchedMedExamRequest);
+    ScheduledMedExamination findSchedMedExamById(Long id);
 }

@@ -20,9 +20,6 @@ public class ScheduledMedExamination {
     private Long id;
     //FK
     @Column(nullable = false)
-    private UUID lbp;
-    //FK
-    @Column(nullable = false)
     private UUID lbzDoctor;
     @Column(nullable = false)
     private Date appointmentDate;
@@ -35,4 +32,8 @@ public class ScheduledMedExamination {
     //FK
     @Column(nullable = false)
     private UUID lbzNurse;
+    //FK
+    @ManyToOne
+    @JoinColumn(name = "patient_id",referencedColumnName = "id")
+    private Patient patient;
 }
