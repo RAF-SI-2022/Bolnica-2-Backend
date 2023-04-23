@@ -16,7 +16,9 @@ import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.integration.context.ExpressionCapable;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.ResultHandler;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 
@@ -67,7 +69,7 @@ public class SchedMedExamControllerStepsCreate extends CucumberConfig {
 
     @When("Nurse tries to create a new scheduled medical exam for doctor who has uncompleted exams")
     public void nurse_tries_to_create_a_new_scheduled_medical_exam_for_doctor_who_has_uncompleted_exams() throws Exception {
-        SchedMedExamRequest schedMedExamRequest= util.createSchedMedExamRequest(0);
+        SchedMedExamRequest schedMedExamRequest= util.createSchedMedExamRequest(-1);
 
         resultAction= mvc.perform(post("/sched-med-exam/create")
                 .header("Authorization", "Bearer " + util.generateNurseTokenValid())

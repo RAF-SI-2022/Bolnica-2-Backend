@@ -120,6 +120,40 @@ public class PatientServiceTest {
     }
 
     @Test
+    public void createPatientTest_BirthDateAfterCurrentTime_ThrowsException(){
+        PatientRequest request = makePatientRequest();
+        request.setBirthDate(new Date(System.currentTimeMillis() + 10000000L));
+        Patient patient = patientMapper.patientRequestToPatient(new Patient(), request);
+
+        when(patientRepository.findByJmbg(request.getJmbg())).thenReturn(Optional.of(patient));
+
+        assertThrows(BadRequestException.class, () -> patientService.createPatient(request));
+    }
+
+    @Test
+    public void createPatientTest_DeathDateAfterCurrentTime_ThrowsException(){
+        PatientRequest request = makePatientRequest();
+        request.setDeathDate(new Date(System.currentTimeMillis() + 10000000L));
+        Patient patient = patientMapper.patientRequestToPatient(new Patient(), request);
+
+        when(patientRepository.findByJmbg(request.getJmbg())).thenReturn(Optional.of(patient));
+
+        assertThrows(BadRequestException.class, () -> patientService.createPatient(request));
+    }
+
+    @Test
+    public void createPatientTest_BirthDateAfterDeathDate_ThrowsException(){
+        PatientRequest request = makePatientRequest();
+        request.setBirthDate(new Date(System.currentTimeMillis() - 10000000L));
+        request.setDeathDate(new Date(request.getBirthDate().getTime() - 10000L));
+        Patient patient = patientMapper.patientRequestToPatient(new Patient(), request);
+
+        when(patientRepository.findByJmbg(request.getJmbg())).thenReturn(Optional.of(patient));
+
+        assertThrows(BadRequestException.class, () -> patientService.createPatient(request));
+    }
+
+    @Test
     public void createPatientTest_GenderDoesntExist_ThrowsException(){
         PatientRequest request = makePatientRequest();
         request.setGender("srednji");
