@@ -8,7 +8,7 @@ presubmits:
   # PROMENITI PRI KOPIRANJU
   # Name treba da bude u formatu "pull-<tim>-<naziv-servisa>-sonarqube", npr.
   # pull-banka-1-user-service-sonarqube
-  - name: pull-vezbe-backend-user-service-sonarqube
+  - name: pull-bolnica2-laboratory-service-sonarqube
     labels:
       preset-github-ro-token: "true"
       preset-sonar-token: "true"
