@@ -24,6 +24,15 @@
         <mockito-inline.version>3.8.0</mockito-inline.version>
         <testcontainers.version>1.17.3</testcontainers.version>
         <cucumber.version>7.11.1</cucumber.version>
+        <!-- SonarQube koristi JaCoCo kako bi vam pokazao informacije o test coverage-u -->
+        <jacoco.version>0.8.8</jacoco.version>
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+        <!-- Ovo je opcioni parametar koji vam omogucava da neke klase iskljucite iz test coverage-a -->
+        <!--<sonar.coverage.exclusions>**/config/*, **/model/*,**/repository/*,**/controller/response_forms/*,**/mail/*,**/security/otp/*,**/filter/*,**/cron/*</sonar.coverage.exclusions>-->
+
+        <!-- Ovo je opcioni parametar koji vam omogucava da neke klase iskljucite iz code duplicate report-a -->
+        <!--<sonar.cpd.exclusions>**/config/*,**/model/*</sonar.cpd.exclusions>-->
     </properties>
     <dependencies>
         <dependency>
