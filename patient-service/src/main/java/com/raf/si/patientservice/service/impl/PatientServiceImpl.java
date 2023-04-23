@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -61,6 +62,20 @@ public class PatientServiceImpl implements PatientService {
         });
 
         Patient patient = patientMapper.patientRequestToPatient(new Patient(), patientRequest);
+
+        Date currentDate = new Date();
+        if(currentDate.before(patient.getBirthDate())){
+            String errMessage = "Za datum rodjenja je unet datum iz budućnosti";
+            log.info(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+
+        if(patient.getDeathDate() != null && patient.getBirthDate().after(patient.getDeathDate())){
+            String errMessage = "Pacijent ne može da umre pre nego što se rodio";
+            log.info(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+
         HealthRecord healthRecord = new HealthRecord();
         patient.setHealthRecord(healthRecord);
 
