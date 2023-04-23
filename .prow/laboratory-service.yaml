@@ -29,9 +29,9 @@ presubmits:
               # Ovaj naziv ce se prikazati u pregeldu projekata na SonarQube-u.
               # Primer: Bolnica2-user-service
               # Pozeljno je da naziv projekta pocinje sa nazivom vaseg tima.
-              SONAR_PROJECT_NAME="Vezbe - korisnicki servis"
+              SONAR_PROJECT_NAME="Bolnica2-laboratory-service"
               # Ovo je naziv foldera gde se nalazi mikroservis.
-              SERVICE_NAME="user_service"
+              SERVICE_NAME="laboratory-service"
               start-docker.sh
               head_ref=$(curl -L --silent -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/RAF-SI-2022/"$REPO_NAME"/pulls/"$PULL_NUMBER" | jq -r .head.ref)
               export PULL_HEAD_REF="$head_ref"
@@ -41,7 +41,11 @@ presubmits:
               # Primeri komandi (odkomentirasti neku komandu ili dodati neku svoju):
               # docker compose up -d mysql-user
               # docker compose --profile user-service up -d
-              docker compose up -d mysql-user
+              docker compose up -d user-db
+              docker compose up -d user-service
+              docker compose up -d patient-db
+              docker compose up -d patient-service
+
               git branch $PULL_HEAD_REF
               git reset --hard HEAD~1
               git checkout $PULL_HEAD_REF
@@ -62,7 +66,7 @@ postsubmits:
   # PROMENITI PRI KOPIRANJU
   # Name treba da bude u formatu "post-<tim>-<naziv-servisa>-sonarqube", npr.
   # post-banka-1-user-service-sonarqube
-  - name: post-vezbe-backend-user-service-sonarqube
+  - name: post-bolnica-2-laboratory-service-sonarqube
     labels:
       preset-github-ro-token: "true"
       preset-sonar-token: "true"
@@ -78,14 +82,14 @@ postsubmits:
               set -euo pipefail
               # PROMENITI PRI KOPIRANJU
               # Ovaj parametar dobijate od SonarQube-a prilikom kreiranja projekta.
-              SONAR_PROJECT_KEY="Vezbe---user-service"
+              SONAR_PROJECT_KEY="Bolnica2-laboratory-service"
               # Ovde treba da unesete kako vam se projekat zove.
               # Ovaj naziv ce se prikazati u pregeldu projekata na SonarQube-u.
               # Primer: Banka-1 - korisnicki servis
               # Pozeljno je da naziv projekta pocinje sa nazivom vaseg tima.
-              SONAR_PROJECT_NAME="Vezbe - korisnicki servis"
+              SONAR_PROJECT_NAME="Bolnica2-laboratory-service"
               # Ovo je naziv foldera gde se nalazi mikroservis.
-              SERVICE_NAME="user_service"
+              SERVICE_NAME="laboratory-service"
               start-docker.sh
               # PROMENITI PRI KOPIRANJU
               # Ovde treba do pokrenete sve mikroservise i dependencies koji vam trebaju
@@ -93,7 +97,10 @@ postsubmits:
               # Primeri komandi (odkomentirasti neku komandu ili dodati neku svoju):
               # docker compose up -d mysql-user
               # docker compose --profile user-service up -d
-              docker compose up -d mysql-user
+              docker compose up -d user-db
+              docker compose up -d user-service
+              docker compose up -d patient-db
+              docker compose up -d patient-service
               cd "$SERVICE_NAME"
               
               ref=$(git rev-parse --abbrev-ref HEAD)
