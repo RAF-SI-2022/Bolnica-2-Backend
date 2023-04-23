@@ -4,7 +4,7 @@ import com.raf.si.laboratoryservice.controller.WorkOrderController;
 import com.raf.si.laboratoryservice.dto.request.order.*;
 import com.raf.si.laboratoryservice.dto.response.order.*;
 import com.raf.si.laboratoryservice.model.enums.labworkorder.OrderStatus;
-import com.raf.si.laboratoryservice.services.WorkOrderService;
+import com.raf.si.laboratoryservice.service.WorkOrderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;

@@ -1,7 +1,7 @@
 package com.raf.si.laboratoryservice.unit.controller;
 
 
-import com.raf.si.laboratoryservice.controllers.ReferralController;
+import com.raf.si.laboratoryservice.controller.ReferralController;
 import com.raf.si.laboratoryservice.dto.request.CreateReferralRequest;
 import com.raf.si.laboratoryservice.dto.response.ReferralListResponse;
 import com.raf.si.laboratoryservice.dto.response.ReferralResponse;
