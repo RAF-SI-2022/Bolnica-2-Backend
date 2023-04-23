@@ -62,4 +62,7 @@ public class Referral {
 
     @Column(nullable = false)
     private UUID lbp;
+
+    @Column(nullable = false)
+    private Boolean deleted;
 }

@@ -66,6 +66,7 @@ public class BootstrapData implements CommandLineRunner {
         referral.setComment("Komentar");
         referral.setReferralDiagnosis("Mononukleoza");
         referral.setReferralReason("Provera krvne slike pacijenta, da li je mononukleoza prosla");
+        referral.setDeleted(false);
 
 
         LabWorkOrder workOrder = new LabWorkOrder();
