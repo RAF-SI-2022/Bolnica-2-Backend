@@ -65,7 +65,7 @@ public class BootstrapData implements CommandLineRunner {
         addDepartmentsToHospital(
                 List.of("Klinika za ginekologiju", "Klinika za hirurgiju", "Klinika za interne bolesti",
                         "Klinika za pedijatriju", "Klinika za psihijatriju", "Klinika za očne bolesti",
-                        "Klinika za uho grlo i nos", "Služba za dijagnostičke procedure"),
+                        "Klinika za uho grlo i nos", "Laboratorija", "Dijagnostika", "Stacionar"),
                 kbcZvezdara
         );
 
@@ -74,20 +74,20 @@ public class BootstrapData implements CommandLineRunner {
                         "Klinika za psihijatriju", "Klinika za neurologiju", "Klinika za hirurgiju",
                         "Klinika za ginekologiju i akušerstvo", "Klinika za očne bolesti",
                         "Klinika za uho, grlo i nos", "Klinika za dermatovenerologiju", "Klinika za onkologiju",
-                        "Služba za dijagnostičke procedure"),
+                        "Laboratorija", "Dijagnostika", "Stacionar"),
                 ukcSrbija
         );
 
         addDepartmentsToHospital(
                 List.of("Klinika za interne bolesti", "Klinika za hirurgiju",
-                        "Klinika za onkologiju", "Služba za dijagnostičke procedure"),
+                        "Klinika za onkologiju", "Laboratorija", "Dijagnostika", "Stacionar"),
                 kbcBezanijskaKosa
         );
 
         addDepartmentsToHospital(
                 List.of("Klinika za interne bolesti", "Klinika za neurologiju",
                         "Klinika za hirurgiju", "Klinika za ginekologiju i akušerstvo",
-                        "Klinika za onkologiju", "Služba za dijagnostičke procedure"),
+                        "Klinika za onkologiju","Laboratorija", "Dijagnostika", "Stacionar"),
                 kbcZemun
         );
 
@@ -145,7 +145,7 @@ public class BootstrapData implements CommandLineRunner {
         medSestra.setPassword(passwordEncoder.encode("medsestra"));
         medSestra.setUsername("medsestra");
         medSestra.setDepartment(departmentRepository.
-                findDepartmentByNameAndHospital_ShortName("Služba za dijagnostičke procedure", ukcSrbija.getShortName()));
+                findDepartmentByNameAndHospital_ShortName("Laboratorija", ukcSrbija.getShortName()));
         medSestra.setResidentialAddress("address");
         medSestra.setPermissions(medSestraPermissions);
         medSestra.setJMBG("2002010359910");
