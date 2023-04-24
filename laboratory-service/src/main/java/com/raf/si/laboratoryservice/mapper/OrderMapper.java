@@ -23,6 +23,9 @@ import java.util.stream.Collectors;
 public class OrderMapper {
 
     public OrderResponse orderToOrderResponse(LabWorkOrder order){
+        List<AnalysisResultResponse> analysisResultResponses = new ArrayList<>();
+        order.getAnalysisParameterResults().forEach(result -> analysisResultResponses.add(analysisReportToAnalysisReportResponse(result)));
+
         OrderResponse response = new OrderResponse();
         response.setId(order.getId());
         response.setCreationTime(order.getCreationTime());
@@ -30,7 +33,7 @@ public class OrderMapper {
         response.setStatus(order.getStatus());
         response.setLbzTechnician(order.getLbzTechnician());
         response.setLbzBiochemist(order.getLbzBiochemist());
-        response.setAnalysisParameterResults(order.getAnalysisParameterResults());
+        response.setAnalysisParameterResults(analysisResultResponses);
         response.setReferralId(order.getReferral().getId());
 
         return response;
