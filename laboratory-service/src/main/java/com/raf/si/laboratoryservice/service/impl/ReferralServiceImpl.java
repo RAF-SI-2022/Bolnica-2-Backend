@@ -145,6 +145,17 @@ public class ReferralServiceImpl implements ReferralService {
             String errMessage = String.format("Error when calling user service: " + e.getMessage());
             log.info(errMessage);
             throw new InternalServerErrorException("Error when calling user service: " + e.getMessage());
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                String errMessage = String.format("Nisu pronadjeni doktori");
+                log.info(errMessage);
+                throw new NotFoundException(errMessage);
+            } else if (e.getStatusCode() == HttpStatus.BAD_REQUEST) {
+                String errMessage = String.format("Bad request: " + e.getMessage());
+                log.info(errMessage);
+                throw new BadRequestException(errMessage);
+            }
+            throw new InternalServerErrorException("Error when calling user service: " + e.getMessage());
         }
         return responseBody;
     }
@@ -159,6 +170,17 @@ public class ReferralServiceImpl implements ReferralService {
         } catch (IllegalArgumentException e) {
             String errMessage = String.format("Error when calling user service: " + e.getMessage());
             log.info(errMessage);
+            throw new InternalServerErrorException("Error when calling user service: " + e.getMessage());
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                String errMessage = String.format("Odeljenje ne postoji");
+                log.info(errMessage);
+                throw new NotFoundException(errMessage);
+            } else if (e.getStatusCode() == HttpStatus.BAD_REQUEST) {
+                String errMessage = String.format("Bad request: " + e.getMessage());
+                log.info(errMessage);
+                throw new BadRequestException(errMessage);
+            }
             throw new InternalServerErrorException("Error when calling user service: " + e.getMessage());
         }
         return responseBody;
