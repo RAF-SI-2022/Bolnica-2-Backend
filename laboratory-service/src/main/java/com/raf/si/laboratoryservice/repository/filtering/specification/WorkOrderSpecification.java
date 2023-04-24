@@ -23,7 +23,7 @@ public class WorkOrderSpecification implements Specification<LabWorkOrder> {
     @Override
     public Predicate toPredicate(Root<LabWorkOrder> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
         Path<Date> creationDate = root.get("creationTime");
-        Path<OrderStatus> orderStatus = root.get("orderStatus");
+        Path<OrderStatus> orderStatus = root.get("status");
         Path<UUID> lbp = root.get("lbp");
 
         final List<Predicate> predicates = new ArrayList<>();
