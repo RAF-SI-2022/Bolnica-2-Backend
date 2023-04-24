@@ -2,6 +2,8 @@ package com.raf.si.laboratoryservice.unit.service;
 import com.raf.si.laboratoryservice.dto.request.CreateLabExamRequest;
 import com.raf.si.laboratoryservice.dto.request.UpdateLabExamStatusRequest;
 import com.raf.si.laboratoryservice.dto.response.LabExamResponse;
+import com.raf.si.laboratoryservice.exception.BadRequestException;
+import com.raf.si.laboratoryservice.exception.NotFoundException;
 import com.raf.si.laboratoryservice.mapper.LabExamMapper;
 import com.raf.si.laboratoryservice.model.ScheduledLabExam;
 import com.raf.si.laboratoryservice.model.enums.scheduledlabexam.ExamStatus;
@@ -9,6 +11,7 @@ import com.raf.si.laboratoryservice.repository.ScheduledLabExamRepository;
 import com.raf.si.laboratoryservice.service.impl.LabExamServiceImpl;
 import com.raf.si.laboratoryservice.utils.TokenPayload;
 import com.raf.si.laboratoryservice.utils.TokenPayloadUtil;
+import org.hibernate.service.spi.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,7 +26,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.AssertionErrors.assertEquals;
 
@@ -72,12 +75,10 @@ public class LabExamServiceTest {
         tokenPayload.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
         tokenPayload.setPbo(UUID.fromString("4e5911c8-ce7a-11ed-afa1-0242ac120002"));
 
-
         when(authentication.getPrincipal()).thenReturn(tokenPayload);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         when(scheduledLabExamRepository.countByPboIdAndDateRange(any(UUID.class), any(Date.class), any(Date.class))).thenReturn(5L);
-
 
         Optional<Long> response = labExamService.getScheduledExamCount(new Date());
         assertThat(response).isPresent().contains(5L);
@@ -102,6 +103,22 @@ public class LabExamServiceTest {
         assertThat(labExamResponses).isNotNull();
         assertThat(labExamResponses).hasSize(2);
     }
+
+    @Test
+    void testGetScheduledExams_noExamsFound() {
+        Date date = new Date();
+        UUID lbp = UUID.randomUUID();
+
+        when(scheduledLabExamRepository.findAll(any(Specification.class))).thenReturn(Collections.emptyList());
+
+        try {
+            labExamService.getScheduledExams(date, lbp);
+        } catch (NotFoundException ex) {
+            assertEquals("Values do match", "Nisu pronadjeni zakazani pregledi na osnovu prosledjenih parametara.", ex.getMessage());
+        }
+    }
+
+
     @Test
     void testUpdateStatus() {
         ScheduledLabExam scheduledLabExam = new ScheduledLabExam();
@@ -118,6 +135,22 @@ public class LabExamServiceTest {
 
         assertNotNull(result);
         assertEquals("Values do not match", result.getExamStatus().name(), ExamStatus.ZAVRSENO.name());
+    }
+
+    @Test
+    void testUpdateStatus_invalidStatus() {
+        ScheduledLabExam scheduledLabExam = new ScheduledLabExam();
+        scheduledLabExam.setId(1L);
+        scheduledLabExam.setExamStatus(ExamStatus.ZAKAZANO);
+        UpdateLabExamStatusRequest updateLabExamStatusRequest = new UpdateLabExamStatusRequest();
+        updateLabExamStatusRequest.setId(1L);
+        updateLabExamStatusRequest.setStatus("InvalidStatus");
+
+        try {
+            labExamService.updateStatus(updateLabExamStatusRequest);
+        } catch (BadRequestException ex) {
+            assertEquals("Values do match", "Pogresan status 'InvalidStatus'", ex.getMessage());
+        }
     }
 
 

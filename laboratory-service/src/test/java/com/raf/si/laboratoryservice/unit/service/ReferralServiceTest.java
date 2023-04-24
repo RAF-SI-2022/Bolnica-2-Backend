@@ -2,6 +2,7 @@ package com.raf.si.laboratoryservice.unit.service;
 
 import com.raf.si.laboratoryservice.dto.request.CreateReferralRequest;
 import com.raf.si.laboratoryservice.dto.response.*;
+import com.raf.si.laboratoryservice.exception.NotFoundException;
 import com.raf.si.laboratoryservice.mapper.ReferralMapper;
 import com.raf.si.laboratoryservice.model.LabWorkOrder;
 import com.raf.si.laboratoryservice.model.Referral;
@@ -121,6 +122,53 @@ class ReferralServiceTest {
         verify(referralRepository).save(referral);
         verify(referralMapper).modelToResponse(updatedReferral);
         assertEquals(referralResponse, result);
+    }
+
+    @Test
+    void testDeleteReferral_ReferralNotFound() {
+        Long referralId = 1L;
+        when(referralRepository.findById(referralId)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> {
+            referralService.deleteReferral(referralId);
+        });
+    }
+
+    @Test
+    void testDeleteReferral_LbzMismatch() {
+        Long referralId = 1L;
+        Referral referral = new Referral();
+        referral.setLbz(UUID.randomUUID());
+
+        TokenPayload tokenPayload = new TokenPayload();
+        tokenPayload.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        when(authentication.getPrincipal()).thenReturn(tokenPayload);
+
+        when(referralRepository.findById(referralId)).thenReturn(Optional.of(referral));
+
+        assertThrows(NotFoundException.class, () -> {
+            referralService.deleteReferral(referralId);
+        });
+    }
+
+    @Test
+    void testDeleteReferral_WorkOrderExists() {
+        Long referralId = 1L;
+        Referral referral = new Referral();
+        referral.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+
+        TokenPayload tokenPayload = new TokenPayload();
+        tokenPayload.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        when(authentication.getPrincipal()).thenReturn(tokenPayload);
+
+        when(referralRepository.findById(referralId)).thenReturn(Optional.of(referral));
+        when(labWorkOrderRepository.findByReferral(referral)).thenReturn(new LabWorkOrder());
+
+        assertThrows(NotFoundException.class, () -> {
+            referralService.deleteReferral(referralId);
+        });
     }
 
 
