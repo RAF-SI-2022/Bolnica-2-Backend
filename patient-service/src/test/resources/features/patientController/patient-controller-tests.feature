@@ -10,6 +10,18 @@ Feature: Service for manipulating patient data
     When Someone tries to create a new patient with the jmbg that already exists in the database
     Then BadRequestException is thrown with status code 400 saying the patient already exists
 
+  Scenario: Someone tries to create a patient, but the birth date is in the future
+    When Someone tries to create a new patient, but the birth date is in the future
+    Then BadRequestException is thrown with status code 400 saying the birth date is in the future
+
+  Scenario: Someone tries to create a patient, but the death date is in the future
+    When Someone tries to create a new patient, but the death date is in the future
+    Then BadRequestException is thrown with status code 400 saying the death date is in the future
+
+  Scenario: Someone tries to create a patient, but the death date is before the birth date
+    When Someone tries to create a new patient, but the death date is before the birth date
+    Then BadRequestException is thrown with status code 400 saying the death date is before the birth date
+
 
 
   Scenario: Someone updates data about a patient (finding the patient through jmbg)

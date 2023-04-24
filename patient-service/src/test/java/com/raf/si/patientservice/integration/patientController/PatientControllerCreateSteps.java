@@ -17,6 +17,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
+import java.util.Date;
+
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -77,6 +79,53 @@ public class PatientControllerCreateSteps extends CucumberConfig {
     }
     @Then("BadRequestException is thrown with status code {int} saying the patient already exists")
     public void bad_request_exception_is_thrown_with_status_code_saying_the_patient_already_exists(Integer statusCode) throws Exception{
+        resultAction.andExpect(status().is(statusCode));
+    }
+
+    @When("Someone tries to create a new patient, but the birth date is in the future")
+    public void someone_tries_to_create_a_new_patient_but_the_birth_date_is_in_the_future() throws Exception{
+        PatientRequest patientRequest = util.makePatientRequest();
+        patientRequest.setBirthDate(util.makeDate("12-12-2200"));
+
+        resultAction = mvc.perform(post("/patient/create")
+                .header("Authorization", "Bearer " + util.generateToken())
+                .content(gson.toJson(patientRequest))
+                .contentType(MediaType.APPLICATION_JSON));
+    }
+    @Then("BadRequestException is thrown with status code {int} saying the birth date is in the future")
+    public void bad_request_exception_is_thrown_with_status_code_saying_the_birth_date_is_in_the_future(Integer statusCode) throws Exception{
+        resultAction.andExpect(status().is(statusCode));
+    }
+
+    @When("Someone tries to create a new patient, but the death date is in the future")
+    public void someone_tries_to_create_a_new_patient_but_the_death_date_is_in_the_future() throws Exception{
+        PatientRequest patientRequest = util.makePatientRequest();
+        patientRequest.setDeathDate(util.makeDate("12-12-2200"));
+
+        resultAction = mvc.perform(post("/patient/create")
+                .header("Authorization", "Bearer " + util.generateToken())
+                .content(gson.toJson(patientRequest))
+                .contentType(MediaType.APPLICATION_JSON));
+    }
+    @Then("BadRequestException is thrown with status code {int} saying the death date is in the future")
+    public void bad_request_exception_is_thrown_with_status_code_saying_the_death_date_is_in_the_future(Integer statusCode) throws Exception{
+        resultAction.andExpect(status().is(statusCode));
+    }
+
+    @When("Someone tries to create a new patient, but the death date is before the birth date")
+    public void someone_tries_to_create_a_new_patient_but_the_death_date_is_before_the_birth_date() throws Exception{
+        PatientRequest patientRequest = util.makePatientRequest();
+        patientRequest.setBirthDate(util.makeDate("12-12-2000"));
+        patientRequest.setDeathDate(util.makeDate("12-12-1990"));
+
+
+        resultAction = mvc.perform(post("/patient/create")
+                .header("Authorization", "Bearer " + util.generateToken())
+                .content(gson.toJson(patientRequest))
+                .contentType(MediaType.APPLICATION_JSON));
+    }
+    @Then("BadRequestException is thrown with status code {int} saying the death date is before the birth date")
+    public void bad_request_exception_is_thrown_with_status_code_saying_the_death_date_is_before_the_birth_date(Integer statusCode) throws Exception{
         resultAction.andExpect(status().is(statusCode));
     }
 }
