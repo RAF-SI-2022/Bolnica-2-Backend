@@ -22,9 +22,16 @@ import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class BootstrapData implements CommandLineRunner {
+
+    private final String userData = "nzivanic2319rn@raf.rs,Klinika za ginekologiju,KBC Zvezdara,Vinogradska 3,ROLE_DR_SPEC_ODELJENJA;ROLE_DR_SPEC;ROLE_DR_SPEC_POV,2011043219231,06121321311,Beograd; Srbija,01/02/1982,Muski,Novak,Živanić,Prof. dr. med.,Spec. ginekolog\n" +
+            "mceculovic2819rn@raf.rs,Klinika za interne bolesti,KBC Zvezdara,Makenzijeva 28,ROLE_DR_SPEC_ODELJENJA;ROLE_DR_SPEC;ROLE_DR_SPEC_POV,2010213101321,06121321311,Beograd; Srbija,05/06/1985,Muski,Miloš,Čečulović,Prof. dr. med.,Spec. nefrolog\n" +
+            "dborovac10520rn@raf.rs,Klinika za interne bolesti,KBC Bežanijska kosa,Dubrovačka 14,ROLE_DR_SPEC_ODELJENJA;ROLE_DR_SPEC;ROLE_DR_SPEC_POV,2001023131232,06213213123,Beograd; Srbija,21/09/1990,Muski,Dario,Borovac,Prof. dr. med.,Spec. kardiolog\n" +
+            "ipejin8420rn@raf.rs,Služba za dijagnostičke procedure,KBC Bežanijska kosa,Bele Bartoka 29A,ROLE_LAB_TEHNICAR;ROLE_RECEPCIONER,20323402342323,0612343213,Beograd; Srbija,29/04/1992,Muski,Igor,Pejin,Mr,Lab. tehničar\n" +
+            "bgoretic1419rn@raf.rs,Klinika za interne bolesti,KBC Zemun,Porodice Ilić 8,ROLE_DR_SPEC_ODELJENJA;ROLE_DR_SPEC;ROLE_DR_SPEC_POV,201213213102,0692131230,Beograd; Srbija,08/03/1974,Muski,Bojan,Goretić,Dr sci. med.,Spec. neurolog";
 
     private final UserRepository userRepository;
     private final PermissionsRepository permissionsRepository;
@@ -200,13 +207,14 @@ public class BootstrapData implements CommandLineRunner {
     }
 
     private void addOtherUsers() throws URISyntaxException, IOException, ParseException {
-        ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource("bootstrap-data/employees.txt");
-        if (resource == null) {
-            throw new IllegalArgumentException("Cannot load bootstrap file!");
-        }
+//        ClassLoader classLoader = getClass().getClassLoader();
+//        URL resource = classLoader.getResource("bootstrap-data/employees.txt");
+//        if (resource == null) {
+//            throw new IllegalArgumentException("Cannot load bootstrap file!");
+//        }
 
-        List<String> lines = Files.readAllLines(Path.of(resource.toURI()));
+//        List<String> lines = Files.readAllLines(Path.of(resource.toURI()));
+        List<String> lines = userData.lines().collect(Collectors.toList());
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
         for(String s: lines) {
