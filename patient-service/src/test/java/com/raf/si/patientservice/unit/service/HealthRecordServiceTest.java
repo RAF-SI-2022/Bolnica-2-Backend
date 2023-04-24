@@ -81,7 +81,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void getHealthRecordForPatientTest_Success(){
+    void getHealthRecordForPatientTest_Success(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         Pageable pageable = PageRequest.of(0, 5);
@@ -117,7 +117,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void getLightHealthRecordForPatientTest_Success(){
+    void getLightHealthRecordForPatientTest_Success(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         Pageable pageable = PageRequest.of(0, 5);
@@ -140,7 +140,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void findExaminationTest_Success(){
+    void findExaminationTest_Success(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         Pageable pageable = PageRequest.of(0, 5);
@@ -162,7 +162,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void findExaminationTest_Confidential_Success(){
+    void findExaminationTest_Confidential_Success(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         Pageable pageable = PageRequest.of(0, 5);
@@ -184,7 +184,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void findHistoryTest_Success(){
+    void findHistoryTest_Success(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         String diagnosis = "diagnosis";
@@ -203,7 +203,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void findHistoryTest_Confidential_Success(){
+    void findHistoryTest_Confidential_Success(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         String diagnosis = "diagnosis";
@@ -222,7 +222,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void findExaminationsTest_EndDateNull_Success(){
+    void findExaminationsTest_EndDateNull_Success(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         Pageable pageable = PageRequest.of(0, 5);
@@ -243,7 +243,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void getAvailableAllergens_Success(){
+    void getAvailableAllergens_Success(){
         Allergen allergen1 = makeAllergen();
         Allergen allergen2 = new Allergen();
         allergen2.setName("mleko");
@@ -265,7 +265,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void getAvailableVaccines_Success(){
+    void getAvailableVaccines_Success(){
         Vaccine vaccine1 = new Vaccine();
         vaccine1.setName("covid-19");
         vaccine1.setDescription("kinezi");
@@ -296,7 +296,7 @@ public class HealthRecordServiceTest {
 
 
     @Test
-    protected void addAllergy_Success(){
+    void addAllergy_Success(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         AddAllergyRequest addAllergyRequest = new AddAllergyRequest();
@@ -332,7 +332,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void addAllergy_AllergenDoesntExist_ThrowsException(){
+    void addAllergy_AllergenDoesntExist_ThrowsException(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         AddAllergyRequest addAllergyRequest = new AddAllergyRequest();
@@ -368,7 +368,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void addAllergy_AllergenAllreadyInUserList_ThrowsException(){
+    void addAllergy_AllergenAllreadyInUserList_ThrowsException(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         AddAllergyRequest addAllergyRequest = new AddAllergyRequest();
@@ -402,7 +402,7 @@ public class HealthRecordServiceTest {
 
 
     @Test
-    protected void addVaccination_Success(){
+    void addVaccination_Success(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         AddVaccinationRequest addVaccinationRequest = new AddVaccinationRequest();
@@ -446,7 +446,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void addVaccination_noDateInRequest_ThrowsException(){
+    void addVaccination_noDateInRequest_ThrowsException(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         healthRecord.setId(123L);
@@ -493,7 +493,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void addVaccination_VaccineDoesntExist_ThrowsException(){
+    void addVaccination_VaccineDoesntExist_ThrowsException(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         AddVaccinationRequest addVaccinationRequest = new AddVaccinationRequest();
@@ -537,7 +537,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void addVaccination_WritingFutureVaccination_ThrowsException(){
+    void addVaccination_WritingFutureVaccination_ThrowsException(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         AddVaccinationRequest addVaccinationRequest = new AddVaccinationRequest();
@@ -588,7 +588,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void addVaccination_WritingAfterDeathVaccination_ThrowsException(){
+    void addVaccination_WritingAfterDeathVaccination_ThrowsException(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         AddVaccinationRequest addVaccinationRequest = new AddVaccinationRequest();
@@ -644,7 +644,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void addVaccination_addVaccinationBeforePatientBirth_ThrowsException(){
+    void addVaccination_addVaccinationBeforePatientBirth_ThrowsException(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         AddVaccinationRequest addVaccinationRequest = new AddVaccinationRequest();
@@ -695,7 +695,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void createExaminationReportRequest_Success() {
+    void createExaminationReportRequest_Success() {
         // kreiraj request
         CreateExaminationReportRequest createExaminationReportRequest = new CreateExaminationReportRequest();
         createExaminationReportRequest.setObjectiveFinding("novak je objektivan");
@@ -735,7 +735,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void createExaminationReportRequest_mkb10CodeNotFount_ThrowException() {
+    void createExaminationReportRequest_mkb10CodeNotFount_ThrowException() {
         // kreiraj request
         CreateExaminationReportRequest createExaminationReportRequest = new CreateExaminationReportRequest();
         createExaminationReportRequest.setObjectiveFinding("novak je objektivan");
@@ -776,7 +776,7 @@ public class HealthRecordServiceTest {
 
 
     @Test
-    protected void createExaminationReportRequest_NoPermissionConfidential_ThrowException() {
+    void createExaminationReportRequest_NoPermissionConfidential_ThrowException() {
         // kreiraj request
         CreateExaminationReportRequest createExaminationReportRequest = new CreateExaminationReportRequest();
         createExaminationReportRequest.setObjectiveFinding("novak je objektivan");
@@ -817,7 +817,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void createExaminationReportRequest_ExistingDiagnossis_Success() {
+    void createExaminationReportRequest_ExistingDiagnossis_Success() {
         // kreiraj request
         CreateExaminationReportRequest createExaminationReportRequest = new CreateExaminationReportRequest();
         createExaminationReportRequest.setObjectiveFinding("novak je objektivan");
@@ -862,7 +862,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void createExaminationReportRequest_ExistingDiagnosisEmpty_ThrowException() {
+    void createExaminationReportRequest_ExistingDiagnosisEmpty_ThrowException() {
         // kreiraj request
         CreateExaminationReportRequest createExaminationReportRequest = new CreateExaminationReportRequest();
         createExaminationReportRequest.setObjectiveFinding("novak je objektivan");
@@ -899,7 +899,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void createExaminationReportRequest_NotExistingDiagnosis_ThrowException() {
+    void createExaminationReportRequest_NotExistingDiagnosis_ThrowException() {
         // kreiraj request
         CreateExaminationReportRequest createExaminationReportRequest = new CreateExaminationReportRequest();
         createExaminationReportRequest.setObjectiveFinding("novak je objektivan");
@@ -936,7 +936,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void updateHealthRecord_Success(){
+    void updateHealthRecord_Success(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         healthRecord.setId(123L);
@@ -963,7 +963,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void updateHealthRecord_UserWithoutHealthrecord_ThrowsException(){
+    void updateHealthRecord_UserWithoutHealthrecord_ThrowsException(){
         Patient patient = makePatient();
         patient.setHealthRecord(null);
         HealthRecord healthRecord = patient.getHealthRecord();
@@ -982,7 +982,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void updateHealthRecord_WrongBloodType_ThrowsException(){
+    void updateHealthRecord_WrongBloodType_ThrowsException(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         healthRecord.setId(1L);
@@ -1008,7 +1008,7 @@ public class HealthRecordServiceTest {
     }
 
     @Test
-    protected void updateHealthRecord_WrongRhfactor_ThrowsException(){
+    void updateHealthRecord_WrongRhfactor_ThrowsException(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
         healthRecord.setId(1L);
