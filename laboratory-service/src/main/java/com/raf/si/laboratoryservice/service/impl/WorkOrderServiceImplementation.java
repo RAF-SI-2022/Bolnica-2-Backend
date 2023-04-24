@@ -1,6 +1,5 @@
-package com.raf.si.laboratoryservice.services.impl;
+package com.raf.si.laboratoryservice.service.impl;
 
-import antlr.Token;
 import com.raf.si.laboratoryservice.dto.request.order.*;
 import com.raf.si.laboratoryservice.dto.response.order.*;
 import com.raf.si.laboratoryservice.exception.BadRequestException;
@@ -9,18 +8,13 @@ import com.raf.si.laboratoryservice.mapper.OrderMapper;
 import com.raf.si.laboratoryservice.model.*;
 import com.raf.si.laboratoryservice.model.enums.labworkorder.OrderStatus;
 import com.raf.si.laboratoryservice.model.enums.referral.ReferralStatus;
-import com.raf.si.laboratoryservice.model.enums.user.Profession;
-import com.raf.si.laboratoryservice.model.enums.user.Title;
 import com.raf.si.laboratoryservice.repository.*;
-import com.raf.si.laboratoryservice.services.WorkOrderService;
+import com.raf.si.laboratoryservice.service.WorkOrderService;
 import com.raf.si.laboratoryservice.utils.TokenPayload;
 import com.raf.si.laboratoryservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.criterion.Order;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import java.util.*;
 

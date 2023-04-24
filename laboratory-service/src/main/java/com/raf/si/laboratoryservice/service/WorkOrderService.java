@@ -1,4 +1,4 @@
-package com.raf.si.laboratoryservice.services;
+package com.raf.si.laboratoryservice.service;
 
 
 import com.raf.si.laboratoryservice.dto.request.order.*;
