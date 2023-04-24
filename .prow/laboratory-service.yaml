@@ -41,11 +41,7 @@ presubmits:
               # Primeri komandi (odkomentirasti neku komandu ili dodati neku svoju):
               # docker compose up -d mysql-user
               # docker compose --profile user-service up -d
-              docker compose up -d user-db
-              docker compose up -d user-service
-              docker compose up -d patient-db
-              docker compose up -d patient-service
-              docker compose up -d laboratory-db
+              docker compose up -d user-db user-service patient-db patient-service laboratory-db
 
               branch=$PULL_HEAD_REF
               curr_branch=$(git rev-parse --abbrev-ref HEAD)
@@ -105,11 +101,7 @@ postsubmits:
               # Primeri komandi (odkomentirasti neku komandu ili dodati neku svoju):
               # docker compose up -d mysql-user
               # docker compose --profile user-service up -d
-              docker compose up -d user-db
-              docker compose up -d user-service
-              docker compose up -d patient-db
-              docker compose up -d patient-service
-              docker compose up -d laboratory-db
+              docker compose up -d user-db user-service patient-db patient-service laboratory-db
               cd "$SERVICE_NAME"
               
               ref=$(git rev-parse --abbrev-ref HEAD)
