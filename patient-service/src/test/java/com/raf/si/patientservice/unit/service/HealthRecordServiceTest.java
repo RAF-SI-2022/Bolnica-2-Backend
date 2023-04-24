@@ -3,6 +3,7 @@ package com.raf.si.patientservice.unit.service;
 import com.raf.si.patientservice.dto.request.*;
 import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.exception.BadRequestException;
+import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.mapper.HealthRecordMapper;
 import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.model.enums.healthrecord.BloodType;
@@ -591,6 +592,62 @@ public class HealthRecordServiceTest {
     }
 
     @Test
+    public void addVaccination_WritingAfterDeathVaccination_ThrowsException(){
+        Patient patient = makePatient();
+        HealthRecord healthRecord = patient.getHealthRecord();
+        AddVaccinationRequest addVaccinationRequest = new AddVaccinationRequest();
+        addVaccinationRequest.setVaccine("PRIORIX");
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH);
+        Date future_date = null;
+        Date birth_date = null;
+        try {
+            future_date = formatter.parse("30-Dec-2020");
+            birth_date = formatter.parse("30-Dec-2000");
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+        patient.setBirthDate(birth_date);
+        patient.setDeathDate(future_date);
+
+        addVaccinationRequest.setDate(new Date());
+        Vaccine vaccine = new Vaccine();
+        vaccine.setName("PRIORIX");
+        vaccine.setId(new Long(1));
+        vaccine.setProducer("GlaxoSmithKline Biologicals S.A.");
+        vaccine.setType("Virusne vakcine");
+        vaccine.setDescription("Vakcina protiv morbila");
+
+        Vaccination vaccination = new Vaccination();
+        vaccination.setId(new Long(1));
+        vaccination.setHealthRecord(healthRecord);
+        vaccination.setVaccine(vaccine);
+        vaccination.setVaccinationDate(addVaccinationRequest.getDate());
+
+        // kreiraj add alergy request
+        //samo ime alergen-a potrebno
+        // lbp
+
+        // mock get allergen from database
+        when(vaccineRepository.findByName((String) any())).thenReturn(Optional.of(vaccine));
+        when(vaccinationRepository.findByHealthRecord((HealthRecord) any())).thenReturn(patient.getHealthRecord().getVaccinations());
+        when(vaccinationRepository.save((Vaccination) any())).thenReturn(vaccination);
+        // mock get healthrecord
+        Patient patient1 = mock(Patient.class);
+        when(patient1.getHealthRecord()).thenReturn(healthRecord);
+        when(patientService.findPatient((UUID) any())).thenReturn(patient1);
+        when(patient1.getBirthDate()).thenReturn(patient.getBirthDate());
+        when(patient1.getDeathDate()).thenReturn(patient.getDeathDate());
+
+        // create expected response
+        ExtendedVaccinationResponse extendedVaccinationResponse = new ExtendedVaccinationResponse();
+        VaccinationResponse vaccinationResponse = new VaccinationResponse(vaccination.getId(), vaccine, healthRecord.getId(), vaccination.getVaccinationDate());
+        extendedVaccinationResponse.setVaccinationResponse(vaccinationResponse);
+        extendedVaccinationResponse.setVaccinationCount(new Long(healthRecord.getVaccinations().size()+1));
+
+        assertThrows(BadRequestException.class, () -> healthRecordService.addVaccination(addVaccinationRequest, patient.getLbp()));
+    }
+
+    @Test
     public void addVaccination_addVaccinationBeforePatientBirth_ThrowsException(){
         Patient patient = makePatient();
         HealthRecord healthRecord = patient.getHealthRecord();
@@ -912,6 +969,25 @@ public class HealthRecordServiceTest {
 
 
         assertEquals(healthRecordService.updateHealthRecord(updateHealthRecordRequest, patient.getLbp()), basicHealthRecordResponse);
+    }
+
+    @Test
+    public void updateHealthRecord_UserWithoutHealthrecord_ThrowsException(){
+        Patient patient = makePatient();
+        patient.setHealthRecord(null);
+        HealthRecord healthRecord = patient.getHealthRecord();
+        UpdateHealthRecordRequest updateHealthRecordRequest = new UpdateHealthRecordRequest();
+        updateHealthRecordRequest.setBlodtype("A");
+        updateHealthRecordRequest.setRhfactor("-");
+
+
+        // mock get healthrecord
+        Patient patient1 = mock(Patient.class);
+        when(patient1.getHealthRecord()).thenReturn(healthRecord);
+        when(patientService.findPatient((UUID) any())).thenReturn(patient1);
+        when(healthRecordRepository.save(any())).thenReturn(healthRecord);
+
+        assertThrows(InternalServerErrorException.class, () -> healthRecordService.updateHealthRecord(updateHealthRecordRequest, patient.getLbp()));
     }
 
     @Test
