@@ -172,13 +172,13 @@ public class PatientServiceImpl implements PatientService {
         }
 
         if(deathDate != null){
-            if(birthDate.after(deathDate)) {
-                String errMessage = "Pacijent ne može da umre pre nego što se rodio";
+            if(currentDate.before(deathDate)){
+                String errMessage = "Za datum smrti je unet datum iz budućnosti";
                 log.info(errMessage);
                 throw new BadRequestException(errMessage);
             }
-            if(currentDate.before(deathDate)){
-                String errMessage = "Za datum smrti je unet datum iz budućnosti";
+            if(birthDate.after(deathDate)) {
+                String errMessage = "Pacijent ne može da umre pre nego što se rodio";
                 log.info(errMessage);
                 throw new BadRequestException(errMessage);
             }

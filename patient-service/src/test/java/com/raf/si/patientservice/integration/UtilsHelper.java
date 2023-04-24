@@ -161,4 +161,9 @@ public class UtilsHelper {
     public String getVaccineBootstrap(){
         return vaccineBootstrap;
     }
+
+    public Date makeDate(String date) throws ParseException {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+        return formatter.parse(date);
+    }
 }

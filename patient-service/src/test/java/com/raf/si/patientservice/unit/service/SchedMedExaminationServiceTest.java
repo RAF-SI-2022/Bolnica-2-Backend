@@ -34,6 +34,7 @@ import org.springframework.integration.support.locks.LockRegistry;
 
 
 import java.util.*;
+import java.util.concurrent.locks.Lock;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,6 +51,7 @@ public class SchedMedExaminationServiceTest {
     private SchedMedExamMapper schedMedExamMapper;
     private SchedMedExaminationService schedMedExaminationService;
     private JdbcLockRegistry lockRegistry;
+    private Lock lock;
     //kako se vrednost 44 injectuje tek prilikom pokretanja servisa, default vredonst tokom
     //testrianja bice 0.
     private final int DURATION_OF_EXAM= 0;
@@ -61,6 +63,7 @@ public class SchedMedExaminationServiceTest {
         PatientMapper patientMapper = new PatientMapper();
         schedMedExamMapper= new SchedMedExamMapper(patientMapper);
         lockRegistry = mock(JdbcLockRegistry.class);
+        lock = mock(Lock.class);
         patientService= new PatientServiceImpl(patientRepository,
                 mock(HealthRecordRepository.class) ,
                 mock(VaccinationRepository.class),
@@ -182,6 +185,21 @@ public class SchedMedExaminationServiceTest {
 
         assertThrows(BadRequestException.class,
                 () -> schedMedExaminationService.createSchedMedExaminationLocked(schedMedExamRequest, token));
+    }
+
+    @Test
+    public void createSchedMedExam_TwoUsersTryToPutTheLockAtTheSameTimeAndOneTimesOut_ThrowBadRequestException(){
+        SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
+        String token= "Bearer woauhruoawbhfupaw";
+
+        Mockito.framework().clearInlineMocks();
+        setUp();
+
+        when(lockRegistry.obtain(any())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(false);
+
+        assertThrows(BadRequestException.class,
+                () -> schedMedExaminationService.createSchedMedExamination(schedMedExamRequest, token));
     }
 
     @Test
