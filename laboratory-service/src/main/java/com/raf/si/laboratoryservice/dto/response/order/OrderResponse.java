@@ -22,7 +22,7 @@ public class OrderResponse {
     private OrderStatus status;
     private Long referralId;
 
-    private List<AnalysisParameterResult> analysisParameterResults;
+    private List<AnalysisResultResponse> analysisParameterResults;
     private UUID lbp;
     private UUID lbzTechnician;
     private UUID lbzBiochemist;
