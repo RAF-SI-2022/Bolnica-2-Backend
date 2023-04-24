@@ -76,7 +76,7 @@ services:
 
   laboratory-service:
     # image: harbor.k8s.elab.rs/bolnica-2/laboratory-service:1.0
-    build: ./user-service/
+    build: ./laboratory-service/
     container_name: laboratory-service
     restart: always
     ports:
