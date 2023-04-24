@@ -24,7 +24,10 @@ public class OrderMapper {
 
     public OrderResponse orderToOrderResponse(LabWorkOrder order){
         List<AnalysisResultResponse> analysisResultResponses = new ArrayList<>();
-        order.getAnalysisParameterResults().forEach(result -> analysisResultResponses.add(analysisReportToAnalysisReportResponse(result)));
+        List<AnalysisParameterResult> results = order.getAnalysisParameterResults();
+        if(results != null) {
+            results.forEach(result -> analysisResultResponses.add(analysisReportToAnalysisReportResponse(result)));
+        }
 
         OrderResponse response = new OrderResponse();
         response.setId(order.getId());
@@ -36,6 +39,16 @@ public class OrderMapper {
         response.setAnalysisParameterResults(analysisResultResponses);
         response.setReferralId(order.getReferral().getId());
 
+        return response;
+    }
+
+    public OrderResponse orderToOrderResponse(LabWorkOrder order, List<AnalysisParameterResult> results) {
+        OrderResponse response = orderToOrderResponse(order);
+        List<AnalysisResultResponse> analysisResultResponses = new ArrayList<>();
+        if(results != null) {
+            results.forEach(result -> analysisResultResponses.add(analysisReportToAnalysisReportResponse(result)));
+        }
+        response.setAnalysisParameterResults(analysisResultResponses);
         return response;
     }
 
