@@ -57,6 +57,7 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
         newOrder.setLbp(lbp);
         newOrder.setLbzTechnician(lbz);
         newOrder.setCreationTime(new Date(System.currentTimeMillis()));
+        newOrder.setReferral(referral);
 
         List<LabAnalysis> analysisList = labAnalysisRepository
                 .findByNames(requiredAnalysislist)
@@ -78,6 +79,7 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
             }
         }
 
+        labWorkOrderRepository.save(newOrder);
         analysisParameterResultRepository.saveAll(analysisParameterResults);
 
 //        for(String name : requiredAnalysis){
@@ -96,8 +98,7 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
 //            }
 //        }
 
-        labWorkOrderRepository.save(newOrder);
-        return orderMapper.orderToOrderResponse(newOrder);
+        return orderMapper.orderToOrderResponse(newOrder, analysisParameterResults);
     }
 
     @Override
