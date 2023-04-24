@@ -12,6 +12,4 @@ import java.util.UUID;
 public class LabExamFilter {
     private Date scheduledDate;
     private UUID lbp;
-    private UUID pbo;
-//    private Boolean includeDeleted;
 }

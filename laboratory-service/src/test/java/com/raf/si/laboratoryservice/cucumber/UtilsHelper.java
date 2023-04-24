@@ -8,6 +8,7 @@ import com.raf.si.laboratoryservice.model.enums.user.Title;
 import com.raf.si.laboratoryservice.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import org.apache.commons.lang3.time.DateUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -42,7 +43,7 @@ public class UtilsHelper {
     }
 
     public String getDate() {
-        Date currentDate = new Date();
+        Date currentDate = DateUtils.addDays(new Date(), 1);
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         return dateFormat.format(currentDate);
     }

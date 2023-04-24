@@ -31,7 +31,6 @@ public class LabExamMapper {
 
         labExamResponse.setId(scheduledLabExam.getId());
         labExamResponse.setLbp(scheduledLabExam.getLbp());
-        labExamResponse.setPbo(scheduledLabExam.getPbo());
         labExamResponse.setScheduledDate(scheduledLabExam.getScheduledDate());
         labExamResponse.setNote(scheduledLabExam.getNote());
         labExamResponse.setExamStatus(scheduledLabExam.getExamStatus());

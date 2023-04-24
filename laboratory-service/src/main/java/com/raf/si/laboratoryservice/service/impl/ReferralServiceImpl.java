@@ -46,6 +46,7 @@ public class ReferralServiceImpl implements ReferralService {
 
     @Override
     public ReferralResponse createReferral(CreateReferralRequest createReferralRequest) {
+        checkReferralDate(createReferralRequest.getCreationTime());
         Referral referral = referralRepository.save(referralMapper.requestToModel(createReferralRequest));
         return referralMapper.modelToResponse(referral);
     }
@@ -184,5 +185,14 @@ public class ReferralServiceImpl implements ReferralService {
             throw new InternalServerErrorException("Error when calling user service: " + e.getMessage());
         }
         return responseBody;
+    }
+
+    private void checkReferralDate(Date scheduledDate) {
+        Date currentDate = new Date();
+        if (scheduledDate.before(currentDate)) {
+            String errMessage = "Uput ne može da se napravi u prošlosti";
+            log.info(errMessage);
+            throw new BadRequestException(errMessage);
+        }
     }
 }

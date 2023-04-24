@@ -36,6 +36,7 @@ public class LabExamServiceImpl implements LabExamService {
 
     @Override
     public LabExamResponse createExamination(CreateLabExamRequest createLabExamRequest) {
+        checkExamDates(createLabExamRequest.getScheduledDate());
         UUID lbzFromToken = TokenPayloadUtil.getTokenPayload().getLbz();
         UUID pboFromToken = TokenPayloadUtil.getTokenPayload().getPbo();
         ScheduledLabExam scheduledLabExam = scheduledLabExamRepository.save(labExamMapper.requestToModel(createLabExamRequest, lbzFromToken, pboFromToken));
@@ -51,9 +52,7 @@ public class LabExamServiceImpl implements LabExamService {
 
     @Override
     public List<LabExamResponse> getScheduledExams(Date date, UUID lbp) {
-        UUID pboFromToken = TokenPayloadUtil.getTokenPayload().getPbo();
-
-        LabExamFilter labExamFilter = new LabExamFilter(date, lbp, pboFromToken);
+        LabExamFilter labExamFilter = new LabExamFilter(date, lbp);
         LabExamSpecification labExamSpecification = new LabExamSpecification(labExamFilter);
 
         List<ScheduledLabExam> scheduledLabExams = scheduledLabExamRepository.findAll(labExamSpecification);
@@ -84,5 +83,14 @@ public class LabExamServiceImpl implements LabExamService {
         scheduledLabExamRepository.save(scheduledLabExam);
 
         return labExamMapper.modelToResponse(scheduledLabExam);
+    }
+
+    private void checkExamDates(Date scheduledDate) {
+        Date currentDate = new Date();
+        if (scheduledDate.before(currentDate)) {
+            String errMessage = "Pregled ne može biti zakazan u prošlosti";
+            log.info(errMessage);
+            throw new BadRequestException(errMessage);
+        }
     }
 }

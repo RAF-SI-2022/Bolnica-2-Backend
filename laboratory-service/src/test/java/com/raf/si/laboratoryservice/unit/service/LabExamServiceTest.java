@@ -72,7 +72,7 @@ public class LabExamServiceTest {
         tokenPayload.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
         tokenPayload.setPbo(UUID.fromString("4e5911c8-ce7a-11ed-afa1-0242ac120002"));
 
-        Authentication authentication = mock(Authentication.class);
+
         when(authentication.getPrincipal()).thenReturn(tokenPayload);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -94,9 +94,6 @@ public class LabExamServiceTest {
 
         TokenPayload tokenPayload = new TokenPayload();
         tokenPayload.setPbo(pboFromToken);
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getPrincipal()).thenReturn(tokenPayload);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         when(scheduledLabExamRepository.findAll(any(Specification.class))).thenReturn(scheduledLabExams);
 
@@ -127,7 +124,7 @@ public class LabExamServiceTest {
     private CreateLabExamRequest createLabExamRequest() {
         CreateLabExamRequest createLabExamRequest = new CreateLabExamRequest();
         createLabExamRequest.setLbp(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b436"));
-        createLabExamRequest.setScheduledDate(new Date());
+        createLabExamRequest.setScheduledDate(DateUtils.addDays(new Date(), 1));
         createLabExamRequest.setNote("Napomena");
         return createLabExamRequest;
     }

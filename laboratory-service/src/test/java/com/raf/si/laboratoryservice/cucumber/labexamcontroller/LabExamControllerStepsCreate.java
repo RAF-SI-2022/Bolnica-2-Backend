@@ -17,6 +17,9 @@ import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import org.testcontainers.shaded.org.apache.commons.lang3.time.DateUtils;
+
+import java.util.Date;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -61,6 +64,7 @@ public class LabExamControllerStepsCreate extends CucumberConfig {
     @When("doctor provides valid information for creating a lab exam")
     public void doctor_provides_valid_information_for_creating_a_lab_exam() throws Exception {
         CreateLabExamRequest createLabExamRequest = util.createLabExamRequest();
+        createLabExamRequest.setScheduledDate(DateUtils.addDays(new Date(), 1));
 
         resultActions = mvc.perform(post("/examination/create")
                 .header("Authorization", "Bearer " + util.generateToken())

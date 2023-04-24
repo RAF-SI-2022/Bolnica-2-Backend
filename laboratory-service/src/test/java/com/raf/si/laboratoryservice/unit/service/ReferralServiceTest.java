@@ -59,6 +59,7 @@ class ReferralServiceTest {
     @Test
     void testCreateReferral() {
         CreateReferralRequest createReferralRequest = new CreateReferralRequest();
+        createReferralRequest.setCreationTime(DateUtils.addDays(new Date(), 1));
         Referral referral = new Referral();
         ReferralResponse referralResponse = new ReferralResponse();
 
@@ -166,7 +167,7 @@ class ReferralServiceTest {
 
         List<UnprocessedReferralsResponse> expectedResponse = new ArrayList<>();
         UnprocessedReferralsResponse unprocessedReferralResponse = new UnprocessedReferralsResponse();
-        unprocessedReferralResponse.setRequiredAnalysis("Krvna slika");
+        unprocessedReferralResponse.setAnalysisParameters(null);
         unprocessedReferralResponse.setComment("Komentar");
         expectedResponse.add(unprocessedReferralResponse);
 
@@ -176,13 +177,13 @@ class ReferralServiceTest {
         when(authentication.getPrincipal()).thenReturn(tokenPayload);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        when(referralRepository.findByLbpAndPboReferredFromAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN)).thenReturn((unprocessedReferrals));
+        when(referralRepository.findByLbpAndPboReferredToAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN)).thenReturn((unprocessedReferrals));
 
         List<UnprocessedReferralsResponse> actualResponse = referralService.unprocessedReferrals(lbp, token);
         actualResponse.get(0).setCreationDate(null);
 
         assertEquals(expectedResponse, actualResponse);
-        verify(referralRepository, times(1)).findByLbpAndPboReferredFromAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN);
+        verify(referralRepository, times(1)).findByLbpAndPboReferredToAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN);
     }
 
     private  void mockConnectionWithUserService_Doctors() {
