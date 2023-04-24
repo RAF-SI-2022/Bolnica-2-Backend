@@ -27,7 +27,7 @@ public class HealthRecordControllerTest {
     private HealthRecordController healthRecordController;
 
     @Test
-    public void getHealthRecordForPatient_Success(){
+    protected void getHealthRecordForPatient_Success(){
         HealthRecordResponse response = new HealthRecordResponse();
 
         when(healthRecordService.getHealthRecordForPatient(any(), any()))
@@ -38,7 +38,7 @@ public class HealthRecordControllerTest {
     }
 
     @Test
-    public void getLightHealthRecordForPatient_Success(){
+    protected void getLightHealthRecordForPatient_Success(){
         LightHealthRecordResponse response = new LightHealthRecordResponse();
 
         when(healthRecordService.getLightHealthRecordForPatient(any(), any()))
@@ -49,7 +49,7 @@ public class HealthRecordControllerTest {
     }
 
     @Test
-    public void getExaminationsForPatient_Success(){
+    protected void getExaminationsForPatient_Success(){
         MedicalExaminationListResponse response = new MedicalExaminationListResponse();
 
         when(healthRecordService.findExaminations(any(), any(), any()))
@@ -60,7 +60,7 @@ public class HealthRecordControllerTest {
     }
 
     @Test
-    public void getMedicalHistoryForPatient_Success(){
+    protected void getMedicalHistoryForPatient_Success(){
         MedicalHistoryListResponse response = new MedicalHistoryListResponse();
 
         when(healthRecordService.findMedicalHistory(any(), any(), any()))

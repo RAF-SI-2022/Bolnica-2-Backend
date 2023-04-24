@@ -59,7 +59,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void findPatientByJmbg_Success(){
+    protected void findPatientByJmbg_Success(){
         Patient patient = new Patient();
         String jmbg = "jmbg";
         patient.setJmbg(jmbg);
@@ -70,7 +70,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void findPatientByJmbg_PatientDoesntExist_ThrowException(){
+    protected void findPatientByJmbg_PatientDoesntExist_ThrowException(){
         String jmbg = "jmbg";
 
         when(patientRepository.findByJmbgAndDeleted(jmbg, false)).thenReturn(Optional.empty());
@@ -79,7 +79,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void findPatientByLbp_Success(){
+    protected void findPatientByLbp_Success(){
         Patient patient = new Patient();
         UUID lbp = UUID.randomUUID();
         patient.setLbp(lbp);
@@ -90,7 +90,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void findPatientByLbp_PatientDoesntExist_ThrowException(){
+    protected void findPatientByLbp_PatientDoesntExist_ThrowException(){
         UUID lbp = UUID.randomUUID();
 
         when(patientRepository.findByLbpAndDeleted(lbp, false)).thenReturn(Optional.empty());
@@ -99,7 +99,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void createPatientTest_Success(){
+    protected void createPatientTest_Success(){
         PatientRequest patientRequest = makePatientRequest();
         patientRequest.setDeathDate(null);
         Patient patient = makePatient(patientRequest);
@@ -111,7 +111,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void createPatientTest_PatientAlreadyInRepository_ThrowsException(){
+    protected void createPatientTest_PatientAlreadyInRepository_ThrowsException(){
         PatientRequest request = makePatientRequest();
         Patient patient = patientMapper.patientRequestToPatient(new Patient(), request);
 
@@ -121,7 +121,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void createPatientTest_BirthDateAfterCurrentTime_ThrowsException(){
+    protected void createPatientTest_BirthDateAfterCurrentTime_ThrowsException(){
         PatientRequest request = makePatientRequest();
         request.setBirthDate(new Date(System.currentTimeMillis() + 10000000L));
         Patient patient = patientMapper.patientRequestToPatient(new Patient(), request);
@@ -132,7 +132,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void createPatientTest_DeathDateAfterCurrentTime_ThrowsException(){
+    protected void createPatientTest_DeathDateAfterCurrentTime_ThrowsException(){
         PatientRequest request = makePatientRequest();
         request.setDeathDate(new Date(System.currentTimeMillis() + 10000000L));
         Patient patient = patientMapper.patientRequestToPatient(new Patient(), request);
@@ -143,7 +143,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void createPatientTest_BirthDateAfterDeathDate_ThrowsException(){
+    protected void createPatientTest_BirthDateAfterDeathDate_ThrowsException(){
         PatientRequest request = makePatientRequest();
         request.setBirthDate(new Date(System.currentTimeMillis() - 10000000L));
         request.setDeathDate(new Date(request.getBirthDate().getTime() - 10000L));
@@ -155,7 +155,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void createPatientTest_GenderDoesntExist_ThrowsException(){
+    protected void createPatientTest_GenderDoesntExist_ThrowsException(){
         PatientRequest request = makePatientRequest();
         request.setGender("srednji");
 
@@ -165,7 +165,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void createPatientTest_MaritalStatusDoesntExist_ThrowsException(){
+    protected void createPatientTest_MaritalStatusDoesntExist_ThrowsException(){
         PatientRequest request = makePatientRequest();
         request.setMaritalStatus("marital");
 
@@ -175,7 +175,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void createPatientTest_FamilyStatusDoesntExist_ThrowsException(){
+    protected void createPatientTest_FamilyStatusDoesntExist_ThrowsException(){
         PatientRequest request = makePatientRequest();
         request.setFamilyStatus("family");
 
@@ -185,7 +185,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void createPatientTest_EducationDoesntExist_ThrowsException(){
+    protected void createPatientTest_EducationDoesntExist_ThrowsException(){
         PatientRequest request = makePatientRequest();
         request.setEducation("education");
 
@@ -195,7 +195,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void createPatientTest_CountryOfLivingDoesntExist_ThrowsException(){
+    protected void createPatientTest_CountryOfLivingDoesntExist_ThrowsException(){
         PatientRequest request = makePatientRequest();
         request.setCountryOfLiving("country");
 
@@ -205,7 +205,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void createPatientTest_CitizenshipCountryDoesntExist_ThrowsException(){
+    protected void createPatientTest_CitizenshipCountryDoesntExist_ThrowsException(){
         PatientRequest request = makePatientRequest();
         request.setCitizenshipCountry("country");
 
@@ -215,7 +215,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void updatePatientByJmbgTest_Success(){
+    protected void updatePatientByJmbgTest_Success(){
         PatientRequest patientRequest = makePatientRequest();
         Patient patient = makePatient(patientRequest);
 
@@ -228,7 +228,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void updatePatientByLbpTest_Success(){
+    protected void updatePatientByLbpTest_Success(){
         PatientRequest patientRequest = makePatientRequest();
         Patient patient = makePatient(patientRequest);
 
@@ -241,7 +241,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void deletePatientTest_Success(){
+    protected void deletePatientTest_Success(){
         Patient patient = makePatient();
         patient.setDeleted(true);
 
@@ -261,7 +261,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void getPatientByLbpTest_Success(){
+    protected void getPatientByLbpTest_Success(){
         Patient patient = makePatient();
 
         when(patientRepository.findByLbpAndDeleted(patient.getLbp(), false))
@@ -272,7 +272,7 @@ public class PatientServiceTest {
     }
 
     @Test
-    public void getPatientsTest_Success(){
+    protected void getPatientsTest_Success(){
         Patient patient = makePatient();
         Pageable pageable = PageRequest.of(0, 5);
         Page<Patient> page = new PageImpl<>(Arrays.asList(new Patient[] {patient}));

@@ -35,7 +35,7 @@ public class SchedMedExaminationControllerTest {
     }
 
     @Test
-    public void createSchedMedExamination_Success(){
+    protected void createSchedMedExamination_Success(){
         SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
         SchedMedExamResponse schedMedExamResponse= createSchedMedExamResponse();
         String auth= "Bearer enawoudoawnjdfoawnfuoaw";
@@ -48,7 +48,7 @@ public class SchedMedExaminationControllerTest {
     }
 
     @Test
-    public void updateSchedMedExaminationStatus_Success(){
+    protected void updateSchedMedExaminationStatus_Success(){
         UpdateSchedMedExamRequest updateSchedMedExamRequest= createUpdateSchedMedExamRequest("U toku");
         SchedMedExamResponse schedMedExamResponse= createSchedMedExamResponse();
 
@@ -60,7 +60,7 @@ public class SchedMedExaminationControllerTest {
     }
 
     @Test
-    public void deleteSchedMedExamination_Success(){
+    protected void deleteSchedMedExamination_Success(){
         Long id= 1L;
         SchedMedExamResponse schedMedExamResponse= createSchedMedExamResponse();
 
@@ -71,7 +71,7 @@ public class SchedMedExaminationControllerTest {
     }
 
     @Test
-    public void getSchedMedExam_Success(){
+    protected void getSchedMedExam_Success(){
         String auth= "Bearer enawoudoawnjdfoawnfuoaw";
         UUID lbz= UUID.fromString("c7a6ba26-ce7a-11ed-afa1-0242ac120002");
         int page=0, size=5;
@@ -88,7 +88,7 @@ public class SchedMedExaminationControllerTest {
     }
 
     @Test
-    public void updateSchedMedExaminationPatientArrivalStatus_Success(){
+    protected void updateSchedMedExaminationPatientArrivalStatus_Success(){
         UpdateSchedMedExamRequest updateSchedMedExamRequest= createUpdateSchedMedExamRequest("Otkazao");
         SchedMedExamResponse schedMedExamResponse= createSchedMedExamResponse();
 
