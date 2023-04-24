@@ -14,6 +14,7 @@ import com.raf.si.laboratoryservice.service.impl.ReferralServiceImpl;
 import com.raf.si.laboratoryservice.utils.HttpUtils;
 import com.raf.si.laboratoryservice.utils.TokenPayload;
 import com.raf.si.laboratoryservice.utils.TokenPayloadUtil;
+import io.cucumber.java.eo.Do;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.jupiter.api.Assertions;
@@ -186,34 +187,36 @@ class ReferralServiceTest {
         verify(referralRepository, times(1)).findByLbpAndPboReferredFromAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN);
     }
 
-    private  void mockConnectionWithUserService_Doctors() {
+    private void mockConnectionWithUserService_Doctors() {
         Mockito.mockStatic(HttpUtils.class);
 
         DoctorResponse doctorResponseMock = Mockito.mock(DoctorResponse.class);
-        List<DoctorResponse> doctorResponsesMock = new ArrayList<>();
-        doctorResponsesMock.add(doctorResponseMock);
+        DoctorResponseList doctorResponsesMock = new DoctorResponseList();
+        List<DoctorResponse> doctorResponseList = new ArrayList<>();
+        doctorResponseList.add(doctorResponseMock);
+        doctorResponsesMock.setDoctorResponseList(doctorResponseList);
 
-        ResponseEntity<List<DoctorResponse>> responseBodyMock = Mockito.mock(ResponseEntity.class);
-
-        when(responseBodyMock.getBody()).thenReturn(doctorResponsesMock);
-
+        ResponseEntity<DoctorResponseList> responseBodyMock = Mockito.mock(ResponseEntity.class);
+        doReturn(doctorResponsesMock).when(responseBodyMock).getBody();
         doReturn(HttpStatus.OK).when(responseBodyMock).getStatusCode();
 
-        when(HttpUtils.getAllDoctors(any(String.class))).thenReturn(responseBodyMock);
+//        when(HttpUtils.getAllDoctors(any(String.class))).thenReturn(responseBodyMock);
     }
 
-    private  void mockConnectionWithUserService_Departments() {
+    private void mockConnectionWithUserService_Departments() {
         DepartmentResponse departmentResponse = Mockito.mock(DepartmentResponse.class);
-        List<DepartmentResponse> departmentResponseMock = new ArrayList<>();
-        departmentResponseMock.add(departmentResponse);
+        DepartmentResponseList departmentResponseMock = new DepartmentResponseList();
+        List<DepartmentResponse> departmentResponsesList = new ArrayList<>();
+        departmentResponsesList.add(departmentResponse);
+        departmentResponseMock.setDepartmentResponseList(departmentResponsesList);
 
-        ResponseEntity<List<DepartmentResponse>> responseBodyMock = Mockito.mock(ResponseEntity.class);
+//        List<DepartmentResponse> responseBodyMock = Mockito.mock(ResponseEntity.class);
 
-        when(responseBodyMock.getBody()).thenReturn(departmentResponseMock);
-
-        doReturn(HttpStatus.OK).when(responseBodyMock).getStatusCode();
-
-        when(HttpUtils.findDepartmentName(any(String.class))).thenReturn(responseBodyMock);
+//        when(responseBodyMock.getBody()).thenReturn(departmentResponseMock);
+//
+//        doReturn(HttpStatus.OK).when(responseBodyMock).getStatusCode();
+//
+//        when(HttpUtils.findDepartmentName(any(String.class))).thenReturn(responseBodyMock);
     }
 
     private ReferralListResponse createReferralListResponse() {

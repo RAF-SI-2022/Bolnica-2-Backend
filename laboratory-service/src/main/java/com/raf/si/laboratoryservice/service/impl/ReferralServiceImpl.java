@@ -136,11 +136,9 @@ public class ReferralServiceImpl implements ReferralService {
     }
 
     private List<DoctorResponse> getAllDoctors(String token) {
-        ResponseEntity<List<DoctorResponse>> response;
-        List<DoctorResponse> responseBody;
+        List<DoctorResponse>  responseBody;
         try {
-            response = HttpUtils.getAllDoctors(token);
-            responseBody = response.getBody();
+            responseBody = HttpUtils.getAllDoctors(token);
 
         } catch (IllegalArgumentException e) {
             String errMessage = String.format("Error when calling user service: " + e.getMessage());
@@ -162,11 +160,9 @@ public class ReferralServiceImpl implements ReferralService {
     }
 
     private List<DepartmentResponse> getDepartments(String token) {
-        ResponseEntity<List<DepartmentResponse>> response;
         List<DepartmentResponse> responseBody;
         try {
-            response = HttpUtils.findDepartmentName(token);
-            responseBody = response.getBody();
+            responseBody = HttpUtils.findDepartmentName(token);
 
         } catch (IllegalArgumentException e) {
             String errMessage = String.format("Error when calling user service: " + e.getMessage());
