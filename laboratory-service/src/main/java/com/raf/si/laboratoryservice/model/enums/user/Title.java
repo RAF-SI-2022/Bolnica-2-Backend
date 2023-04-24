@@ -1,5 +1,6 @@
 package com.raf.si.laboratoryservice.model.enums.user;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
@@ -17,6 +18,7 @@ public enum Title {
         this.notation = notation;
     }
 
+    @JsonCreator
     public static Title valueOfNotation(String notation) {
         for (Title t : values()) {
             if (t.notation.equals(notation)) {
@@ -25,7 +27,6 @@ public enum Title {
         }
         return null;
     }
-
     public String getNotation() {
         return notation;
     }

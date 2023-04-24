@@ -30,7 +30,7 @@ public class WorkOrderController {
     }
 
     @PreAuthorize("hasRole('ROLE_NACELNIK_ODELJENJA') or hasRole('ROLE_DOKTOR_SPEC') or hasRole('DOKTOR_SPEC_POV')")
-    @GetMapping("/history")
+    @PostMapping("/history")
     public ResponseEntity<OrderHistoryResponse> orderHistory(@Valid @RequestBody OrderHistoryRequest historyRequest,
                                                                      @RequestParam(defaultValue = "0") int page,
                                                                      @RequestParam(defaultValue = "5") int size){

@@ -21,6 +21,8 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.mock;
 
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class PatientServiceTest {
@@ -110,6 +112,40 @@ public class PatientServiceTest {
     @Test
     public void createPatientTest_PatientAlreadyInRepository_ThrowsException(){
         PatientRequest request = makePatientRequest();
+        Patient patient = patientMapper.patientRequestToPatient(new Patient(), request);
+
+        when(patientRepository.findByJmbg(request.getJmbg())).thenReturn(Optional.of(patient));
+
+        assertThrows(BadRequestException.class, () -> patientService.createPatient(request));
+    }
+
+    @Test
+    public void createPatientTest_BirthDateAfterCurrentTime_ThrowsException(){
+        PatientRequest request = makePatientRequest();
+        request.setBirthDate(new Date(System.currentTimeMillis() + 10000000L));
+        Patient patient = patientMapper.patientRequestToPatient(new Patient(), request);
+
+        when(patientRepository.findByJmbg(request.getJmbg())).thenReturn(Optional.of(patient));
+
+        assertThrows(BadRequestException.class, () -> patientService.createPatient(request));
+    }
+
+    @Test
+    public void createPatientTest_DeathDateAfterCurrentTime_ThrowsException(){
+        PatientRequest request = makePatientRequest();
+        request.setDeathDate(new Date(System.currentTimeMillis() + 10000000L));
+        Patient patient = patientMapper.patientRequestToPatient(new Patient(), request);
+
+        when(patientRepository.findByJmbg(request.getJmbg())).thenReturn(Optional.of(patient));
+
+        assertThrows(BadRequestException.class, () -> patientService.createPatient(request));
+    }
+
+    @Test
+    public void createPatientTest_BirthDateAfterDeathDate_ThrowsException(){
+        PatientRequest request = makePatientRequest();
+        request.setBirthDate(new Date(System.currentTimeMillis() - 10000000L));
+        request.setDeathDate(new Date(request.getBirthDate().getTime() - 10000L));
         Patient patient = patientMapper.patientRequestToPatient(new Patient(), request);
 
         when(patientRepository.findByJmbg(request.getJmbg())).thenReturn(Optional.of(patient));
@@ -255,7 +291,7 @@ public class PatientServiceTest {
 
 
 
-    private PatientRequest makePatientRequest(){
+    private PatientRequest makePatientRequest() {
         PatientRequest patientRequest = new PatientRequest();
 
         patientRequest.setJmbg("1342002345612");
@@ -263,8 +299,13 @@ public class PatientServiceTest {
         patientRequest.setLastName("Pacijentovic");
         patientRequest.setParentName("Roditelj");
         patientRequest.setGender("Muški");
-        patientRequest.setBirthDate(new Date());
-        patientRequest.setDeathDate(new Date());
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+        try {
+            patientRequest.setBirthDate(formatter.parse("12-12-1976"));
+            patientRequest.setDeathDate(formatter.parse("12-12-2020"));
+        }catch(Exception e){
+            return null;
+        }
         patientRequest.setBirthplace("Resnjak");
         patientRequest.setCitizenshipCountry("SRB");
         patientRequest.setCountryOfLiving("AFG");

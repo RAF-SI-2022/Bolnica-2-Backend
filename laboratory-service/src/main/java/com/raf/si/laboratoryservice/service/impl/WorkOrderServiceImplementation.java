@@ -51,31 +51,52 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
 
         UUID lbp = referral.getLbp();
         String[] requiredAnalysis = referral.getRequiredAnalysis().split(",");
+        List<String> requiredAnalysislist = Arrays.asList(requiredAnalysis);
 
         LabWorkOrder newOrder = new LabWorkOrder();
         newOrder.setLbp(lbp);
         newOrder.setLbzTechnician(lbz);
         newOrder.setCreationTime(new Date(System.currentTimeMillis()));
 
+        List<LabAnalysis> analysisList = labAnalysisRepository
+                .findByNames(requiredAnalysislist)
+                .orElse(new ArrayList<>());
 
-        labWorkOrderRepository.save(newOrder);
-
-        for(String name : requiredAnalysis){
-            Optional<LabAnalysis> analysisOptional = labAnalysisRepository.findByName(name);
-            if(analysisOptional.isEmpty()){
-                String errMessage = String.format("Nepoznata analiza %s zahtevana", name);
+        if((analysisList.size() == 0) || (analysisList.size() != requiredAnalysislist.size())){
+                String errMessage = String.format("Nepoznate analize zahtevane");
                 log.info(errMessage);
                 throw new NotFoundException(errMessage);
-            }
-            LabAnalysis analysis = analysisOptional.get();
+        }
+
+        List<AnalysisParameterResult> analysisParameterResults = new ArrayList<>();
+        for(LabAnalysis analysis: analysisList){
             for (AnalysisParameter ap : analysis.getAnalysisParameters()){
                 AnalysisParameterResult analysisParameterResult = new AnalysisParameterResult();
                 analysisParameterResult.setLabWorkOrder(newOrder);
                 analysisParameterResult.setAnalysisParameter(ap);
-                analysisParameterResultRepository.save(analysisParameterResult);
+                analysisParameterResults.add(analysisParameterResult);
             }
         }
 
+        analysisParameterResultRepository.saveAll(analysisParameterResults);
+
+//        for(String name : requiredAnalysis){
+//            Optional<LabAnalysis> analysisOptional = labAnalysisRepository.findByName(name);
+//            if(analysisOptional.isEmpty()){
+//                String errMessage = String.format("Nepoznata analiza %s zahtevana", name);
+//                log.info(errMessage);
+//                throw new NotFoundException(errMessage);
+//            }
+//            LabAnalysis analysis = analysisOptional.get();
+//            for (AnalysisParameter ap : analysis.getAnalysisParameters()){
+//                AnalysisParameterResult analysisParameterResult = new AnalysisParameterResult();
+//                analysisParameterResult.setLabWorkOrder(newOrder);
+//                analysisParameterResult.setAnalysisParameter(ap);
+//                analysisParameterResultRepository.save(analysisParameterResult);
+//            }
+//        }
+
+        labWorkOrderRepository.save(newOrder);
         return orderMapper.orderToOrderResponse(newOrder);
     }
 
@@ -165,7 +186,7 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
         referral.setStatus(ReferralStatus.REALIZOVAN);
         order.setReferral(referral);
 
-        order = labWorkOrderRepository.save(order);
+        labWorkOrderRepository.save(order);
 
         return orderMapper.orderToOrderResponse(order);
     }

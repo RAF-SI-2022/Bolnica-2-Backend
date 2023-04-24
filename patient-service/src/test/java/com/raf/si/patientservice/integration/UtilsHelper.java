@@ -100,9 +100,9 @@ public class UtilsHelper {
         patientRequest.setLastName("Test");
         patientRequest.setParentName("Test");
         patientRequest.setGender("Muški");
-        patientRequest.setBirthDate(new Date());
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
-        patientRequest.setDeathDate(formatter.parse("12-12-2200"));
+        patientRequest.setBirthDate(formatter.parse("12-12-2001"));
+        patientRequest.setDeathDate(formatter.parse("12-12-2020"));
         patientRequest.setBirthplace("Test");
         patientRequest.setCitizenshipCountry("SRB");
         patientRequest.setCountryOfLiving("SRB");
@@ -126,7 +126,7 @@ public class UtilsHelper {
         SchedMedExamRequest schedMedExamRequest= new SchedMedExamRequest();
         schedMedExamRequest.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
         schedMedExamRequest.setLbzDoctor(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
-        schedMedExamRequest.setAppointmentDate(new Date(new Date().getTime()- (DURATION_OF_EXAM + 4*validDate ) * 60 * 1000));
+        schedMedExamRequest.setAppointmentDate(new Date(System.currentTimeMillis() + 1000000000L * validDate));
         schedMedExamRequest.setLbzNurse(UUID.fromString("3e1a51ab-a3aa-1add-a3ad-28e043f8b435"));
 
         return schedMedExamRequest;
@@ -145,7 +145,7 @@ public class UtilsHelper {
         ScheduledMedExamination scheduledMedExamination= new ScheduledMedExamination();
         scheduledMedExamination.setPatient(patient);
         scheduledMedExamination.setLbzDoctor(UUID.fromString("266a1e0c-cf45-11ed-afa1-0242ac120002"));
-        scheduledMedExamination.setAppointmentDate(new Date(new Date().getTime()- (DURATION_OF_EXAM + 5 ) * 60 * 1000));
+        scheduledMedExamination.setAppointmentDate(new Date(new Date().getTime() + (DURATION_OF_EXAM + 5 ) * 60 * 1000));
         scheduledMedExamination.setLbzNurse(UUID.fromString("3e1a51ab-a3aa-1add-a3ad-28e043f8b435"));
         return scheduledMedExamination;
     }
@@ -160,5 +160,10 @@ public class UtilsHelper {
 
     public String getVaccineBootstrap(){
         return vaccineBootstrap;
+    }
+
+    public Date makeDate(String date) throws ParseException {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+        return formatter.parse(date);
     }
 }

@@ -1,6 +1,6 @@
 package com.raf.si.laboratoryservice.unit.controller;
 
-import com.raf.si.laboratoryservice.controllers.LabExamController;
+import com.raf.si.laboratoryservice.controller.LabExamController;
 import com.raf.si.laboratoryservice.dto.request.CreateLabExamRequest;
 import com.raf.si.laboratoryservice.dto.request.UpdateLabExamStatusRequest;
 import com.raf.si.laboratoryservice.dto.response.LabExamResponse;

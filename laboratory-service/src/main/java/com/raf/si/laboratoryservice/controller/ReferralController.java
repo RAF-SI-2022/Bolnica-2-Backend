@@ -1,8 +1,9 @@
-package com.raf.si.laboratoryservice.controllers;
+package com.raf.si.laboratoryservice.controller;
 
 import com.raf.si.laboratoryservice.dto.request.CreateReferralRequest;
 import com.raf.si.laboratoryservice.dto.response.ReferralListResponse;
 import com.raf.si.laboratoryservice.dto.response.ReferralResponse;
+import com.raf.si.laboratoryservice.dto.response.UnprocessedReferralsResponse;
 import com.raf.si.laboratoryservice.service.ReferralService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @CrossOrigin
@@ -56,8 +58,8 @@ public class ReferralController {
 
     @PreAuthorize("hasRole('ROLE_VISI_LAB_TEHNICAR')" + "or hasRole('ROLE_LAB_TEHNICAR')")
     @GetMapping(value = "/unprocessed")
-    public ResponseEntity<ReferralListResponse> unprocessedReferrals(@Valid @RequestParam UUID lbp) {
-        return ResponseEntity.ok(referralService.unprocessedReferrals(lbp));
+    public ResponseEntity<List<UnprocessedReferralsResponse>> unprocessedReferrals(@Valid @RequestParam UUID lbp, @RequestHeader("Authorization") String authorizationHeader) {
+        return ResponseEntity.ok(referralService.unprocessedReferrals(lbp, authorizationHeader));
     }
 
 }

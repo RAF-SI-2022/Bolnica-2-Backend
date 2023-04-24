@@ -15,6 +15,7 @@ import java.util.UUID;
 @Setter
 @EqualsAndHashCode
 public class ReferralResponse {
+    private Long id;
     private ReferralType type;
     private UUID lbz;
     private UUID pboReferredFrom;

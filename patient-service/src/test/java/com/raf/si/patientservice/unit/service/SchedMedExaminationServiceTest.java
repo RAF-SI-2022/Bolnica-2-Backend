@@ -29,9 +29,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
+import org.springframework.integration.support.locks.LockRegistry;
 
 
 import java.util.*;
+import java.util.concurrent.locks.Lock;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -47,6 +50,8 @@ public class SchedMedExaminationServiceTest {
     private ScheduledMedExamRepository scheduledMedExamRepository;
     private SchedMedExamMapper schedMedExamMapper;
     private SchedMedExaminationService schedMedExaminationService;
+    private JdbcLockRegistry lockRegistry;
+    private Lock lock;
     //kako se vrednost 44 injectuje tek prilikom pokretanja servisa, default vredonst tokom
     //testrianja bice 0.
     private final int DURATION_OF_EXAM= 0;
@@ -57,6 +62,8 @@ public class SchedMedExaminationServiceTest {
         scheduledMedExamRepository= mock(ScheduledMedExamRepository.class);
         PatientMapper patientMapper = new PatientMapper();
         schedMedExamMapper= new SchedMedExamMapper(patientMapper);
+        lockRegistry = mock(JdbcLockRegistry.class);
+        lock = mock(Lock.class);
         patientService= new PatientServiceImpl(patientRepository,
                 mock(HealthRecordRepository.class) ,
                 mock(VaccinationRepository.class),
@@ -66,7 +73,7 @@ public class SchedMedExaminationServiceTest {
                 mock(AllergyRepository.class),
                 patientMapper);
         schedMedExaminationService=new SchedMedExaminationServiceImpl(scheduledMedExamRepository
-                , patientService, schedMedExamMapper);
+                , patientService, schedMedExamMapper, lockRegistry);
     }
     @AfterEach
     public void clear(){
@@ -87,7 +94,7 @@ public class SchedMedExaminationServiceTest {
 
         // The log shows that the DURATION_OF_EXAM is zero, but while service is running
         // the exam has an appropriate duration value.
-        assertThrows(BadRequestException.class, () -> schedMedExaminationService.createSchedMedExamination(schedMedExamRequest
+        assertThrows(BadRequestException.class, () -> schedMedExaminationService.createSchedMedExaminationLocked(schedMedExamRequest
                 , token));
     }
 
@@ -107,7 +114,7 @@ public class SchedMedExaminationServiceTest {
 
         mockConnectionWithUserService(-1, HttpStatus.BAD_REQUEST);
 
-        assertThrows(BadRequestException.class, () -> schedMedExaminationService.createSchedMedExamination(schedMedExamRequest
+        assertThrows(BadRequestException.class, () -> schedMedExaminationService.createSchedMedExaminationLocked(schedMedExamRequest
                 , token));
 
     }
@@ -128,8 +135,71 @@ public class SchedMedExaminationServiceTest {
 
         mockConnectionWithUserService(1, HttpStatus.OK);
 
-        assertThrows(BadRequestException.class, () -> schedMedExaminationService.createSchedMedExamination(schedMedExamRequest, token));
+        assertThrows(BadRequestException.class, () -> schedMedExaminationService.createSchedMedExaminationLocked(schedMedExamRequest, token));
 
+    }
+
+    @Test
+    public void createSchedMedExam_AppointmentDateInThePast_ThrowBadRequestException(){
+        SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
+        String token= "Bearer woauhruoawbhfupaw";
+
+        Date appointmentDate = new Date(System.currentTimeMillis() - 10000000L);
+        schedMedExamRequest.setAppointmentDate(appointmentDate);
+
+        Mockito.framework().clearInlineMocks();
+        setUp();
+
+        assertThrows(BadRequestException.class,
+                () -> schedMedExaminationService.createSchedMedExaminationLocked(schedMedExamRequest, token));
+    }
+
+    @Test
+    public void createSchedMedExam_PatientAlreadyHasAnAppointmentWithThatDoctorThatDay_ThrowBadRequestException(){
+        SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
+        String token= "Bearer woauhruoawbhfupaw";
+
+        Date timeBetweenAppointmnets = new Date(schedMedExamRequest.getAppointmentDate().getTime() - DURATION_OF_EXAM * 60 * 1000);
+
+        Mockito.framework().clearInlineMocks();
+        setUp();
+
+        Patient patient=createPatient();
+        when(scheduledMedExamRepository.findByAppointmentDateBetweenAndLbzDoctor(timeBetweenAppointmnets
+                ,schedMedExamRequest.getAppointmentDate(), schedMedExamRequest.getLbzDoctor()))
+                .thenReturn(Optional.of(new ArrayList<>()));
+
+        when(patientRepository.findByLbpAndDeleted(schedMedExamRequest.getLbp(), false)).thenReturn(Optional.of(patient));
+
+        mockConnectionWithUserService(1, HttpStatus.OK);
+
+        ScheduledMedExamination exam = schedMedExamMapper.schedMedExamRequestToScheduledMedExamination(
+                new ScheduledMedExamination(),
+                schedMedExamRequest,
+                patient
+        );
+
+        when(scheduledMedExamRepository.findByPatientAndAppointmentDateBetween(any(), any(), any())).thenReturn(
+                Optional.of(new ArrayList<>(Arrays.asList(new ScheduledMedExamination[] {exam})))
+        );
+
+        assertThrows(BadRequestException.class,
+                () -> schedMedExaminationService.createSchedMedExaminationLocked(schedMedExamRequest, token));
+    }
+
+    @Test
+    public void createSchedMedExam_TwoUsersTryToPutTheLockAtTheSameTimeAndOneTimesOut_ThrowBadRequestException(){
+        SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
+        String token= "Bearer woauhruoawbhfupaw";
+
+        Mockito.framework().clearInlineMocks();
+        setUp();
+
+        when(lockRegistry.obtain(any())).thenReturn(lock);
+        when(lock.tryLock()).thenReturn(false);
+
+        assertThrows(BadRequestException.class,
+                () -> schedMedExaminationService.createSchedMedExamination(schedMedExamRequest, token));
     }
 
     @Test
@@ -156,7 +226,7 @@ public class SchedMedExaminationServiceTest {
 
         mockConnectionWithUserService(1, HttpStatus.OK);
 
-        assertEquals(schedMedExaminationService.createSchedMedExamination(schedMedExamRequest, token)
+        assertEquals(schedMedExaminationService.createSchedMedExaminationLocked(schedMedExamRequest, token)
                 ,schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination));
     }
 
@@ -357,7 +427,7 @@ public class SchedMedExaminationServiceTest {
         SchedMedExamRequest schedMedExamRequest= new SchedMedExamRequest();
         schedMedExamRequest.setLbp(UUID.fromString("01d30a14-ce77-11ed-afa1-0242ac120002"));
         schedMedExamRequest.setLbzDoctor(UUID.fromString("11d47e16-ce77-11ed-afa1-0242ac120002"));
-        schedMedExamRequest.setAppointmentDate(new Date());
+        schedMedExamRequest.setAppointmentDate(new Date(System.currentTimeMillis() + 1000000L));
         schedMedExamRequest.setNote("Note");
         schedMedExamRequest.setLbzNurse(UUID.fromString("2024a3b0-ce77-11ed-afa1-0242ac120002"));
 

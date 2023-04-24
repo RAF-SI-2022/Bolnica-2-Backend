@@ -13,12 +13,11 @@ import java.util.UUID;
 @Setter
 @EqualsAndHashCode
 public class LabExamResponse {
-
+    private Long id;
+    private UUID pbo;
     private UUID lbp;
-
     private Date scheduledDate;
-
-    private String note;
-
     private ExamStatus examStatus;
+    private String note;
+    private UUID lbz;
 }

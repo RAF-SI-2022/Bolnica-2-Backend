@@ -1,10 +1,11 @@
 package com.raf.si.laboratoryservice.unit.controller;
 
 
-import com.raf.si.laboratoryservice.controllers.ReferralController;
+import com.raf.si.laboratoryservice.controller.ReferralController;
 import com.raf.si.laboratoryservice.dto.request.CreateReferralRequest;
 import com.raf.si.laboratoryservice.dto.response.ReferralListResponse;
 import com.raf.si.laboratoryservice.dto.response.ReferralResponse;
+import com.raf.si.laboratoryservice.dto.response.UnprocessedReferralsResponse;
 import com.raf.si.laboratoryservice.model.enums.referral.ReferralType;
 import com.raf.si.laboratoryservice.service.ReferralService;
 import org.junit.jupiter.api.BeforeEach;
@@ -94,13 +95,15 @@ public class ReferralControllerTest {
     @Test
     public void unprocessedReferrals_Success() {
         UUID lbp = UUID.fromString("d79f77be-0a0e-4e2f-88a5-5f5d5cdd1e2c");
-        ReferralListResponse referralListResponse = new ReferralListResponse();
-        when(referralService.unprocessedReferrals(lbp)).thenReturn(referralListResponse);
+        List<UnprocessedReferralsResponse> expected = new ArrayList<>();
+        List<UnprocessedReferralsResponse> referralsResponses = new ArrayList<>();
+        String token = "Bearer woauhruoawbhfupaw";
+        when(referralService.unprocessedReferrals(lbp, token)).thenReturn(referralsResponses);
 
-        ResponseEntity<ReferralListResponse> responseEntity = referralController.unprocessedReferrals(lbp);
+        ResponseEntity<List<UnprocessedReferralsResponse>> responseEntity = referralController.unprocessedReferrals(lbp, token);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(referralListResponse, responseEntity.getBody());
+        assertEquals(expected, responseEntity.getBody());
     }
 
     private CreateReferralRequest createReferralRequest() {
