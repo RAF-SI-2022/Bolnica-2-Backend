@@ -20,8 +20,6 @@ public class LabExamSpecification implements Specification<ScheduledLabExam> {
     public Predicate toPredicate(Root<ScheduledLabExam> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
         Path<Date> date = root.get("scheduledDate");
         Path<UUID> lbp = root.get("lbp");
-        Path<UUID> pbo = root.get("pbo");
-        //Path<Boolean> deleted = root.get("deleted");
 
         Date startDate = filter.getScheduledDate();
 
@@ -35,13 +33,6 @@ public class LabExamSpecification implements Specification<ScheduledLabExam> {
             Date endDate = DateUtils.addDays(startDate, 1);
             predicates.add(criteriaBuilder.between(date, startDate, endDate));
         }
-
-        if (filter.getPbo() != null) {
-            predicates.add(criteriaBuilder.equal(pbo, filter.getPbo()));
-        }
-
-//        if(filter.getIncludeDeleted() == null || filter.getIncludeDeleted() == false)
-//            predicates.add(criteriaBuilder.isFalse(deleted));
 
         return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
     }

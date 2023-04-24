@@ -14,6 +14,9 @@ import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import org.testcontainers.shaded.org.apache.commons.lang3.time.DateUtils;
+
+import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -56,6 +59,7 @@ public class ReferralControllerStepsCreate extends CucumberConfig {
     @When("doctor provides valid information for creating a referral")
     public void doctor_provides_valid_information_for_creating_a_referral() throws Exception {
         CreateReferralRequest createReferralRequest = util.createReferralRequest();
+        createReferralRequest.setCreationTime(DateUtils.addDays(new Date(), 1));
 
         resultActions = mvc.perform(post("/referral/create")
                 .header("Authorization", "Bearer " + util.generateToken())

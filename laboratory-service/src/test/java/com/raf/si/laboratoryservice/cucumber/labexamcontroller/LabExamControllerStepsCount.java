@@ -72,6 +72,6 @@ public class LabExamControllerStepsCount extends CucumberConfig {
     @Then("return lab exams")
     public void return_lab_exams() throws Exception {
         resultActions.andExpect(status().isOk())
-                .andExpect(jsonPath("$").value(2));
+                .andExpect(jsonPath("$").value(1));
     }
 }

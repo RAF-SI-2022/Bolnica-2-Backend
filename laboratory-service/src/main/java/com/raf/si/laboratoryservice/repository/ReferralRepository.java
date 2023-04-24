@@ -9,14 +9,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Ref;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-import static com.raf.si.laboratoryservice.model.enums.referral.ReferralStatus.NEREALIZOVAN;
 
 @Repository
 public interface ReferralRepository extends JpaRepository<Referral, Long> {
