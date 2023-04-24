@@ -101,6 +101,7 @@ public class PatientServiceTest {
     @Test
     public void createPatientTest_Success(){
         PatientRequest patientRequest = makePatientRequest();
+        patientRequest.setDeathDate(null);
         Patient patient = makePatient(patientRequest);
 
         when(patientRepository.findByJmbg(patient.getJmbg())).thenReturn(Optional.empty());
@@ -125,7 +126,7 @@ public class PatientServiceTest {
         request.setBirthDate(new Date(System.currentTimeMillis() + 10000000L));
         Patient patient = patientMapper.patientRequestToPatient(new Patient(), request);
 
-        when(patientRepository.findByJmbg(request.getJmbg())).thenReturn(Optional.of(patient));
+        when(patientRepository.findByJmbg(request.getJmbg())).thenReturn(Optional.empty());
 
         assertThrows(BadRequestException.class, () -> patientService.createPatient(request));
     }
@@ -136,7 +137,7 @@ public class PatientServiceTest {
         request.setDeathDate(new Date(System.currentTimeMillis() + 10000000L));
         Patient patient = patientMapper.patientRequestToPatient(new Patient(), request);
 
-        when(patientRepository.findByJmbg(request.getJmbg())).thenReturn(Optional.of(patient));
+        when(patientRepository.findByJmbg(request.getJmbg())).thenReturn(Optional.empty());
 
         assertThrows(BadRequestException.class, () -> patientService.createPatient(request));
     }
@@ -148,7 +149,7 @@ public class PatientServiceTest {
         request.setDeathDate(new Date(request.getBirthDate().getTime() - 10000L));
         Patient patient = patientMapper.patientRequestToPatient(new Patient(), request);
 
-        when(patientRepository.findByJmbg(request.getJmbg())).thenReturn(Optional.of(patient));
+        when(patientRepository.findByJmbg(request.getJmbg())).thenReturn(Optional.empty());
 
         assertThrows(BadRequestException.class, () -> patientService.createPatient(request));
     }
@@ -242,7 +243,6 @@ public class PatientServiceTest {
     @Test
     public void deletePatientTest_Success(){
         Patient patient = makePatient();
-        HealthRecord healthRecord = patient.getHealthRecord();
         patient.setDeleted(true);
 
         when(patientRepository.findByLbpAndDeleted(patient.getLbp(), false))
