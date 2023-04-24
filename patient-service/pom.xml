@@ -15,6 +15,10 @@
     <description>Patient Service for IBIS</description>
     <properties>
         <java.version>11</java.version>
+
+        <revision>${project.version}</revision>
+		<finalName>${project.artifactId}-${revision}</finalName>
+
         <gson.version>2.10.1</gson.version>
         <lombok.version>1.18.26</lombok.version>
         <io.jwt.version>0.9.1</io.jwt.version>
@@ -25,8 +29,8 @@
         <cucumber.version>7.11.1</cucumber.version>
         <!-- SonarQube koristi JaCoCo kako bi vam pokazao informacije o test coverage-u -->
         <jacoco.version>0.8.8</jacoco.version>
-        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
-        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+		<sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 
         <!-- Ovo je opcioni parametar koji vam omogucava da neke klase iskljucite iz test coverage-a -->
         <!--<sonar.coverage.exclusions>**/config/*, **/model/*,**/repository/*,**/controller/response_forms/*,**/mail/*,**/security/otp/*,**/filter/*,**/cron/*</sonar.coverage.exclusions>-->
@@ -181,16 +185,80 @@
             <artifactId>cucumber-core</artifactId>
             <version>${cucumber.version}</version>
         </dependency>
+
+        <!-- Vezbe 7 -->
+		<!-- Dodati u root pom.xml ako imate ili u svaki mikroservis -->
+		<dependency>
+			<groupId>org.jacoco</groupId>
+			<artifactId>jacoco-maven-plugin</artifactId>
+			<version>0.8.8</version>
+		</dependency>
+
     </dependencies>
 
 
     <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
+        <!-- Vezbe 7 -->
+		<!-- Obavezno dodati ovaj parametar u pom.xml za svaki mikroservis kako bi Dockerfile radio -->
+		<finalName>${finalName}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+
+			<!-- Vezbe 7 -->
+			<!-- Obavezno dodati ova tri plugina u pom.xml za svaki mikroservis kako bi Dockerfile radio -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<!-- Ovde je Java 17 zato sto je to Java verzija u Maven Docker image-u -->
+					<source>11</source>
+					<target>11</target>
+				</configuration>
+			</plugin>
+		</plugins>
     </build>
+
+    <!-- Vezbe 7 -->
+	<!-- Obavezno dodati ovaj profil u pom.xml za svaki mikroservis kako bi JaCoCo radio -->
+	<profiles>
+		<profile>
+			<id>coverage</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>${jacoco.version}</version>
+						<executions>
+							<execution>
+								<id>jacoco-initialize</id>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>jacoco-site</id>
+								<phase>package</phase>
+								<goals>
+									<goal>report</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>
