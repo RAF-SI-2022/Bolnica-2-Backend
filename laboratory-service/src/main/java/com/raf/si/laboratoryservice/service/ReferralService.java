@@ -3,8 +3,10 @@ package com.raf.si.laboratoryservice.service;
 import com.raf.si.laboratoryservice.dto.request.CreateReferralRequest;
 import com.raf.si.laboratoryservice.dto.response.ReferralListResponse;
 import com.raf.si.laboratoryservice.dto.response.ReferralResponse;
+import com.raf.si.laboratoryservice.dto.response.UnprocessedReferralsResponse;
 import com.raf.si.laboratoryservice.model.Referral;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -20,5 +22,5 @@ public interface ReferralService {
 
     ReferralResponse deleteReferral(Long id);
 
-    ReferralListResponse unprocessedReferrals(UUID lbp);
+    List<UnprocessedReferralsResponse> unprocessedReferrals(UUID lbp, String authorizationHeader);
 }

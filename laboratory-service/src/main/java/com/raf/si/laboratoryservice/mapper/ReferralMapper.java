@@ -7,11 +7,9 @@ import com.raf.si.laboratoryservice.exception.BadRequestException;
 import com.raf.si.laboratoryservice.model.Referral;
 import com.raf.si.laboratoryservice.model.enums.referral.ReferralType;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.mapper.Mapper;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 @Slf4j
@@ -71,13 +69,4 @@ public class ReferralMapper {
                 .collect(Collectors.toList());
         return new ReferralListResponse(referrals, referralPage.getTotalElements());
     }
-
-    public ReferralListResponse referralListToListResponse(List<Referral> referralList) {
-        List<ReferralResponse> referrals = referralList
-                .stream()
-                .map(this::modelToResponse)
-                .collect(Collectors.toList());
-        return new ReferralListResponse(referrals, (long) referralList.size());
-    }
-
 }

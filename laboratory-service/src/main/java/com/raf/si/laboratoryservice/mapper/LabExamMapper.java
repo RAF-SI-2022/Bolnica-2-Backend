@@ -29,10 +29,13 @@ public class LabExamMapper {
     public LabExamResponse modelToResponse(ScheduledLabExam scheduledLabExam) {
         LabExamResponse labExamResponse = new LabExamResponse();
 
+        labExamResponse.setId(scheduledLabExam.getId());
         labExamResponse.setLbp(scheduledLabExam.getLbp());
+        labExamResponse.setPbo(scheduledLabExam.getPbo());
         labExamResponse.setScheduledDate(scheduledLabExam.getScheduledDate());
         labExamResponse.setNote(scheduledLabExam.getNote());
         labExamResponse.setExamStatus(scheduledLabExam.getExamStatus());
+        labExamResponse.setLbz(scheduledLabExam.getLbz());
 
         return labExamResponse;
     }

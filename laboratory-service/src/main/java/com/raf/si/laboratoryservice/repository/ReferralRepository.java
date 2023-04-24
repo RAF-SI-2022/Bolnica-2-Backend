@@ -22,5 +22,6 @@ import static com.raf.si.laboratoryservice.model.enums.referral.ReferralStatus.N
 public interface ReferralRepository extends JpaRepository<Referral, Long> {
     Page<Referral> findByLbpAndCreationTimeBetweenAndDeletedFalse(UUID patientId, Date dateFrom, Date dateTo, Pageable pageable);
     @Query("SELECT r FROM Referral r WHERE r.lbp = :lbp AND r.pboReferredFrom = :pboFromToken AND r.status = :status AND r.deleted = false")
-    List<Referral> findByLbpAndPboAndStatus(@Param("lbp") UUID lbp, @Param("pboFromToken") UUID pboFromToken, @Param("status") ReferralStatus status);
+    List<Referral> findByLbpAndPboReferredFromAndStatus(@Param("lbp") UUID lbp, @Param("pboFromToken") UUID pboFromToken, @Param("status") ReferralStatus status);
+
 }

@@ -67,7 +67,8 @@ public class ReferralControllerStepsUnprocessed extends CucumberConfig {
     @Then("return the list of unprocessed referrals")
     public void return_the_list_of_unprocessed_referrals() throws Exception {
         resultActions.andExpect(status().isOk())
-                .andExpect(jsonPath("$.referrals", hasSize(1)));
+                .andExpect(jsonPath("$", hasSize(1)));
+
     }
 
 
