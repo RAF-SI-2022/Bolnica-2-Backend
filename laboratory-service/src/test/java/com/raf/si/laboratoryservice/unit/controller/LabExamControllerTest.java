@@ -4,21 +4,26 @@ import com.raf.si.laboratoryservice.controller.LabExamController;
 import com.raf.si.laboratoryservice.dto.request.CreateLabExamRequest;
 import com.raf.si.laboratoryservice.dto.request.UpdateLabExamStatusRequest;
 import com.raf.si.laboratoryservice.dto.response.LabExamResponse;
+import com.raf.si.laboratoryservice.exception.BadRequestException;
+import com.raf.si.laboratoryservice.exception.NotFoundException;
 import com.raf.si.laboratoryservice.model.enums.scheduledlabexam.ExamStatus;
 import com.raf.si.laboratoryservice.service.LabExamService;
+import org.hibernate.service.spi.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.AssertionErrors;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class LabExamControllerTest {
 
@@ -56,6 +61,15 @@ public class LabExamControllerTest {
     }
 
     @Test
+    public void getScheduledExamCount_withNullParams() {
+        try {
+            labExamController.getScheduledExamCount(null);
+        } catch (BadRequestException ex) {
+            assertEquals("Pogresan zahtev.", ex.getMessage());
+        }
+    }
+
+    @Test
     public void getScheduledExams_Success() {
         Timestamp date = Timestamp.valueOf(LocalDateTime.now());
         UUID lbp = UUID.randomUUID();
@@ -67,6 +81,39 @@ public class LabExamControllerTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(scheduledExams, responseEntity.getBody());
     }
+
+    @Test
+    void testGetScheduledExams_withNullParams() {
+        try {
+            labExamController.getScheduledExams(null, null);
+        } catch (BadRequestException ex) {
+            assertEquals("Pogresan zahtev.", ex.getMessage());
+        }
+    }
+
+
+    @Test
+    void testGetScheduledExams_nullDate() {
+        Date date = null;
+        UUID lbp = UUID.randomUUID();
+        try {
+            labExamService.getScheduledExams(date, lbp);
+        } catch (BadRequestException ex) {
+            assertEquals("Pogresan zahtev.", ex.getMessage());
+        }
+    }
+
+    @Test
+    void testGetScheduledExams_nullLbpId() {
+        Date date = new Date();
+        UUID lbp = null;
+        try {
+            labExamService.getScheduledExams(date, lbp);
+        } catch (BadRequestException ex) {
+            assertEquals("LBP ID nije validan.", ex.getMessage());
+        }
+    }
+
 
     @Test
     public void updateStatus_Success() {

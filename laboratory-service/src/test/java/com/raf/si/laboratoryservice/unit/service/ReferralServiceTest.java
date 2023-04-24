@@ -2,6 +2,7 @@ package com.raf.si.laboratoryservice.unit.service;
 
 import com.raf.si.laboratoryservice.dto.request.CreateReferralRequest;
 import com.raf.si.laboratoryservice.dto.response.*;
+import com.raf.si.laboratoryservice.exception.NotFoundException;
 import com.raf.si.laboratoryservice.mapper.ReferralMapper;
 import com.raf.si.laboratoryservice.model.LabWorkOrder;
 import com.raf.si.laboratoryservice.model.Referral;
@@ -123,6 +124,53 @@ class ReferralServiceTest {
         assertEquals(referralResponse, result);
     }
 
+    @Test
+    void testDeleteReferral_ReferralNotFound() {
+        Long referralId = 1L;
+        when(referralRepository.findById(referralId)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> {
+            referralService.deleteReferral(referralId);
+        });
+    }
+
+    @Test
+    void testDeleteReferral_LbzMismatch() {
+        Long referralId = 1L;
+        Referral referral = new Referral();
+        referral.setLbz(UUID.randomUUID());
+
+        TokenPayload tokenPayload = new TokenPayload();
+        tokenPayload.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        when(authentication.getPrincipal()).thenReturn(tokenPayload);
+
+        when(referralRepository.findById(referralId)).thenReturn(Optional.of(referral));
+
+        assertThrows(NotFoundException.class, () -> {
+            referralService.deleteReferral(referralId);
+        });
+    }
+
+    @Test
+    void testDeleteReferral_WorkOrderExists() {
+        Long referralId = 1L;
+        Referral referral = new Referral();
+        referral.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+
+        TokenPayload tokenPayload = new TokenPayload();
+        tokenPayload.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        when(authentication.getPrincipal()).thenReturn(tokenPayload);
+
+        when(referralRepository.findById(referralId)).thenReturn(Optional.of(referral));
+        when(labWorkOrderRepository.findByReferral(referral)).thenReturn(new LabWorkOrder());
+
+        assertThrows(NotFoundException.class, () -> {
+            referralService.deleteReferral(referralId);
+        });
+    }
+
 
     @Test
     void testReferralHistory() {
@@ -164,7 +212,7 @@ class ReferralServiceTest {
         List<Referral> unprocessedReferrals = Arrays.asList(referral1);
 
         mockConnectionWithUserService_Doctors();
-//        mockConnectionWithUserService_Departments();
+        mockConnectionWithUserService_Departments();
 
         List<UnprocessedReferralsResponse> expectedResponse = new ArrayList<>();
         UnprocessedReferralsResponse unprocessedReferralResponse = new UnprocessedReferralsResponse();
@@ -191,33 +239,27 @@ class ReferralServiceTest {
         Mockito.mockStatic(HttpUtils.class);
 
         DoctorResponse doctorResponseMock = Mockito.mock(DoctorResponse.class);
-        DoctorResponseList doctorResponsesMock = new DoctorResponseList();
         List<DoctorResponse> doctorResponseList = new ArrayList<>();
         doctorResponseList.add(doctorResponseMock);
-        doctorResponsesMock.setDoctorResponseList(doctorResponseList);
 
-        ResponseEntity<DoctorResponseList> responseBodyMock = Mockito.mock(ResponseEntity.class);
-        doReturn(doctorResponsesMock).when(responseBodyMock).getBody();
+        ResponseEntity<DoctorResponse> responseBodyMock = Mockito.mock(ResponseEntity.class);
         doReturn(HttpStatus.OK).when(responseBodyMock).getStatusCode();
 
-//        when(HttpUtils.getAllDoctors(any(String.class))).thenReturn(responseBodyMock);
+        when(HttpUtils.getAllDoctors(any(String.class))).thenReturn(doctorResponseList);
     }
 
-//    private void mockConnectionWithUserService_Departments() {
-//        DepartmentResponse departmentResponse = Mockito.mock(DepartmentResponse.class);
-//        DepartmentResponseList departmentResponseMock = new DepartmentResponseList();
-//        List<DepartmentResponse> departmentResponsesList = new ArrayList<>();
-//        departmentResponsesList.add(departmentResponse);
-//        departmentResponseMock.setDepartmentResponseList(departmentResponsesList);
+    private void mockConnectionWithUserService_Departments() {
+        DepartmentResponse departmentResponseMock = Mockito.mock(DepartmentResponse.class);
+        List<DepartmentResponse> departmentResponsesList = new ArrayList<>();
+        departmentResponsesList.add(departmentResponseMock);
 
-//        List<DepartmentResponse> responseBodyMock = Mockito.mock(ResponseEntity.class);
+        ResponseEntity<DepartmentResponse> responseBodyMock = Mockito.mock(ResponseEntity.class);
+        when(responseBodyMock.getBody()).thenReturn(departmentResponseMock);
 
-//        when(responseBodyMock.getBody()).thenReturn(departmentResponseMock);
-//
-//        doReturn(HttpStatus.OK).when(responseBodyMock).getStatusCode();
-//
-//        when(HttpUtils.findDepartmentName(any(String.class))).thenReturn(responseBodyMock);
-//    }
+        doReturn(HttpStatus.OK).when(responseBodyMock).getStatusCode();
+
+        when(HttpUtils.findDepartmentName(any(String.class))).thenReturn(departmentResponsesList);
+    }
 
     private ReferralListResponse createReferralListResponse() {
         List<ReferralResponse> referralResponses = new ArrayList<>();
