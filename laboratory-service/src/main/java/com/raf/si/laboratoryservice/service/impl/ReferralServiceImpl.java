@@ -95,7 +95,7 @@ public class ReferralServiceImpl implements ReferralService {
     public List<UnprocessedReferralsResponse> unprocessedReferrals(UUID lbp, String authorizationHeader) {
         UUID pboFromToken = TokenPayloadUtil.getTokenPayload().getPbo();
         System.out.println(pboFromToken);
-        List<Referral> unprocessedReferralsByThreeParams = referralRepository.findByLbpAndPboReferredFromAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN);
+        List<Referral> unprocessedReferralsByThreeParams = referralRepository.findByLbpAndPboReferredToAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN);
         if (unprocessedReferralsByThreeParams.isEmpty()) {
             log.error("Ne postoji trazeni uput");
             throw new NotFoundException("Uput sa zadatim parametrima nije pronadjen");
@@ -125,7 +125,7 @@ public class ReferralServiceImpl implements ReferralService {
                     unprocessedReferral.setDoctorLastName(doctor.getLastName());
                 }
             }
-            unprocessedReferral.setRequiredAnalysis(referral.getRequiredAnalysis());
+            unprocessedReferral.setAnalysisParameters(referral.getAnalysisParameters());
             unprocessedReferral.setCreationDate(referral.getCreationTime());
             unprocessedReferral.setComment(referral.getComment());
             unprocessedReferralsResponses.add(unprocessedReferral);
