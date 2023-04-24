@@ -60,6 +60,7 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
         newOrder.setLbzTechnician(lbz);
         newOrder.setCreationTime(new Date(System.currentTimeMillis()));
         newOrder.setReferral(referral);
+        referral.setLabWorkOrder(newOrder);
 
         List<LabAnalysis> analysisList = labAnalysisRepository
                 .findByNames(requiredAnalysislist)
@@ -82,23 +83,8 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
         }
 
         labWorkOrderRepository.save(newOrder);
+        referralRepository.save(referral);
         analysisParameterResultRepository.saveAll(analysisParameterResults);
-
-//        for(String name : requiredAnalysis){
-//            Optional<LabAnalysis> analysisOptional = labAnalysisRepository.findByName(name);
-//            if(analysisOptional.isEmpty()){
-//                String errMessage = String.format("Nepoznata analiza %s zahtevana", name);
-//                log.info(errMessage);
-//                throw new NotFoundException(errMessage);
-//            }
-//            LabAnalysis analysis = analysisOptional.get();
-//            for (AnalysisParameter ap : analysis.getAnalysisParameters()){
-//                AnalysisParameterResult analysisParameterResult = new AnalysisParameterResult();
-//                analysisParameterResult.setLabWorkOrder(newOrder);
-//                analysisParameterResult.setAnalysisParameter(ap);
-//                analysisParameterResultRepository.save(analysisParameterResult);
-//            }
-//        }
 
         return orderMapper.orderToOrderResponse(newOrder, analysisParameterResults);
     }
@@ -181,7 +167,7 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
 
         for(AnalysisParameterResult apr : order.getAnalysisParameterResults()){
             if(apr.getResult() == null){
-                String errMessage = "Nisu unete svi rezultati analize parametara.";
+                String errMessage = "Nisu uneti svi rezultati analize parametara.";
                 log.info(errMessage);
                 throw new BadRequestException(errMessage);
             }
