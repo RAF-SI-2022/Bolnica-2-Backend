@@ -58,6 +58,20 @@ public class DepartmentControllerTest {
     }
 
     @Test
+    public void getDepartmentsByName_Success() {
+        DepartmentResponse departmentResponse1 = createDepartmentResponse();
+        DepartmentResponse departmentResponse2 = createDepartmentResponse();
+
+        List<DepartmentResponse> departmentResponseList = Arrays.asList(departmentResponse1, departmentResponse2);
+
+        when(departmentService.getDepartmentsByName(departmentResponse1.getName()))
+                .thenReturn(departmentResponseList);
+
+        assertEquals(departmentController.getDepartmentsByName(departmentResponse2.getName()),
+                ResponseEntity.of(Optional.of(departmentResponseList)));
+    }
+
+    @Test
     public void getHospitals_Success() {
         HospitalResponse hospitalResponse1 = createHospitalResponse();
         HospitalResponse hospitalResponse2 = createHospitalResponse();

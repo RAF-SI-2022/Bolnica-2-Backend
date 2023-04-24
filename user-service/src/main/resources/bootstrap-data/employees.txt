@@ -1,0 +1,7 @@
+nzivanic2319rn@raf.rs,Klinika za ginekologiju,KBC Zvezdara,Vinogradska 3,ROLE_DR_SPEC_ODELJENJA;ROLE_DR_SPEC;ROLE_DR_SPEC_POV,2011043219231,06121321311,Beograd; Srbija,01/02/1982,Muski,Novak,Živanić,Prof. dr. med.,Spec. ginekolog
+mceculovic2819rn@raf.rs,Klinika za interne bolesti,KBC Zvezdara,Makenzijeva 28,ROLE_DR_SPEC_ODELJENJA;ROLE_DR_SPEC;ROLE_DR_SPEC_POV,2010213101321,06121321311,Beograd; Srbija,05/06/1985,Muski,Miloš,Čečulović,Prof. dr. med.,Spec. nefrolog
+dborovac10520rn@raf.rs,Klinika za interne bolesti,KBC Bežanijska kosa,Dubrovačka 14,ROLE_DR_SPEC_ODELJENJA;ROLE_DR_SPEC;ROLE_DR_SPEC_POV,2001023131232,06213213123,Beograd; Srbija,21/09/1990,Muski,Dario,Borovac,Prof. dr. med.,Spec. kardiolog
+ipejin8420rn@raf.rs,Služba za dijagnostičke procedure,KBC Bežanijska kosa,Bele Bartoka 29A,ROLE_LAB_TEHNICAR;ROLE_RECEPCIONER,20323402342323,0612343213,Beograd; Srbija,29/04/1992,Muski,Igor,Pejin,Mr,Lab. tehničar
+bgoretic1419rn@raf.rs,Klinika za interne bolesti,KBC Zemun,Porodice Ilić 8,ROLE_DR_SPEC_ODELJENJA;ROLE_DR_SPEC;ROLE_DR_SPEC_POV,201213213102,0692131230,Beograd; Srbija,08/03/1974,Muski,Bojan,Goretić,Dr sci. med.,Spec. neurolog
+
+
