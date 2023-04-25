@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class ReferralServiceImpl implements ReferralService {
-
     private final ReferralRepository referralRepository;
     private final LabWorkOrderRepository labWorkOrderRepository;
     private final ReferralMapper referralMapper;
@@ -135,7 +134,7 @@ public class ReferralServiceImpl implements ReferralService {
         return unprocessedReferralsResponses;
     }
 
-    private List<DoctorResponse> getAllDoctors(String token) {
+    public List<DoctorResponse> getAllDoctors(String token) {
         List<DoctorResponse>  responseBody;
         try {
             responseBody = HttpUtils.getAllDoctors(token);

@@ -9,6 +9,7 @@ import com.raf.si.laboratoryservice.mapper.LabExamMapper;
 import com.raf.si.laboratoryservice.model.Referral;
 import com.raf.si.laboratoryservice.model.ScheduledLabExam;
 import com.raf.si.laboratoryservice.model.enums.scheduledlabexam.ExamStatus;
+import com.raf.si.laboratoryservice.repository.ReferralRepository;
 import com.raf.si.laboratoryservice.repository.ScheduledLabExamRepository;
 import com.raf.si.laboratoryservice.repository.filtering.filter.LabExamFilter;
 import com.raf.si.laboratoryservice.repository.filtering.specification.LabExamSpecification;
@@ -27,16 +28,25 @@ import java.util.*;
 @Service
 public class LabExamServiceImpl implements LabExamService {
     private final ScheduledLabExamRepository scheduledLabExamRepository;
+    private final ReferralRepository referralRepository;
     private final LabExamMapper labExamMapper;
 
-    public LabExamServiceImpl(ScheduledLabExamRepository scheduledLabExamRepository, LabExamMapper labExamMapper) {
+    public LabExamServiceImpl(ScheduledLabExamRepository scheduledLabExamRepository, ReferralRepository referralRepository, LabExamMapper labExamMapper) {
         this.scheduledLabExamRepository = scheduledLabExamRepository;
+        this.referralRepository = referralRepository;
         this.labExamMapper = labExamMapper;
     }
 
     @Override
     public LabExamResponse createExamination(CreateLabExamRequest createLabExamRequest) {
         checkExamDates(createLabExamRequest.getScheduledDate());
+
+        Optional<Referral> referral = referralRepository.findByLbp(createLabExamRequest.getLbp());
+        if (referral.isEmpty()) {
+            log.error("Ne postoji uput za pacijenta sa ličnim brojem '{}'", createLabExamRequest.getLbp());
+            throw new NotFoundException("Uput sa datim lbp-om ne postoji");
+        }
+
         UUID lbzFromToken = TokenPayloadUtil.getTokenPayload().getLbz();
         UUID pboFromToken = TokenPayloadUtil.getTokenPayload().getPbo();
         ScheduledLabExam scheduledLabExam = scheduledLabExamRepository.save(labExamMapper.requestToModel(createLabExamRequest, lbzFromToken, pboFromToken));
