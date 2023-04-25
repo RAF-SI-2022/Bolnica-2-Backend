@@ -10,7 +10,9 @@ import com.raf.si.laboratoryservice.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -79,13 +81,30 @@ public class BootstrapData implements CommandLineRunner {
         referralRepository.save(referral);
         labWorkOrderRepository.save(workOrder);
 
+        List<LabAnalysis> labAnalysisList = new ArrayList<>();
 
         LabAnalysis analysis = new LabAnalysis();
         analysis.setName("Glukoza");
         analysis.setAbbreviation("GLU");
+        labAnalysisList.add(analysis);
 
-        labAnalysisRepository.save(analysis);
+        LabAnalysis analysis2 = new LabAnalysis();
+        analysis2.setName("Gvožđe");
+        analysis2.setAbbreviation("GVO") ;
+        labAnalysisList.add(analysis2);
 
+
+        LabAnalysis analysis3 = new LabAnalysis();
+        analysis3.setName("Lipidni status");
+        analysis3.setAbbreviation("LS") ;
+        labAnalysisList.add(analysis3);
+
+        LabAnalysis analysis4 = new LabAnalysis();
+        analysis4.setName("Enzimi");
+        analysis4.setAbbreviation("ENZ") ;
+        labAnalysisList.add(analysis4);
+
+        labAnalysisRepository.saveAll(labAnalysisList);
 
         Parameter parameter = new Parameter();
         parameter.setName("Glukoza");

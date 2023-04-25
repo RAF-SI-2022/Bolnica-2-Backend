@@ -1,9 +1,7 @@
 package com.raf.si.patientservice.integration.healthRecordController;
 
-import com.raf.si.patientservice.dto.request.MedicalExaminationFilterRequest;
 import com.raf.si.patientservice.integration.CucumberConfig;
 import com.raf.si.patientservice.integration.UtilsHelper;
-import com.raf.si.patientservice.model.MedicalExamination;
 import com.raf.si.patientservice.model.MedicalHistory;
 import com.raf.si.patientservice.model.Patient;
 import com.raf.si.patientservice.repository.PatientRepository;
@@ -12,9 +10,7 @@ import io.cucumber.java.Before;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -45,7 +41,7 @@ public class HealthRecordControllerGetHistoriesSteps extends CucumberConfig {
         Patient patient = patientRepository.findByLbp(util.getPatientBootstrapLbp()).get();
         assertNotNull(patient);
 
-        String uri = String.format("/record/history/%s?mkb10=djovak", patient.getLbp());
+        String uri = String.format("/record/history/%s?mkb10=G40. 909", patient.getLbp());
 
         resultAction = mvc.perform(get(uri)
                 .header("Authorization", "Bearer " + util.generateToken()));
