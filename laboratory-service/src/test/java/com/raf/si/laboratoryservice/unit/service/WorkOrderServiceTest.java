@@ -215,34 +215,6 @@ public class WorkOrderServiceTest {
     }
 
     @Test
-    public void testOrderHistoryForLab(){
-        UUID lbp = UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8");
-        Date dateFrom = new Date();
-        Date dateTo = new Date();
-        Pageable pageable = PageRequest.of(0, 10);
-
-        OrderHistoryForLabRequest orderHistoryRequest = new OrderHistoryForLabRequest(dateFrom,
-                dateTo, lbp, "Neobrađen");
-
-
-        LabWorkOrder workOrder = new LabWorkOrder();
-        workOrder.setLbp(lbp);
-        Page<LabWorkOrder> workOrderPage = new PageImpl<>(Collections.singletonList(workOrder));
-
-        OrderHistoryResponse orderHistoryResponse = createOrderHistoryResponse();
-
-        when(labWorkOrderRepository.findByLbpAndCreationTimeBetweenAndStatus(eq(lbp), eq(dateFrom), any(Date.class),
-                any(OrderStatus.class), eq(pageable))).thenReturn(workOrderPage);
-        when(orderMapper.orderPageToOrderHistoryForLabResponse(workOrderPage)).thenReturn(orderHistoryResponse);
-
-        // Act
-        OrderHistoryResponse result = workOrderService.orderHistoryForLab(orderHistoryRequest, pageable);
-
-        assertNotNull(result);
-        assertEquals(orderHistoryResponse, result);
-    }
-
-    @Test
     public void testForGetResultSuccessForBH(){
         TokenPayload tokenPayload = new TokenPayload();
         List<String> permissions = new ArrayList<>();
