@@ -32,7 +32,7 @@
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 
         <!-- Ovo je opcioni parametar koji vam omogucava da neke klase iskljucite iz test coverage-a -->
-        <sonar.coverage.exclusions>**/configuration/*, **/bootstrap/*, **/model/*,**/repository/*,**/dto/*,**/filter/*, **/exception/* </sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>**/configuration/*, **/bootstrap/*, **/model/**,**/repository/**,**/dto/**, **/filters/*, **/exception/*, **/utils/* </sonar.coverage.exclusions>
 
         <!-- Ovo je opcioni parametar koji vam omogucava da neke klase iskljucite iz code duplicate report-a -->
         <!--<sonar.cpd.exclusions>**/config/*,**/model/*</sonar.cpd.exclusions>-->
@@ -185,6 +185,12 @@
     <build>
         <!-- Vezbe 7 -->
 		<!-- Obavezno dodati ovaj parametar u pom.xml za svaki mikroservis kako bi Dockerfile radio -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+
 		<finalName>${finalName}</finalName>
 		<plugins>
 			<plugin>

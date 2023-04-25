@@ -34,7 +34,7 @@ public class PatientControllerTest {
     private PatientController patientController;
 
     @Test
-    public void createPatientTest_Success() throws ParseException {
+    void createPatientTest_Success() throws ParseException {
         PatientRequest request = makePatientRequest();
         PatientResponse response = new PatientResponse();
 
@@ -45,7 +45,7 @@ public class PatientControllerTest {
     }
 
     @Test
-    public void updatePatientByJmbgTest_Success() throws ParseException {
+    void updatePatientByJmbgTest_Success() throws ParseException {
         PatientRequest request = makePatientRequest();
         PatientResponse response = new PatientResponse();
 
@@ -56,7 +56,7 @@ public class PatientControllerTest {
     }
 
     @Test
-    public void updatePatientByLbpTest_Success() throws ParseException {
+    void updatePatientByLbpTest_Success() throws ParseException {
         PatientRequest request = makePatientRequest();
         PatientResponse response = new PatientResponse();
         UUID lbp = UUID.randomUUID();
@@ -68,7 +68,7 @@ public class PatientControllerTest {
     }
 
     @Test
-    public void deletePatientTest_Success(){
+    void deletePatientTest_Success(){
         UUID lbp = UUID.randomUUID();
         PatientResponse response = new PatientResponse();
 
@@ -79,7 +79,7 @@ public class PatientControllerTest {
     }
 
     @Test
-    public void getPatientByLbpTest_Success(){
+    void getPatientByLbpTest_Success(){
         UUID lbp = UUID.randomUUID();
         PatientResponse response = new PatientResponse();
 
@@ -90,7 +90,7 @@ public class PatientControllerTest {
     }
 
     @Test
-    public void getPatientsTest_Success(){
+    void getPatientsTest_Success(){
         PatientListResponse response = new PatientListResponse();
 
         when(patientService.getPatients(any(), any(), any(), any(), any(), any()))

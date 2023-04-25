@@ -3,7 +3,7 @@ version: '3.9'
 services:
 
   user-db:
-    image: postgres
+    image: harbor.k8s.elab.rs/bolnica-2/postgres:latest
     restart: always
     container_name: user-db
     expose:
@@ -19,7 +19,7 @@ services:
       - local_newtork
 
   patient-db:
-    image: postgres
+    image: harbor.k8s.elab.rs/bolnica-2/postgres:latest
     restart: always
     container_name: patient-db
     expose:
@@ -35,7 +35,7 @@ services:
       - local_newtork
 
   laboratory-db:
-    image: postgres
+    image: harbor.k8s.elab.rs/bolnica-2/postgres:latest
     restart: always
     container_name: laboratory-db
     expose:

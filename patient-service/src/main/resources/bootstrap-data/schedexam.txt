@@ -1,0 +1,4 @@
+24cf6c47-56e5-40d3-9c25-179dd6ed84c6;1c69e78d-8f02-448f-b0bd-62e6e9e4b44c;05/01/2023;Pacijent ima visoku temperaturu i groznicu;56776899-ae24-431a-818a-e5424683bf3c;Završeno
+5aba186b-18c2-4182-8070-d00837287e1d;0a956f66-44db-4f59-9138-328f16e4c9d7;07/01/2023;Pacijent ima vrtoglavicu, zamućen vid i brzo se umara;56776899-ae24-431a-818a-e5424683bf3c;Završeno
+e1e8a1fb-645b-47c6-a36c-d1ef3d2783c5;8a792855-8133-4789-9ee2-1ed302bf9ab0;12/02/2023;Pacijent ima naduto lice i trbuh;359b145c-413e-4ab9-8d85-50453231ed5c;Završeno
+c1c8ba08-966a-4cc5-b633-d1ef15d7caaf;547a84a9-88dd-417c-aa6e-cee704c7350d;24/03/2023;Pacijent ima svrab, crvenilo i iritaciju u predelu vagine;56776899-ae24-431a-818a-e5424683bf3c;Završeno

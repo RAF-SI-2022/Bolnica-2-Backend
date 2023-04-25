@@ -1,0 +1,4 @@
+24cf6c47-56e5-40d3-9c25-179dd6ed84c6,I01.1,23/12/2022,U toku,U boljem stanju,true,05/01/2023,24/11/2023,true,null
+5aba186b-18c2-4182-8070-d00837287e1d,G35,27/12/2022,Oporavljen,Pacijent je izlečen,false,07/01/2023,01/02/2023,true,01/02/2023
+e1e8a1fb-645b-47c6-a36c-d1ef3d2783c5,N04.9,08/01/2023,U toku,Otok se smanjio; znatno poboljšanje,true,12/02/2023,06/06/2023,true,null
+c1c8ba08-966a-4cc5-b633-d1ef15d7caaf,R87. 810,02/03/2023,Oporavljen,Uklonjeni genitalni kondilomi,false,24/03/2023,24/04/2023,true,28/04/2023

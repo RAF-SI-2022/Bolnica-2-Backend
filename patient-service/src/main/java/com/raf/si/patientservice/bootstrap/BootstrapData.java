@@ -9,13 +9,17 @@ import com.raf.si.patientservice.model.enums.medicalhistory.TreatmentResult;
 import com.raf.si.patientservice.model.enums.patient.*;
 import com.raf.si.patientservice.repository.*;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class BootstrapData implements CommandLineRunner {
@@ -58,20 +62,21 @@ public class BootstrapData implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws ParseException {
+    public void run(String... args) throws ParseException, IOException {
         makePatient();
         //makeSchedExam();
     }
 
-    private void makePatient() throws ParseException {
+    private void makePatient() throws ParseException, IOException {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+
         Patient patient = new Patient();
         patient.setJmbg("1342002345612");
-        patient.setFirstName("Pacijent");
-        patient.setLastName("Pacijentovic");
-        patient.setParentName("Roditelj");
+        patient.setFirstName("Nemanja");
+        patient.setLastName("Todorović");
+        patient.setParentName("Žarko");
         patient.setGender(Gender.MUSKI);
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        patient.setBirthDate(formatter.parse("2000-01-07"));
+        patient.setBirthDate(formatter.parse("07/01/2000"));
         patient.setBirthplace("Resnjak");
         patient.setCitizenshipCountry(CountryCode.SRB);
         patient.setCountryOfLiving(CountryCode.AFG);
@@ -80,9 +85,9 @@ public class BootstrapData implements CommandLineRunner {
         patient.setAddress("Jurija Gagarina 16");
         patient.setPlaceOfLiving("Novi Beograd");
         patient.setPhoneNumber("0601234567");
-        patient.setEmail("pacijent.pacijentovic@gmail.com");
+        patient.setEmail("nemanja.todorovic@gmail.com");
         patient.setCustodianJmbg("0101987123456");
-        patient.setCustodianName("Staratelj Starateljovic");
+        patient.setCustodianName("Žarko Todorović");
         patient.setFamilyStatus(FamilyStatus.OBA_RODITELJA);
         patient.setMaritalStatus(MaritalStatus.SAMAC);
         patient.setChildrenNum(0);
@@ -105,14 +110,14 @@ public class BootstrapData implements CommandLineRunner {
 
 
         Diagnosis diagnosis1 = new Diagnosis();
-        diagnosis1.setCode("djovak");
-        diagnosis1.setDescription("smrtonosna bolest mozga");
+        diagnosis1.setCode("G40. 909");
+        diagnosis1.setDescription("Smrtonosna bolest mozga");
         diagnosis1.setLatinDescription("Influenza, virus non identificatum");
         diagnosisRepository.save(diagnosis1);
 
         MedicalExamination examination = new MedicalExamination();
-        examination.setLbz(UUID.randomUUID());
-        examination.setDate(new Date());
+        examination.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        examination.setDate(formatter.parse("21/12/2022"));
         examination.setObjectiveFinding("Grip, ne zna se koji virus je uzrok");
         examination.setMainSymptoms("Oteceno grlo, temperatura");
         examination.setCurrentIllness("Prehlada");
@@ -126,8 +131,8 @@ public class BootstrapData implements CommandLineRunner {
         examination.setHealthRecord(healthRecord);
 
         MedicalExamination examination2 = new MedicalExamination();
-        examination2.setLbz(UUID.randomUUID());
-        examination2.setDate(new Date());
+        examination2.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        examination2.setDate(formatter.parse("21/01/2022"));
         examination2.setObjectiveFinding("Male boginje po celom telu");
         examination2.setConfidential(true);
 
@@ -135,12 +140,12 @@ public class BootstrapData implements CommandLineRunner {
 
         MedicalHistory medicalHistory = new MedicalHistory();
         medicalHistory.setDiagnosis(diagnosis1);
-        medicalHistory.setIllnessStart(new Date());
+        medicalHistory.setIllnessStart(formatter.parse("16/12/2022"));
         medicalHistory.setTreatmentResult(TreatmentResult.U_TOKU);
-        medicalHistory.setCurrentStateDescription("Trenutno stanje");
+        medicalHistory.setCurrentStateDescription("U teškom stanju");
         medicalHistory.setValid(true);
-        medicalHistory.setValidFrom(new Date());
-        medicalHistory.setValidUntil(new Date());
+        medicalHistory.setValidFrom(formatter.parse("21/12/2022"));
+        medicalHistory.setValidUntil(formatter.parse("03/12/2023"));
         medicalHistory.setConfidential(true);
 
         medicalHistory.setHealthRecord(healthRecord);
@@ -157,13 +162,13 @@ public class BootstrapData implements CommandLineRunner {
 
         // dodaj sve alergije
         String[] allergenNames = {"mleko", "jaja", "orasasti plodovi", "plodovi mora", "psenica",
-                        "soja", "riba", "penicilin"};
-        for(int i=0;i<allergenNames.length; i+=1) {
-            Allergen allergen= new Allergen();
+                "soja", "riba", "penicilin"};
+        for (int i = 0; i < allergenNames.length; i += 1) {
+            Allergen allergen = new Allergen();
             allergen.setName(allergenNames[i]);
             allergenRepository.save(allergen);
 
-            if(i<=1){
+            if (i <= 1) {
                 // dodaj jednu alergiju
                 Allergy allergy = new Allergy();
                 allergy.setHealthRecord(healthRecord);
@@ -174,7 +179,7 @@ public class BootstrapData implements CommandLineRunner {
 
         // dodaj sve vakcine
         String[] vaccineNames = {"PRIORIX", "HIBERIX", "INFLUVAC", "SYNFLORIX", "BCG VAKCINA"};
-        String[] vaccineType = {"Virusne vakcine", "Bakterijske vakcine","Virusne vakcine", "Bakterijske vakcine", "Bakterijske vakcine"};
+        String[] vaccineType = {"Virusne vakcine", "Bakterijske vakcine", "Virusne vakcine", "Bakterijske vakcine", "Bakterijske vakcine"};
         String[] vaccineDescription = {
                 "Vakcina protiv morbila (malih boginja)",
                 "Kapsulirani antigen hemofilus influence tip B",
@@ -188,7 +193,7 @@ public class BootstrapData implements CommandLineRunner {
                 "GlaxoSmithKline Biologicals S.A., Belgija",
                 "Institut za virusologiju, vakcine i serume \"Torlak\", Republika Srbija"};
 
-        for(int i=0;i<vaccineNames.length;i+=1) {
+        for (int i = 0; i < vaccineNames.length; i += 1) {
             Vaccine vaccine = new Vaccine();
             vaccine.setName(vaccineNames[i]);
             vaccine.setType(vaccineType[i]);
@@ -196,7 +201,7 @@ public class BootstrapData implements CommandLineRunner {
             vaccine.setProducer(vaccineProducer[i]);
             vaccineRepository.save(vaccine);
 
-            if(i<=1){
+            if (i <= 1) {
                 // dodaj prve dve vakcine kao vakcinacije u karton
                 Vaccination vaccination = new Vaccination();
                 vaccination.setHealthRecord(healthRecord);
@@ -210,16 +215,16 @@ public class BootstrapData implements CommandLineRunner {
         String[] mkb10 = {"A15.3", "D50", "I10", "I35.0", "J11", "J12.9", "K35", "K70.3", "K71.0", "N20.0"};
         String[] description =
                 {
-                "Tuberkuloza pluća, potvrđena neoznačenim metodama",
-                "Anemija uzrokovana nedostatkom gvožđa",
-                "Povišen krvni pritisak, nepoznatog porekla",
-                "Suženje aortnog zaliska",
-                "Grip, virus nedokazan",
-                "Zapaljenje pluća uzrokovano virusom, neoznačeno",
-                "Akutno zapaljenje slepog creva",
-                "Ciroza jetre uzrokovana alkoholom",
-                "Toksička bolest jetre zbog zastoja žuči",
-                "Kamen u bubregu"};
+                        "Tuberkuloza pluća, potvrđena neoznačenim metodama",
+                        "Anemija uzrokovana nedostatkom gvožđa",
+                        "Povišen krvni pritisak, nepoznatog porekla",
+                        "Suženje aortnog zaliska",
+                        "Grip, virus nedokazan",
+                        "Zapaljenje pluća uzrokovano virusom, neoznačeno",
+                        "Akutno zapaljenje slepog creva",
+                        "Ciroza jetre uzrokovana alkoholom",
+                        "Toksička bolest jetre zbog zastoja žuči",
+                        "Kamen u bubregu"};
         String[] latin_desc = {
                 "Tuberculosis pulmonum, methodis non specificatis confirmata",
                 "Anaemia sideropenica",
@@ -232,7 +237,7 @@ public class BootstrapData implements CommandLineRunner {
                 "Morbus hepatis toxicus cholestaticus",
                 "Calculus renis"};
 
-        for(int i=0;i<mkb10.length;i+=1) {
+        for (int i = 0; i < mkb10.length; i += 1) {
             Diagnosis diagnosis = new Diagnosis();
             diagnosis.setCode(mkb10[i]);
             diagnosis.setDescription(description[i]);
@@ -241,11 +246,12 @@ public class BootstrapData implements CommandLineRunner {
             diagnosisRepository.save(diagnosis);
         }
 
+        addDataFromFiles();
         makeSchedExam(patient);
     }
 
-    private  void makeSchedExam(Patient patient){
-        ScheduledMedExamination scheduledMedExamination= new ScheduledMedExamination();
+    private void makeSchedExam(Patient patient) {
+        ScheduledMedExamination scheduledMedExamination = new ScheduledMedExamination();
         scheduledMedExamination.setPatient(patient);
         //                                                          5a2e71bb-e4ee-43dd-a3ad-28e043f8b435
         scheduledMedExamination.setLbzDoctor(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
@@ -279,4 +285,238 @@ public class BootstrapData implements CommandLineRunner {
 
         scheduledMedExamRepository.save(scheduledMedExamination);
     }
+
+    private void addDataFromFiles() throws IOException, ParseException {
+        Resource resource = new ClassPathResource("bootstrap-data/patients.txt");
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()));
+
+        List<String> lines = reader.lines().collect(Collectors.toList());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
+        List<Patient> patients = new ArrayList<>();
+        List<HealthRecord> healthRecords = new ArrayList<>();
+
+        for (String s : lines) {
+            if (s.isEmpty())
+                continue;
+            String[] split = s.split(",");
+            Patient patient = new Patient();
+            patient.setJmbg(split[0]);
+            patient.setFirstName(split[1]);
+            patient.setLastName(split[2]);
+            patient.setParentName(split[3]);
+            patient.setGender(Gender.valueOfNotation(split[4]));
+            patient.setBirthDate(sdf.parse(split[5]));
+            patient.setBirthplace(split[6]);
+            patient.setCitizenshipCountry(CountryCode.valueOf(split[7]));
+            patient.setCountryOfLiving(CountryCode.valueOf(split[8]));
+            patient.setLbp(UUID.fromString(split[9]));
+
+            patient.setAddress(split[10]);
+            patient.setPlaceOfLiving(split[11]);
+            patient.setPhoneNumber(split[12]);
+            patient.setEmail(split[13]);
+            patient.setCustodianJmbg(split[14]);
+            patient.setCustodianName(split[15]);
+            patient.setFamilyStatus(FamilyStatus.valueOfNotation(split[16]));
+            patient.setMaritalStatus(MaritalStatus.valueOfNotation(split[17]));
+            patient.setChildrenNum(Integer.parseInt(split[18]));
+            patient.setEducation(Education.valueOfNotation(split[19]));
+            patient.setProfession(split[20]);
+
+
+            HealthRecord healthRecord = new HealthRecord();
+            healthRecord.setRegistrationDate(sdf.parse(split[21]));
+            healthRecord.setBloodType(BloodType.valueOf(split[22]));
+            healthRecord.setRhFactor(RHFactor.valueOfNotation(split[23]));
+
+            patient.setHealthRecord(healthRecord);
+            healthRecord.setPatient(patient);
+            patients.add(patient);
+            healthRecords.add(healthRecord);
+        }
+        reader.close();
+
+        List<Patient> patientList = patientRepository.saveAll(patients);
+        List<HealthRecord> healthRecordList = healthRecordRepository.saveAll(healthRecords);
+        addMedExaminations(patients);
+        addSchedExams(patientList);
+        addAlergiesAndVacines(healthRecordList);
+    }
+
+    private void addMedExaminations(List<Patient> patients) throws IOException, ParseException {
+        Resource resource = new ClassPathResource("bootstrap-data/examinations.txt");
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()));
+
+        List<String> lines = reader.lines().collect(Collectors.toList());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        List<Diagnosis> diagnoses = new ArrayList<>();
+        List<MedicalExamination> examinations = new ArrayList<>();
+
+        for (String s : lines) {
+            if (s.isEmpty())
+                continue;
+
+            String[] split = s.split(",");
+            MedicalExamination examination = new MedicalExamination();
+            examination.setLbz(UUID.fromString(split[1]));
+            examination.setDate(sdf.parse(split[2]));
+            examination.setObjectiveFinding(split[3].replace(";", ","));
+            examination.setMainSymptoms(split[4].replace(";", ","));
+            examination.setCurrentIllness(split[5].replace(";", ","));
+            examination.setAnamnesis(split[6].replace(";", ","));
+            examination.setFamilyAnamnesis(split[7].replace(";", ","));
+            examination.setPatientOpinion(split[8]);
+            examination.setSuggestedTherapy(split[9].replace(";", ","));
+            examination.setAdvice(split[10].replace(";", ","));
+
+            Diagnosis diagnosis = new Diagnosis();
+            diagnosis.setCode(split[11]);
+            diagnosis.setDescription(split[12]);
+            diagnosis.setLatinDescription(split[13]);
+
+            examination.setDiagnosis(diagnosis);
+            Patient patient = patients.stream().filter(p -> p.getLbp().equals(UUID.fromString(split[0])))
+                    .findFirst().orElse(null);
+            assert patient != null;
+            examination.setHealthRecord(patient.getHealthRecord());
+
+            diagnoses.add(diagnosis);
+            examinations.add(examination);
+        }
+        reader.close();
+
+        diagnosisRepository.saveAll(diagnoses);
+        medicalExaminationRepository.saveAll(examinations);
+
+        addMedHistory(patients, diagnoses);
+
+    }
+
+    private void addMedHistory(List<Patient> patients, List<Diagnosis> diagnoses) throws IOException, ParseException {
+        Resource resource = new ClassPathResource("bootstrap-data/histories.txt");
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()));
+
+        List<String> lines = reader.lines().collect(Collectors.toList());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        List<MedicalHistory> medHistories = new ArrayList<>();
+        for (String s : lines) {
+            if (s.isEmpty())
+                continue;
+
+            String[] split = s.split(",");
+
+            MedicalHistory medicalHistory = new MedicalHistory();
+            medicalHistory.setIllnessStart(sdf.parse(split[2]));
+            medicalHistory.setTreatmentResult(TreatmentResult.valueOfNotation(split[3]));
+            medicalHistory.setCurrentStateDescription(split[4].replace(";", ","));
+            medicalHistory.setValid(Boolean.valueOf(split[5]));
+            medicalHistory.setValidFrom(sdf.parse(split[6]));
+            medicalHistory.setValidUntil(sdf.parse(split[7]));
+            medicalHistory.setConfidential(Boolean.valueOf(split[8]));
+
+            if (!split[9].equals("null"))
+                medicalHistory.setIllnessEnd(sdf.parse(split[9]));
+
+            Diagnosis diagnosis = diagnoses.stream().filter(d -> d.getCode().equals(split[1]))
+                    .findFirst().orElse(null);
+
+            medicalHistory.setDiagnosis(diagnosis);
+            Patient patient = patients.stream().filter(p -> p.getLbp().equals(UUID.fromString(split[0])))
+                    .findFirst().orElse(null);
+            assert patient != null;
+            medicalHistory.setHealthRecord(patient.getHealthRecord());
+            medHistories.add(medicalHistory);
+        }
+        reader.close();
+
+        medicalHistoryRepository.saveAll(medHistories);
+    }
+
+    private void addSchedExams(List<Patient> patients) throws IOException, ParseException {
+        Resource resource = new ClassPathResource("bootstrap-data/schedexam.txt");
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()));
+
+        List<String> lines = reader.lines().collect(Collectors.toList());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        List<ScheduledMedExamination> scheduledMedExaminations = new ArrayList<>();
+
+        for (String s : lines) {
+            if (s.isEmpty())
+                continue;
+            String[] split = s.split(";");
+            Patient patient = patients.stream().filter(p -> p.getLbp().equals(UUID.fromString(split[0])))
+                    .findFirst()
+                    .orElse(null);
+
+            ScheduledMedExamination scheduledMedExamination = new ScheduledMedExamination();
+            scheduledMedExamination.setPatient(patient);
+            scheduledMedExamination.setLbzDoctor(UUID.fromString(split[1]));
+            scheduledMedExamination.setAppointmentDate(sdf.parse(split[2]));
+            scheduledMedExamination.setNote(split[3]);
+            scheduledMedExamination.setLbzNurse(UUID.fromString(split[4]));
+            scheduledMedExamination.setExaminationStatus(ExaminationStatus.valueOfNotation(split[5]));
+            scheduledMedExaminations.add(scheduledMedExamination);
+        }
+        reader.close();
+
+        scheduledMedExamRepository.saveAll(scheduledMedExaminations);
+    }
+
+    private void addAlergiesAndVacines(List<HealthRecord> healthRecords) throws IOException, ParseException {
+        List<Allergen> allergens = allergenRepository.findAll();
+        List<Vaccine> vaccines = vaccineRepository.findAll();
+        List<Vaccination> vaccinations = new ArrayList<>();
+        List<Allergy> allergies = new ArrayList<>();
+
+        Resource resource = new ClassPathResource("bootstrap-data/allergyVaccines.txt");
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()));
+
+        List<String> lines = reader.lines().collect(Collectors.toList());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
+        for (String s : lines) {
+            if (s.isEmpty())
+                continue;
+            String[] split = s.split(";");
+            HealthRecord healthRecord = healthRecords.stream()
+                    .filter(h -> h.getPatient().getLbp().equals(UUID.fromString(split[0])))
+                    .findFirst()
+                    .orElse(null);
+            List<String> vaccinesToAdd = Arrays.asList(split[1].split(",").clone());
+            List<String> dates = Arrays.asList(split[2].split(",").clone());
+            List<Vaccine> vaccineList = vaccines.stream()
+                    .filter(f -> vaccinesToAdd.contains(f.getName()))
+                    .collect(Collectors.toList());
+            for (int i = 0; i < vaccineList.size(); i++) {
+                Vaccination vaccination = new Vaccination();
+                vaccination.setVaccinationDate(sdf.parse(dates.get(i)));
+                vaccination.setVaccine(vaccineList.get(i));
+                vaccination.setHealthRecord(healthRecord);
+                vaccinations.add(vaccination);
+            }
+
+            List<String> allergensToAdd = Arrays.asList(split[3].split(",").clone());
+            List<Allergen> allergenList = allergens.stream()
+                    .filter(a -> allergensToAdd.contains(a.getName()))
+                    .collect(Collectors.toList());
+            for (Allergen a : allergenList) {
+                Allergy allergy = new Allergy();
+                allergy.setAllergen(a);
+                allergy.setHealthRecord(healthRecord);
+                allergies.add(allergy);
+            }
+        }
+
+        reader.close();
+
+        vaccinationRepository.saveAll(vaccinations);
+        allergyRepository.saveAll(allergies);
+    }
+
 }

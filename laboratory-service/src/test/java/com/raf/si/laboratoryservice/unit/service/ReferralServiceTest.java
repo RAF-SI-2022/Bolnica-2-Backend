@@ -2,6 +2,9 @@ package com.raf.si.laboratoryservice.unit.service;
 
 import com.raf.si.laboratoryservice.dto.request.CreateReferralRequest;
 import com.raf.si.laboratoryservice.dto.response.*;
+import com.raf.si.laboratoryservice.exception.BadRequestException;
+import com.raf.si.laboratoryservice.exception.InternalServerErrorException;
+import com.raf.si.laboratoryservice.exception.NotFoundException;
 import com.raf.si.laboratoryservice.mapper.ReferralMapper;
 import com.raf.si.laboratoryservice.model.LabWorkOrder;
 import com.raf.si.laboratoryservice.model.Referral;
@@ -9,14 +12,12 @@ import com.raf.si.laboratoryservice.model.enums.referral.ReferralStatus;
 import com.raf.si.laboratoryservice.model.enums.referral.ReferralType;
 import com.raf.si.laboratoryservice.repository.LabWorkOrderRepository;
 import com.raf.si.laboratoryservice.repository.ReferralRepository;
-import com.raf.si.laboratoryservice.service.ReferralService;
 import com.raf.si.laboratoryservice.service.impl.ReferralServiceImpl;
 import com.raf.si.laboratoryservice.utils.HttpUtils;
 import com.raf.si.laboratoryservice.utils.TokenPayload;
 import com.raf.si.laboratoryservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,7 +31,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.sql.Timestamp;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -59,6 +59,7 @@ class ReferralServiceTest {
     @Test
     void testCreateReferral() {
         CreateReferralRequest createReferralRequest = new CreateReferralRequest();
+        createReferralRequest.setCreationTime(DateUtils.addDays(new Date(), 1));
         Referral referral = new Referral();
         ReferralResponse referralResponse = new ReferralResponse();
 
@@ -89,7 +90,7 @@ class ReferralServiceTest {
         assertEquals(referralResponse, result);
     }
     @Test
-    public void testDeleteReferral_Success() {
+    void testDeleteReferral_Success() {
         Long referralId = 1L;
         UUID lbzFromToken = UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435");
         Referral referral = new Referral();
@@ -121,6 +122,63 @@ class ReferralServiceTest {
         assertEquals(referralResponse, result);
     }
 
+    @Test
+    void testDeleteReferral_ReferralNotFound() {
+        Long referralId = 1L;
+        when(referralRepository.findById(referralId)).thenReturn(Optional.empty());
+
+        try {
+            referralService.deleteReferral(referralId);
+            fail("Expected NotFoundException not thrown");
+        } catch (NotFoundException e) {
+            assertEquals("Uput sa datim id-ijem ne postoji", e.getMessage());
+        }
+    }
+
+    @Test
+    void testDeleteReferral_LbzMismatch() {
+        Long referralId = 1L;
+        Referral referral = new Referral();
+        referral.setLbz(UUID.randomUUID());
+
+        TokenPayload tokenPayload = new TokenPayload();
+        tokenPayload.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        when(authentication.getPrincipal()).thenReturn(tokenPayload);
+
+        when(referralRepository.findById(referralId)).thenReturn(Optional.of(referral));
+
+        try {
+            referralService.deleteReferral(referralId);
+            fail("Expected NotFoundException not thrown");
+        } catch (NotFoundException e) {
+            assertEquals("Lbz uputa i lbz iz tokena se ne poklapaju, uput nije obrisan!", e.getMessage());
+        }
+    }
+
+    @Test
+    void testDeleteReferral_WorkOrderExists() {
+        Long referralId = 1L;
+        Referral referral = new Referral();
+        referral.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+
+        TokenPayload tokenPayload = new TokenPayload();
+        tokenPayload.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        when(authentication.getPrincipal()).thenReturn(tokenPayload);
+
+        when(referralRepository.findById(referralId)).thenReturn(Optional.of(referral));
+        when(labWorkOrderRepository.findByReferral(referral)).thenReturn(new LabWorkOrder());
+
+        try {
+            referralService.deleteReferral(referralId);
+            fail("Expected NotFoundException not thrown");
+        } catch (NotFoundException e) {
+            assertEquals("Radni nalog sa id-ijem uputa postoji, uput nije obrisan!", e.getMessage());
+        }
+    }
+
+
 
     @Test
     void testReferralHistory() {
@@ -146,7 +204,7 @@ class ReferralServiceTest {
     }
 
     @Test
-    public void testUnprocessedReferrals() {
+    void testUnprocessedReferrals() {
         UUID lbp = UUID.randomUUID();
         UUID pboFromToken = UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435");
         String token = "Bearer test";
@@ -166,7 +224,7 @@ class ReferralServiceTest {
 
         List<UnprocessedReferralsResponse> expectedResponse = new ArrayList<>();
         UnprocessedReferralsResponse unprocessedReferralResponse = new UnprocessedReferralsResponse();
-        unprocessedReferralResponse.setRequiredAnalysis("Krvna slika");
+        unprocessedReferralResponse.setAnalysisParameters(null);
         unprocessedReferralResponse.setComment("Komentar");
         expectedResponse.add(unprocessedReferralResponse);
 
@@ -185,34 +243,132 @@ class ReferralServiceTest {
         verify(referralRepository, times(1)).findByLbpAndPboReferredFromAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN);
     }
 
-    private  void mockConnectionWithUserService_Doctors() {
+    @Test
+    public void testRequestToModel() {
+        CreateReferralRequest createReferralRequest = new CreateReferralRequest();
+        createReferralRequest.setPboReferredFrom(UUID.randomUUID());
+        createReferralRequest.setPboReferredTo(UUID.randomUUID());
+        createReferralRequest.setLbz(UUID.randomUUID());
+        createReferralRequest.setLbp(UUID.randomUUID());
+        Date now = new Date();
+        createReferralRequest.setCreationTime(new Date());
+        createReferralRequest.setReferralReason("Test referral reason");
+        createReferralRequest.setReferralDiagnosis("Test referral diagnosis");
+        createReferralRequest.setComment("Test referral comment");
+        createReferralRequest.setRequiredAnalysis("Test required analysis");
+        createReferralRequest.setType("Laboratorija");
+        ReferralType expectedReferralType = ReferralType.LABORATORIJA;
+
+        ReferralMapper rm = new ReferralMapper();
+        Referral referral = rm.requestToModel(createReferralRequest);
+
+        assertEquals(createReferralRequest.getPboReferredFrom(), referral.getPboReferredFrom());
+        assertEquals(createReferralRequest.getPboReferredTo(), referral.getPboReferredTo());
+        assertEquals(createReferralRequest.getLbz(), referral.getLbz());
+        assertEquals(createReferralRequest.getLbp(), referral.getLbp());
+        assertEquals(now, referral.getCreationTime());
+        assertEquals(createReferralRequest.getReferralReason(), referral.getReferralReason());
+        assertEquals(createReferralRequest.getReferralDiagnosis(), referral.getReferralDiagnosis());
+        assertEquals(createReferralRequest.getComment(), referral.getComment());
+        assertEquals(createReferralRequest.getRequiredAnalysis(), referral.getRequiredAnalysis());
+        assertEquals(false, referral.getDeleted());
+        assertEquals(expectedReferralType, referral.getType());
+    }
+
+    @Test
+    public void testModelToResponse() {
+        Referral referral = new Referral();
+        referral.setId(1L);
+        referral.setType(ReferralType.LABORATORIJA);
+        referral.setPboReferredFrom(UUID.randomUUID());
+        referral.setPboReferredTo(UUID.randomUUID());
+        referral.setLbz(UUID.randomUUID());
+        referral.setLbp(UUID.randomUUID());
+        referral.setCreationTime(new Date());
+        referral.setReferralDiagnosis("diagnosis");
+        referral.setReferralReason("reason");
+        referral.setRequiredAnalysis("analysis");
+        referral.setComment("comment");
+        referral.setStatus(ReferralStatus.NEREALIZOVAN);
+        referral.setDeleted(false);
+
+        ReferralMapper rm = new ReferralMapper();
+        ReferralResponse referralResponse = rm.modelToResponse(referral);
+
+        assertEquals(referral.getId(), referralResponse.getId());
+        assertEquals(referral.getType(), referralResponse.getType());
+        assertEquals(referral.getPboReferredFrom(), referralResponse.getPboReferredFrom());
+        assertEquals(referral.getPboReferredTo(), referralResponse.getPboReferredTo());
+        assertEquals(referral.getLbz(), referralResponse.getLbz());
+        assertEquals(referral.getLbp(), referralResponse.getLbp());
+        assertEquals(referral.getCreationTime(), referralResponse.getCreationTime());
+        assertEquals(referral.getReferralDiagnosis(), referralResponse.getReferralDiagnosis());
+        assertEquals(referral.getReferralReason(), referralResponse.getReferralReason());
+        assertEquals(referral.getRequiredAnalysis(), referralResponse.getRequiredAnalysis());
+        assertEquals(referral.getComment(), referralResponse.getComment());
+        assertEquals(referral.getStatus(), referralResponse.getStatus());
+        assertEquals(referral.getDeleted(), referralResponse.getDeleted());
+    }
+
+
+    @Test
+    public void testGettersAndSetters() {
+        // Create a ReferralResponse object with test data
+        ReferralResponse referral = new ReferralResponse();
+        referral.setId(1L);
+        referral.setType(ReferralType.LABORATORIJA);
+        referral.setLbz(UUID.randomUUID());
+        referral.setPboReferredFrom(UUID.randomUUID());
+        referral.setPboReferredTo(UUID.randomUUID());
+        referral.setLbp(UUID.randomUUID());
+        referral.setCreationTime(new Date());
+        referral.setStatus(ReferralStatus.NEREALIZOVAN);
+        referral.setRequiredAnalysis("Blood");
+        referral.setComment("Some comment");
+        referral.setReferralDiagnosis("Diagnosis");
+        referral.setReferralReason("Reason");
+        referral.setDeleted(false);
+
+        // Verify that the getters return the same values as the setters
+        assertEquals(Long.valueOf(1L), referral.getId());
+        assertEquals(ReferralType.LABORATORIJA, referral.getType());
+        assertEquals(referral.getLbz(), referral.getLbz());
+        assertEquals(referral.getPboReferredFrom(), referral.getPboReferredFrom());
+        assertEquals(referral.getPboReferredTo(), referral.getPboReferredTo());
+        assertEquals(referral.getLbp(), referral.getLbp());
+        assertEquals(referral.getCreationTime(), referral.getCreationTime());
+        assertEquals(ReferralStatus.NEREALIZOVAN, referral.getStatus());
+        assertEquals("Blood", referral.getRequiredAnalysis());
+        assertEquals("Some comment", referral.getComment());
+        assertEquals("Diagnosis", referral.getReferralDiagnosis());
+        assertEquals("Reason", referral.getReferralReason());
+        assertFalse(referral.getDeleted());
+    }
+
+    private void mockConnectionWithUserService_Doctors() {
         Mockito.mockStatic(HttpUtils.class);
 
         DoctorResponse doctorResponseMock = Mockito.mock(DoctorResponse.class);
-        List<DoctorResponse> doctorResponsesMock = new ArrayList<>();
-        doctorResponsesMock.add(doctorResponseMock);
+        List<DoctorResponse> doctorResponseList = new ArrayList<>();
+        doctorResponseList.add(doctorResponseMock);
 
-        ResponseEntity<List<DoctorResponse>> responseBodyMock = Mockito.mock(ResponseEntity.class);
-
-        when(responseBodyMock.getBody()).thenReturn(doctorResponsesMock);
-
+        ResponseEntity<DoctorResponse> responseBodyMock = Mockito.mock(ResponseEntity.class);
         doReturn(HttpStatus.OK).when(responseBodyMock).getStatusCode();
 
-        when(HttpUtils.getAllDoctors(any(String.class))).thenReturn(responseBodyMock);
+        when(HttpUtils.getAllDoctors(any(String.class))).thenReturn(doctorResponseList);
     }
 
-    private  void mockConnectionWithUserService_Departments() {
-        DepartmentResponse departmentResponse = Mockito.mock(DepartmentResponse.class);
-        List<DepartmentResponse> departmentResponseMock = new ArrayList<>();
-        departmentResponseMock.add(departmentResponse);
+    private void mockConnectionWithUserService_Departments() {
+        DepartmentResponse departmentResponseMock = Mockito.mock(DepartmentResponse.class);
+        List<DepartmentResponse> departmentResponsesList = new ArrayList<>();
+        departmentResponsesList.add(departmentResponseMock);
 
-        ResponseEntity<List<DepartmentResponse>> responseBodyMock = Mockito.mock(ResponseEntity.class);
-
+        ResponseEntity<DepartmentResponse> responseBodyMock = Mockito.mock(ResponseEntity.class);
         when(responseBodyMock.getBody()).thenReturn(departmentResponseMock);
 
         doReturn(HttpStatus.OK).when(responseBodyMock).getStatusCode();
 
-        when(HttpUtils.findDepartmentName(any(String.class))).thenReturn(responseBodyMock);
+        when(HttpUtils.findDepartmentName(any(String.class))).thenReturn(departmentResponsesList);
     }
 
     private ReferralListResponse createReferralListResponse() {

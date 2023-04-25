@@ -9,6 +9,8 @@ import com.raf.si.laboratoryservice.model.*;
 import com.raf.si.laboratoryservice.model.enums.labworkorder.OrderStatus;
 import com.raf.si.laboratoryservice.model.enums.referral.ReferralStatus;
 import com.raf.si.laboratoryservice.repository.*;
+import com.raf.si.laboratoryservice.repository.filtering.filter.WorkOrderFilter;
+import com.raf.si.laboratoryservice.repository.filtering.specification.WorkOrderSpecification;
 import com.raf.si.laboratoryservice.service.WorkOrderService;
 import com.raf.si.laboratoryservice.utils.TokenPayload;
 import com.raf.si.laboratoryservice.utils.TokenPayloadUtil;
@@ -57,6 +59,8 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
         newOrder.setLbp(lbp);
         newOrder.setLbzTechnician(lbz);
         newOrder.setCreationTime(new Date(System.currentTimeMillis()));
+        newOrder.setReferral(referral);
+        referral.setLabWorkOrder(newOrder);
 
         List<LabAnalysis> analysisList = labAnalysisRepository
                 .findByNames(requiredAnalysislist)
@@ -78,10 +82,13 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
             }
         }
 
+        labWorkOrderRepository.save(newOrder);
+        referralRepository.save(referral);
         analysisParameterResultRepository.saveAll(analysisParameterResults);
 
         newOrder = labWorkOrderRepository.save(newOrder);
-        return orderMapper.orderToOrderResponse(newOrder);
+        return orderMapper.orderToOrderResponse(newOrder, analysisParameterResults);
+
     }
 
     @Override
@@ -143,10 +150,15 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
 
     @Override
     public OrderHistoryResponse orderHistoryForLab(OrderHistoryForLabRequest request, Pageable pageable) {
-        Page<LabWorkOrder> orders = labWorkOrderRepository.findByLbpAndCreationTimeBetweenAndStatus(
-                request.getLbp(),request.getStartDate(),request.getEndDate(), OrderStatus.valueOfNotation(request.getOrderStatus()),
-                pageable
+        WorkOrderFilter filter = new WorkOrderFilter(
+                request.getLbp(),
+                request.getStartDate(),
+                request.getEndDate(),
+                OrderStatus.valueOfNotation(request.getOrderStatus())
         );
+        WorkOrderSpecification spec = new WorkOrderSpecification(filter);
+
+        Page<LabWorkOrder> orders = labWorkOrderRepository.findAll(spec, pageable);
 
         return orderMapper.orderPageToOrderHistoryForLabResponse(orders);
     }
@@ -157,7 +169,7 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
 
         for(AnalysisParameterResult apr : order.getAnalysisParameterResults()){
             if(apr.getResult() == null){
-                String errMessage = "Nisu unete svi rezultati analize parametara.";
+                String errMessage = "Nisu uneti svi rezultati analize parametara.";
                 log.info(errMessage);
                 throw new BadRequestException(errMessage);
             }

@@ -2,6 +2,7 @@ package com.raf.si.patientservice.unit.service;
 
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
 import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
+import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 import com.raf.si.patientservice.dto.response.http.UserResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
@@ -22,7 +23,10 @@ import com.raf.si.patientservice.utils.HttpUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,10 +34,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
-import org.springframework.integration.support.locks.LockRegistry;
 
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -81,7 +85,7 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
-    public void createSchedMedExam_WhenDoctorHasUncompletedExams_ThrowBadRequestException(){
+    void createSchedMedExam_WhenDoctorHasUncompletedExams_ThrowBadRequestException(){
         SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
         String token= "Bearer woauhruoawbhfupaw";
 
@@ -99,7 +103,7 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
-    public void createSchedMedExam_WhenDoctorWithGivenLbzNotExists_ThrowBadRequestException(){
+    void createSchedMedExam_WhenDoctorWithGivenLbzNotExists_ThrowBadRequestException(){
         SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
         String token= "Bearer woauhruoawbhfupaw";
 
@@ -120,7 +124,7 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
-    public  void createSchedMedExam_WhenPatientWithGivenLbpNotExists_ThrowBadRequestException(){
+     void createSchedMedExam_WhenPatientWithGivenLbpNotExists_ThrowBadRequestException(){
         SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
         String token= "Bearer woauhruoawbhfupaw";
 
@@ -140,7 +144,7 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
-    public void createSchedMedExam_AppointmentDateInThePast_ThrowBadRequestException(){
+    void createSchedMedExam_AppointmentDateInThePast_ThrowBadRequestException(){
         SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
         String token= "Bearer woauhruoawbhfupaw";
 
@@ -155,7 +159,7 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
-    public void createSchedMedExam_PatientAlreadyHasAnAppointmentWithThatDoctorThatDay_ThrowBadRequestException(){
+    void createSchedMedExam_PatientAlreadyHasAnAppointmentWithThatDoctorThatDay_ThrowBadRequestException(){
         SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
         String token= "Bearer woauhruoawbhfupaw";
 
@@ -188,7 +192,7 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
-    public void createSchedMedExam_TwoUsersTryToPutTheLockAtTheSameTimeAndOneTimesOut_ThrowBadRequestException(){
+    void createSchedMedExam_TwoUsersTryToPutTheLockAtTheSameTimeAndOneTimesOut_ThrowBadRequestException(){
         SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
         String token= "Bearer woauhruoawbhfupaw";
 
@@ -196,14 +200,99 @@ public class SchedMedExaminationServiceTest {
         setUp();
 
         when(lockRegistry.obtain(any())).thenReturn(lock);
-        when(lock.tryLock()).thenReturn(false);
+        try {
+            when(lock.tryLock(1, TimeUnit.SECONDS)).thenReturn(false);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         assertThrows(BadRequestException.class,
                 () -> schedMedExaminationService.createSchedMedExamination(schedMedExamRequest, token));
     }
 
     @Test
-    public void createSchedMedExam_Success(){
+    void createSchedMedExam_LockingProducesInteruptedException_ThrowBadRequestException(){
+        SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
+        String token= "Bearer woauhruoawbhfupaw";
+
+        Mockito.framework().clearInlineMocks();
+        setUp();
+
+        when(lockRegistry.obtain(any())).thenReturn(lock);
+        try {
+            when(lock.tryLock(1, TimeUnit.SECONDS)).thenThrow(new InterruptedException());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        assertThrows(InternalServerErrorException.class,
+                () -> schedMedExaminationService.createSchedMedExamination(schedMedExamRequest, token));
+    }
+
+    @Test
+    void createSchedMedExam_CreateSchedMedExamLockedInvalidRequest_ThrowsException(){
+        SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
+        String token= "Bearer woauhruoawbhfupaw";
+
+        Date timeBetweenAppointmnets = new Date(schedMedExamRequest.getAppointmentDate().getTime() - DURATION_OF_EXAM * 60 * 1000);
+
+        Mockito.framework().clearInlineMocks();
+        setUp();
+
+        when(lockRegistry.obtain(any())).thenReturn(lock);
+        try {
+            when(lock.tryLock(1, TimeUnit.SECONDS)).thenReturn(true);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        when(scheduledMedExamRepository.findByAppointmentDateBetweenAndLbzDoctor(timeBetweenAppointmnets
+                ,schedMedExamRequest.getAppointmentDate(), schedMedExamRequest.getLbzDoctor()))
+                .thenReturn(Optional.of(new ArrayList<>()));
+
+        when(patientRepository.findByLbpAndDeleted(schedMedExamRequest.getLbp(), false)).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class,
+                () -> schedMedExaminationService.createSchedMedExamination(schedMedExamRequest, token));
+    }
+
+    @Test
+    void createSchedMedExam_CreateSchedMedExamLocked_Success(){
+        SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
+        String token= "Bearer woauhruoawbhfupaw";
+
+        Date timeBetweenAppointmnets = new Date(schedMedExamRequest.getAppointmentDate().getTime() - DURATION_OF_EXAM * 60 * 1000);
+
+        Mockito.framework().clearInlineMocks();
+        setUp();
+
+        when(lockRegistry.obtain(any())).thenReturn(lock);
+        try {
+            when(lock.tryLock(1, TimeUnit.SECONDS)).thenReturn(true);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        Patient patient=createPatient();
+        when(scheduledMedExamRepository.findByAppointmentDateBetweenAndLbzDoctor(timeBetweenAppointmnets
+                ,schedMedExamRequest.getAppointmentDate(), schedMedExamRequest.getLbzDoctor()))
+                .thenReturn(Optional.of(new ArrayList<>()));
+
+        when(patientRepository.findByLbpAndDeleted(schedMedExamRequest.getLbp(), false)).thenReturn(Optional.of(patient));
+
+        ScheduledMedExamination scheduledMedExamination= schedMedExamMapper
+                .schedMedExamRequestToScheduledMedExamination(new ScheduledMedExamination(),schedMedExamRequest, patient);
+
+        when(scheduledMedExamRepository.save(any())).thenReturn(scheduledMedExamination);
+
+        mockConnectionWithUserService(1, HttpStatus.OK);
+
+        assertEquals(schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination),
+                schedMedExaminationService.createSchedMedExamination(schedMedExamRequest, token));
+    }
+
+    @Test
+    void createSchedMedExam_Success(){
         SchedMedExamRequest schedMedExamRequest= createSchedMedExamRequest();
         String token= "Bearer woauhruoawbhfupaw";
 
@@ -231,7 +320,7 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
-    public void updateSchedMedExaminationExamStatus_WhenGivenExamIdNotExists_ThrowBadRequestError(){
+    void updateSchedMedExaminationExamStatus_WhenGivenExamIdNotExists_ThrowBadRequestError(){
         UpdateSchedMedExamRequest updateSchedMedExamRequest = createUpdateSchedMedExamRequest("Završeno");
 
         assertThrows(BadRequestException.class, ()-> schedMedExaminationService
@@ -239,7 +328,7 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
-    public void updateSchedMedExaminationExamStatus_WhenGivenUnidentifiedStatus_ThrowBadRequestError(){
+    void updateSchedMedExaminationExamStatus_WhenGivenUnidentifiedStatus_ThrowBadRequestError(){
         UpdateSchedMedExamRequest updateSchedMedExamRequest = createUpdateSchedMedExamRequest("foo");
 
         when(scheduledMedExamRepository.findById(updateSchedMedExamRequest.getId())).thenReturn(Optional
@@ -250,7 +339,7 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
-    public void updateSchedMedExaminationExamStatus_WhenGivenForbiddenStatus_ThrowBadRequestError(){
+    void updateSchedMedExaminationExamStatus_WhenGivenForbiddenStatus_ThrowBadRequestError(){
         UpdateSchedMedExamRequest updateSchedMedExamRequest = createUpdateSchedMedExamRequest("Otkazano");
 
         when(scheduledMedExamRepository.findById(updateSchedMedExamRequest.getId())).thenReturn(Optional
@@ -261,7 +350,7 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
-    public void updateSchedMedExaminationExamStatus_Success(){
+    void updateSchedMedExaminationExamStatus_Success(){
         UpdateSchedMedExamRequest updateSchedMedExamRequest = createUpdateSchedMedExamRequest("U toku");
         ScheduledMedExamination scheduledMedExamination= new ScheduledMedExamination();
         scheduledMedExamination.setPatient(createPatient());
@@ -279,14 +368,14 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
-    public void deleteSchedMedExamination_WhenGivenExamIdNotExists_ThrowBadRequestError(){
+    void deleteSchedMedExamination_WhenGivenExamIdNotExists_ThrowBadRequestError(){
         Long id= 1L;
 
         assertThrows(BadRequestException.class, () -> schedMedExaminationService.deleteSchedMedExamination(id));
     }
 
     @Test
-    public void deleteSchedMedExamination_Success(){
+    void deleteSchedMedExamination_Success(){
         Long id= 1L;
         ScheduledMedExamination scheduledMedExamination= new ScheduledMedExamination();
         scheduledMedExamination.setPatient(createPatient());
@@ -300,7 +389,7 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
-    public void getSchedMedExaminationByLbz_WhenConnectionWIthUserServiceError_ThrowInternalServerError(){
+    void getSchedMedExaminationByLbz_WhenConnectionWIthUserServiceError_ThrowInternalServerError(){
         UUID lbz= UUID.fromString("01d30a14-ce77-11ed-afa1-0242ac120002");
         Date appointmentDate= new Date();
         String token= "Bearer woauhruoawbhfupaw";
@@ -313,7 +402,7 @@ public class SchedMedExaminationServiceTest {
                 , appointmentDate, token, pageable));
     }
     @Test
-    public void getSchedMedExaminationByLbz_WhenGivenLbzNotExists_ThrowBadRequestError(){
+    void getSchedMedExaminationByLbz_WhenGivenLbzNotExists_ThrowBadRequestError(){
         UUID lbz= UUID.fromString("01d30a14-ce77-11ed-afa1-0242ac120002");
         Date appointmentDate= new Date();
         String token= "Bearer woauhruoawbhfupaw";
@@ -329,7 +418,7 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
-    public void getSchedMedExaminationByLbz_WhenGivenLbzNotADoctor_ThrowBadRequestError(){
+    void getSchedMedExaminationByLbz_WhenGivenLbzNotADoctor_ThrowBadRequestError(){
         UUID lbz= UUID.fromString("01d30a14-ce77-11ed-afa1-0242ac120002");
         Date appointmentDate= new Date();
         String token= "Bearer woauhruoawbhfupaw";
@@ -345,7 +434,7 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
-    public void getSchedMedExaminationByLbz_Success(){
+    void getSchedMedExaminationByLbz_Success(){
         UUID lbz= UUID.fromString("01d30a14-ce77-11ed-afa1-0242ac120002");
         Date appointmentDate= new Date();
         String token= "Bearer woauhruoawbhfupaw";
@@ -367,7 +456,7 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
-    public void updateSchedMedExaminationPatientArrivalStatus_WhenGivenIdNotExists_ThrowBadRequestError(){
+    void updateSchedMedExaminationPatientArrivalStatus_WhenGivenIdNotExists_ThrowBadRequestError(){
         UpdateSchedMedExamRequest updateSchedMedExamRequest= createUpdateSchedMedExamRequest("foo");
 
         assertThrows(BadRequestException.class, () -> schedMedExaminationService.updateSchedMedExaminationPatientArrivalStatus
@@ -375,7 +464,7 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
-    public void updateSchedMedExaminationPatientArrivalStatus_WhenGivenUnidentifiedStatus_ThrowBadRequestError(){
+    void updateSchedMedExaminationPatientArrivalStatus_WhenGivenUnidentifiedStatus_ThrowBadRequestError(){
         UpdateSchedMedExamRequest updateSchedMedExamRequest= createUpdateSchedMedExamRequest("foo");
 
         when(scheduledMedExamRepository.findById(updateSchedMedExamRequest.getId())).thenReturn(
@@ -386,7 +475,7 @@ public class SchedMedExaminationServiceTest {
     }
 
     @Test
-    public void  updateSchedMedExaminationPatientArrivalStatus_Success() {
+    void  updateSchedMedExaminationPatientArrivalStatus_Success() {
         UpdateSchedMedExamRequest updateSchedMedExamRequest= createUpdateSchedMedExamRequest("Čeka");
         ScheduledMedExamination scheduledMedExamination= new ScheduledMedExamination();
         scheduledMedExamination.setPatient(createPatient());

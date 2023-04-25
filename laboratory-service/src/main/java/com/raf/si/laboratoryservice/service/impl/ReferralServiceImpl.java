@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class ReferralServiceImpl implements ReferralService {
-
     private final ReferralRepository referralRepository;
     private final LabWorkOrderRepository labWorkOrderRepository;
     private final ReferralMapper referralMapper;
@@ -46,6 +45,7 @@ public class ReferralServiceImpl implements ReferralService {
 
     @Override
     public ReferralResponse createReferral(CreateReferralRequest createReferralRequest) {
+        checkReferralDate(createReferralRequest.getCreationTime());
         Referral referral = referralRepository.save(referralMapper.requestToModel(createReferralRequest));
         return referralMapper.modelToResponse(referral);
     }
@@ -125,7 +125,7 @@ public class ReferralServiceImpl implements ReferralService {
                     unprocessedReferral.setDoctorLastName(doctor.getLastName());
                 }
             }
-            unprocessedReferral.setRequiredAnalysis(referral.getRequiredAnalysis());
+            unprocessedReferral.setAnalysisParameters(referral.getAnalysisParameters());
             unprocessedReferral.setCreationDate(referral.getCreationTime());
             unprocessedReferral.setComment(referral.getComment());
             unprocessedReferralsResponses.add(unprocessedReferral);
@@ -134,12 +134,10 @@ public class ReferralServiceImpl implements ReferralService {
         return unprocessedReferralsResponses;
     }
 
-    private List<DoctorResponse> getAllDoctors(String token) {
-        ResponseEntity<List<DoctorResponse>> response;
-        List<DoctorResponse> responseBody;
+    public List<DoctorResponse> getAllDoctors(String token) {
+        List<DoctorResponse>  responseBody;
         try {
-            response = HttpUtils.getAllDoctors(token);
-            responseBody = response.getBody();
+            responseBody = HttpUtils.getAllDoctors(token);
 
         } catch (IllegalArgumentException e) {
             String errMessage = String.format("Error when calling user service: " + e.getMessage());
@@ -161,11 +159,9 @@ public class ReferralServiceImpl implements ReferralService {
     }
 
     private List<DepartmentResponse> getDepartments(String token) {
-        ResponseEntity<List<DepartmentResponse>> response;
         List<DepartmentResponse> responseBody;
         try {
-            response = HttpUtils.findDepartmentName(token);
-            responseBody = response.getBody();
+            responseBody = HttpUtils.findDepartmentName(token);
 
         } catch (IllegalArgumentException e) {
             String errMessage = String.format("Error when calling user service: " + e.getMessage());
@@ -184,5 +180,14 @@ public class ReferralServiceImpl implements ReferralService {
             throw new InternalServerErrorException("Error when calling user service: " + e.getMessage());
         }
         return responseBody;
+    }
+
+    private void checkReferralDate(Date scheduledDate) {
+        Date currentDate = new Date();
+        if (scheduledDate.before(currentDate)) {
+            String errMessage = "Uput ne može da se napravi u prošlosti";
+            log.info(errMessage);
+            throw new BadRequestException(errMessage);
+        }
     }
 }

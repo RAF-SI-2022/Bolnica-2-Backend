@@ -11,10 +11,7 @@ import com.raf.si.userservice.service.impl.DepartmentServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -51,8 +48,8 @@ public class DepartmentServiceTest {
     public void getDepartmentByHospital_Success() {
         UUID pbb = UUID.randomUUID();
         Hospital hospital = new Hospital();
-        Department department1 = createDepartment();
-        Department department2 = createDepartment();
+        Department department1 = createDepartment(hospital);
+        Department department2 = createDepartment(hospital);
 
         List<Department> departmentList = Arrays.asList(department1, department2);
 
@@ -70,8 +67,9 @@ public class DepartmentServiceTest {
 
     @Test
     public void getAllDepartments_Success() {
-        Department department1 = createDepartment();
-        Department department2 = createDepartment();
+        Hospital hospital = createHospital();
+        Department department1 = createDepartment(hospital);
+        Department department2 = createDepartment(hospital);
 
         List<Department> departmentList = Arrays.asList(department1, department2);
 
@@ -83,6 +81,23 @@ public class DepartmentServiceTest {
                         .map(departmentMapper::modelToDepartmentResponse)
                         .collect(Collectors.toList())
         );
+    }
+
+    @Test
+    public void getDepartmentsByName_Success() {
+        Hospital hospital = createHospital();
+        Department department1 = createDepartment(hospital);
+        Department department2 = createDepartment(hospital);
+
+        List<Department> departmentList = Arrays.asList(department1, department2);
+
+        when(departmentRepository.findDepartmenstByName(department1.getName())).thenReturn(departmentList);
+
+        assertEquals(departmentService.getDepartmentsByName(department2.getName()),
+                departmentList
+                        .stream()
+                        .map(departmentMapper::modelToDepartmentResponse)
+                        .collect(Collectors.toList()));
     }
 
     @Test
@@ -101,11 +116,25 @@ public class DepartmentServiceTest {
         );
     }
 
-    private Department createDepartment() {
+    private Department createDepartment(Hospital hospital) {
         Department department = new Department();
         department.setPbo(UUID.randomUUID());
         department.setName("name");
-
+        department.setHospital(hospital);
         return department;
+    }
+
+    private Hospital createHospital() {
+        Hospital hospital = new Hospital();
+
+        hospital.setAddress("Adresa");
+        hospital.setDateOfEstablishment(new Date());
+        hospital.setActivity("activity");
+        hospital.setPlace("place");
+        hospital.setFullName("fullName");
+        hospital.setShortName("shortName");
+        hospital.setPbb(UUID.randomUUID());
+
+        return hospital;
     }
 }
