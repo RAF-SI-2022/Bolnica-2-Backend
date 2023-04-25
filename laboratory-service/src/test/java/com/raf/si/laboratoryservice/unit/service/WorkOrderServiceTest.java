@@ -356,7 +356,7 @@ public class WorkOrderServiceTest {
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             workOrderService.verify(1234L);
         });
-        assertEquals("Nisu unete svi rezultati analize parametara.", exception.getMessage());
+        assertEquals("Nisu uneti svi rezultati analize parametara.", exception.getMessage());
     }
 
 
