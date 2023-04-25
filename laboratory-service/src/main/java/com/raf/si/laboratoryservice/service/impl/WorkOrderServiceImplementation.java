@@ -86,7 +86,9 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
         referralRepository.save(referral);
         analysisParameterResultRepository.saveAll(analysisParameterResults);
 
-        return orderMapper.orderToOrderResponse(newOrder, analysisParameterResults);
+        newOrder = labWorkOrderRepository.save(newOrder);
+        return orderMapper.orderToOrderResponse(newOrder);
+
     }
 
     @Override
@@ -103,7 +105,7 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
         LabWorkOrder order = findOrder(saveRequest.getOrderId());
         if (order.getStatus().equals(OrderStatus.NEOBRADJEN)){
             order.setStatus(OrderStatus.U_OBRADI);
-            labWorkOrderRepository.save(order);
+            order = labWorkOrderRepository.save(order);
         }
 
         AnalysisParameter analysisParameter =  analysisParameterRepository.findById(
@@ -127,7 +129,7 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
         result.setDateAndTime(new Date(System.currentTimeMillis()));
         result.setLbzBiochemist(TokenPayloadUtil.getTokenPayload().getLbz());
 
-        analysisParameterResultRepository.save(result);
+        result = analysisParameterResultRepository.save(result);
 
         return orderMapper.resultToSaveResultResponse(result);
     }
@@ -180,7 +182,7 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
         referral.setStatus(ReferralStatus.REALIZOVAN);
         order.setReferral(referral);
 
-        labWorkOrderRepository.save(order);
+        order = labWorkOrderRepository.save(order);
 
         return orderMapper.orderToOrderResponse(order);
     }
