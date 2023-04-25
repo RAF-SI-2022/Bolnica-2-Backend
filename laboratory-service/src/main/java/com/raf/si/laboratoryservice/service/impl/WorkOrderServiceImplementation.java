@@ -87,7 +87,7 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
         analysisParameterResultRepository.saveAll(analysisParameterResults);
 
         newOrder = labWorkOrderRepository.save(newOrder);
-        return orderMapper.orderToOrderResponse(newOrder, analysisParameterResults);
+        return orderMapper.orderToOrderResponse(newOrder);
 
     }
 
