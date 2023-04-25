@@ -239,7 +239,7 @@ public class BootstrapData implements CommandLineRunner {
             User user = new User();
             user.setEmail(split[0]);
             user.setPassword(passwordEncoder.encode(usernamePassword));
-            user.setUsername(passwordEncoder.encode(usernamePassword));
+            user.setUsername(usernamePassword);
             user.setDepartment(departmentRepository.
                     findDepartmentByNameAndHospital_ShortName(split[1], split[2]));
             user.setResidentialAddress(split[3]);

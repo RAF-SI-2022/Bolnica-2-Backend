@@ -17,7 +17,7 @@ import java.util.UUID;
 @Repository
 public interface ReferralRepository extends JpaRepository<Referral, Long> {
     Page<Referral> findByLbpAndCreationTimeBetweenAndDeletedFalse(UUID patientId, Date dateFrom, Date dateTo, Pageable pageable);
-    @Query("SELECT r FROM Referral r WHERE r.lbp = :lbp AND r.pboReferredFrom = :pboFromToken AND r.status = :status AND r.deleted = false")
+    @Query("SELECT r FROM Referral r WHERE r.lbp = :lbp AND r.pboReferredTo = :pboFromToken AND r.status = :status AND r.deleted = false")
     List<Referral> findByLbpAndPboReferredFromAndStatus(@Param("lbp") UUID lbp, @Param("pboFromToken") UUID pboFromToken, @Param("status") ReferralStatus status);
 
 }
