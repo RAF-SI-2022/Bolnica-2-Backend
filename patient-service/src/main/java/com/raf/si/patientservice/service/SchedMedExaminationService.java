@@ -13,6 +13,7 @@ import java.util.UUID;
 public interface SchedMedExaminationService {
 
     SchedMedExamResponse createSchedMedExamination(SchedMedExamRequest schedMedExamRequest, String token);
+    SchedMedExamResponse createSchedMedExaminationLocked(SchedMedExamRequest schedMedExamRequest, String token);
     SchedMedExamResponse updateSchedMedExaminationExamStatus(UpdateSchedMedExamRequest updateSchedMedExamRequest);
     SchedMedExamResponse deleteSchedMedExamination(Long id);
     SchedMedExamListResponse getSchedMedExaminationByLbz(UUID lbz, Date appointmentDate, String token, Pageable pageable);

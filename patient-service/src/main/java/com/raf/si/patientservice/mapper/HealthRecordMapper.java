@@ -311,7 +311,7 @@ public class HealthRecordMapper {
             log.info(errMessage);
             throw new BadRequestException(errMessage);
         }
-        // TODO postavi iz request-a
+        // postavi iz request-a
         if(oldMedicalHistory != null && !treatmentResult.equals(TreatmentResult.U_TOKU)){
             medicalHistory.setIllnessEnd(new Date());
         }

@@ -1,5 +1,6 @@
 package com.raf.si.laboratoryservice.model.enums.user;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
@@ -16,7 +17,10 @@ public enum Profession {
     SPEC_PULMOLOG("Spec. pulmolog"),
     SPEC_UROLOG("Spec. urolog"),
     SPEC_HEMATOLOG("Spec. hematolog"),
-    SPEC_HIRURG("Spec. hirurg");
+    SPEC_HIRURG("Spec. hirurg"),
+    MED_BIOHEMIČAR("Med. biohemičar"),
+    LAB_TEHNICAR("Lab. tehničar ");
+
 
     String notation;
 
@@ -24,6 +28,7 @@ public enum Profession {
         this.notation = notation;
     }
 
+    @JsonCreator
     public static Profession valueOfNotation(String notation) {
         for (Profession p : values()) {
             if (p.notation.equals(notation)) {
@@ -37,3 +42,4 @@ public enum Profession {
         return notation;
     }
 }
+

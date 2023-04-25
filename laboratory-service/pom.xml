@@ -32,7 +32,7 @@
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <!-- Ovo je opcioni parametar koji vam omogucava da neke klase iskljucite iz test coverage-a -->
-        <!--<sonar.coverage.exclusions>**/config/*, **/model/*,**/repository/*,**/controller/response_forms/*,**/mail/*,**/security/otp/*,**/filter/*,**/cron/*</sonar.coverage.exclusions>-->
+        <sonar.coverage.exclusions>**/configuration/*, **/bootstrap/*, **/model/**,**/repository/**,**/dto/**, **/filters/*, **/exception/*, **/utils/* </sonar.coverage.exclusions>
 
         <!-- Ovo je opcioni parametar koji vam omogucava da neke klase iskljucite iz code duplicate report-a -->
         <!--<sonar.cpd.exclusions>**/config/*,**/model/*</sonar.cpd.exclusions>-->

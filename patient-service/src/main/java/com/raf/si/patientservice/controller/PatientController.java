@@ -68,7 +68,12 @@ public class PatientController {
             "or hasRole('ROLE_DR_SPEC_POV')" +
             "or hasRole('ROLE_MED_SESTRA')" +
             "or hasRole('ROLE_VISA_MED_SESTRA')" +
-            "or hasRole('ROLE_RECEPCIONER')")
+            "or hasRole('ROLE_LAB_TEHNICAR')" +
+            "or hasRole('ROLE_VISI_LAB_TEHNICAR')" +
+            "or hasRole('ROLE_RECEPCIONER')" +
+            "or hasRole('ROLE_MED_BIOHEMICAR')" +
+            "or hasRole('ROLE_SPEC_MED_BIOHEMIJE')"
+    )
     @GetMapping
     public ResponseEntity<PatientListResponse> getPatients(@RequestParam(required = false) UUID lbp,
                                                            @RequestParam(required = false) String firstName,

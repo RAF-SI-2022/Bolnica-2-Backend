@@ -15,4 +15,5 @@ public class DepartmentResponse {
 
     private UUID pbo;
     private String name;
+    private HospitalResponse hospitalResponse;
 }

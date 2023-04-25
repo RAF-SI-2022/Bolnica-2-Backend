@@ -10,12 +10,15 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface DepartmentRepository extends JpaRepository<Department,Long> {
+public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
     List<Department> findDepartmentByHospital(Hospital hospital);
 
     Optional<Department> findDepartmentByPbo(UUID pbb);
 
-    Optional<Department> findDepartmentByName(String name);
+    List<Department> findDepartmenstByName(String name);
+
+    // For boostraping only
+    Department findDepartmentByNameAndHospital_ShortName(String name, String hospitalShortName);
 
 }

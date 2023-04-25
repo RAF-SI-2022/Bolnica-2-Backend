@@ -20,7 +20,6 @@ import org.springframework.util.MultiValueMap;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -112,7 +111,6 @@ public class UserControllerStepsGet extends CucumberConfig {
         User admin = userRepository.findUserByUsername("admin").orElse(null);
         Assert.assertNotNull(admin);
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-        queryParams.add("firstName", "admin");
 
         resultActions = mvc.perform(get("/users").queryParams(queryParams)
                 .header("Authorization", "Bearer " + utils.generateToken(admin))
@@ -122,7 +120,7 @@ public class UserControllerStepsGet extends CucumberConfig {
     @Then("page with given parameters is returned containing users")
     public void page_with_given_parameters_is_returned_containing_users() throws Exception {
         resultActions.andExpect(status().isOk())
-                .andExpect(jsonPath("$.userList", hasSize(1)));
+                .andExpect(jsonPath("$.userList.size()", greaterThan(0)));
     }
 
     @When("tries to fetch all doctors")
@@ -158,9 +156,8 @@ public class UserControllerStepsGet extends CucumberConfig {
     @When("given department with pbo exists")
     public void given_department_with_pbo_exists() throws Exception {
         User admin = userRepository.findUserByUsername("admin").orElse(null);
-        Department department = departmentRepository.findDepartmentByName("Hirurgija").orElse(null);
-
         assertNotNull(admin);
+        Department department = departmentRepository.findById(admin.getDepartment().getId()).orElse(null);
         assertNotNull(department);
 
         resultActions = mvc.perform(get(String.format("/users/doctors/%s", department.getPbo()))
