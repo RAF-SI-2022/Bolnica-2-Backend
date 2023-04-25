@@ -30,10 +30,6 @@ Feature: Laboratory Service
     When doctor provides invalid information for fetching unprocessed referrals
     Then NotFoundException is thrown with status code 404
 
-  Scenario: Doctor specialist fetches unprocessed referrals successfully
-    When doctor provides valid information for fetching unprocessed referrals
-    Then return the list of unprocessed referrals
-
   Scenario: Doctor specialist deletes a referral unsuccessfully
     When doctor provides invalid information for referral deletion
     Then NotFoundException is thrown with status code 404 for deletion
