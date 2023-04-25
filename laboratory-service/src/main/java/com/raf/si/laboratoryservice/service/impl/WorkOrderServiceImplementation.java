@@ -80,23 +80,7 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
 
         analysisParameterResultRepository.saveAll(analysisParameterResults);
 
-//        for(String name : requiredAnalysis){
-//            Optional<LabAnalysis> analysisOptional = labAnalysisRepository.findByName(name);
-//            if(analysisOptional.isEmpty()){
-//                String errMessage = String.format("Nepoznata analiza %s zahtevana", name);
-//                log.info(errMessage);
-//                throw new NotFoundException(errMessage);
-//            }
-//            LabAnalysis analysis = analysisOptional.get();
-//            for (AnalysisParameter ap : analysis.getAnalysisParameters()){
-//                AnalysisParameterResult analysisParameterResult = new AnalysisParameterResult();
-//                analysisParameterResult.setLabWorkOrder(newOrder);
-//                analysisParameterResult.setAnalysisParameter(ap);
-//                analysisParameterResultRepository.save(analysisParameterResult);
-//            }
-//        }
-
-        labWorkOrderRepository.save(newOrder);
+        newOrder = labWorkOrderRepository.save(newOrder);
         return orderMapper.orderToOrderResponse(newOrder);
     }
 
@@ -114,7 +98,7 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
         LabWorkOrder order = findOrder(saveRequest.getOrderId());
         if (order.getStatus().equals(OrderStatus.NEOBRADJEN)){
             order.setStatus(OrderStatus.U_OBRADI);
-            labWorkOrderRepository.save(order);
+            order = labWorkOrderRepository.save(order);
         }
 
         AnalysisParameter analysisParameter =  analysisParameterRepository.findById(
@@ -138,7 +122,7 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
         result.setDateAndTime(new Date(System.currentTimeMillis()));
         result.setLbzBiochemist(TokenPayloadUtil.getTokenPayload().getLbz());
 
-        analysisParameterResultRepository.save(result);
+        result = analysisParameterResultRepository.save(result);
 
         return orderMapper.resultToSaveResultResponse(result);
     }
@@ -186,7 +170,7 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
         referral.setStatus(ReferralStatus.REALIZOVAN);
         order.setReferral(referral);
 
-        labWorkOrderRepository.save(order);
+        order = labWorkOrderRepository.save(order);
 
         return orderMapper.orderToOrderResponse(order);
     }
