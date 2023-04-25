@@ -4,9 +4,11 @@ import com.raf.si.userservice.dto.request.CreateUserRequest;
 import com.raf.si.userservice.dto.request.PasswordResetRequest;
 import com.raf.si.userservice.dto.request.UpdatePasswordRequest;
 import com.raf.si.userservice.dto.request.UpdateUserRequest;
+import com.raf.si.userservice.dto.response.DoctorResponse;
 import com.raf.si.userservice.dto.response.MessageResponse;
 import com.raf.si.userservice.dto.response.UserListAndCountResponse;
 import com.raf.si.userservice.exception.BadRequestException;
+import com.raf.si.userservice.exception.ForbiddenException;
 import com.raf.si.userservice.exception.NotFoundException;
 import com.raf.si.userservice.mapper.UserMapper;
 import com.raf.si.userservice.model.Department;
@@ -138,7 +140,18 @@ public class UserServiceTest {
 
         when(userRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> userService.deleteUser(id));
+        assertThrows(NotFoundException.class, () -> userService.deleteUser(id, UUID.randomUUID()));
+    }
+
+    @Test
+    public void deleteUser_WhenGivenLbzIsLoggedUser_ThrowsForbiddenException() {
+        Long id = 1L;
+
+        User user = createUser();
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+
+        assertThrows(ForbiddenException.class, () -> userService.deleteUser(id, user.getLbz()));
     }
 
     @Test
@@ -150,7 +163,7 @@ public class UserServiceTest {
         user.setDeleted(true);
         when(userRepository.save(user)).thenReturn(user);
 
-        assertEquals(userService.deleteUser(id), userMapper.modelToResponse(user));
+        assertEquals(userService.deleteUser(id, UUID.randomUUID()), userMapper.modelToResponse(user));
     }
 
     @Test
@@ -223,7 +236,6 @@ public class UserServiceTest {
         String lastName = "lastName";
         String departmentName = "departmentName";
         String hospitalName = "hospitalName";
-        boolean includeDeleted = true;
         Pageable pageable = PageRequest.of(0, 5);
 
         List<User> users = new ArrayList<>();
@@ -235,7 +247,7 @@ public class UserServiceTest {
 
         UserListAndCountResponse userListAndCountResponse = userMapper.modelToUserListAndCountResponse(pages);
 
-        assertEquals(userService.listUsers(firstName, lastName, departmentName, hospitalName, includeDeleted, pageable),
+        assertEquals(userService.listUsers(firstName, lastName, departmentName, hospitalName, true, pageable),
                 userListAndCountResponse);
     }
 
@@ -293,6 +305,45 @@ public class UserServiceTest {
 
         assertEquals(userService.updatePassword(updatePasswordRequest),
                 new MessageResponse("Sifra je uspesno promenjena"));
+    }
+
+    @Test
+    public void getAllDoctors_Success() {
+       User user = createUser();
+
+       when(userRepository.getAllDoctors(any()))
+               .thenReturn(Collections.singletonList(user));
+
+       DoctorResponse doctorResponse = userMapper.modelToDoctorResponse(user);
+
+       assertEquals(userService.getAllDoctors(), Collections.singletonList(doctorResponse));
+    }
+
+    @Test
+    public void getAllDoctorsByDepartment_WhenDepartmentPboNotExist_ThrowNotFoundException() {
+        UUID pbo = UUID.randomUUID();
+
+        when(departmentRepository.findDepartmentByPbo(pbo))
+                .thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class,
+                () -> userService.getAllDoctorsByDepartment(pbo));
+    }
+
+    @Test
+    public void getAllDoctorsByDepartment_Success() {
+        User user = createUser();
+
+        when(departmentRepository.findDepartmentByPbo(user.getDepartment().getPbo()))
+                .thenReturn(Optional.of(user.getDepartment()));
+
+        when(userRepository.getAllDoctorsByDepartment(any(), any()))
+                .thenReturn(Collections.singletonList(user));
+
+        DoctorResponse doctorResponse = userMapper.modelToDoctorResponse(user);
+
+        assertEquals(userService.getAllDoctorsByDepartment(user.getDepartment().getPbo()),
+                Collections.singletonList(doctorResponse));
     }
 
     private CreateUserRequest createUserRequest() {

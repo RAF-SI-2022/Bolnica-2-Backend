@@ -1,7 +1,8 @@
 package com.raf.si.patientservice.model.enums.patient;
 
-import com.raf.si.patientservice.model.enums.user.Profession;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum MaritalStatus {
     U_BRAKU("U braku"),
     RAZVEDEN("Razveden"),

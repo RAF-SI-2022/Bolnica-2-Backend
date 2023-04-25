@@ -2,6 +2,7 @@ package com.raf.si.userservice.mapper;
 
 import com.raf.si.userservice.dto.request.CreateUserRequest;
 import com.raf.si.userservice.dto.request.UpdateUserRequest;
+import com.raf.si.userservice.dto.response.DoctorResponse;
 import com.raf.si.userservice.dto.response.UserListAndCountResponse;
 import com.raf.si.userservice.dto.response.UserListResponse;
 import com.raf.si.userservice.dto.response.UserResponse;
@@ -162,6 +163,16 @@ public class UserMapper {
         user.setPassword(passwordEncoder.encode(password));
         user.setPasswordToken(UUID.randomUUID());
         return user;
+    }
+
+    public DoctorResponse modelToDoctorResponse(User user) {
+        DoctorResponse doctorResponse = new DoctorResponse();
+
+        doctorResponse.setLbz(user.getLbz());
+        doctorResponse.setFirstName(user.getFirstName());
+        doctorResponse.setLastName(user.getLastName());
+
+        return doctorResponse;
     }
 
     private UserListResponse userListResponseToModel(User user) {

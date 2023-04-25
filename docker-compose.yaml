@@ -1,0 +1,92 @@
+version: '3.9'
+
+services:
+
+  user-db:
+    image: harbor.k8s.elab.rs/bolnica-2/postgres:latest
+    restart: always
+    container_name: user-db
+    expose:
+      - "5432"
+    ports:
+      - "5432:5432"
+    command: -p 5432
+    environment:
+      POSTGRES_USER: student
+      POSTGRES_PASSWORD: student
+      POSTGRES_DB: postgresDB
+    networks:
+      - local_newtork
+
+  patient-db:
+    image: harbor.k8s.elab.rs/bolnica-2/postgres:latest
+    restart: always
+    container_name: patient-db
+    expose:
+      - "5433"
+    ports:
+      - "5433:5433"
+    command: -p 5433
+    environment:
+      POSTGRES_USER: student
+      POSTGRES_PASSWORD: student
+      POSTGRES_DB: postgresDB
+    networks:
+      - local_newtork
+
+  laboratory-db:
+    image: harbor.k8s.elab.rs/bolnica-2/postgres:latest
+    restart: always
+    container_name: laboratory-db
+    expose:
+      - "5434"
+    ports:
+      - "5434:5434"
+    command: -p 5434
+    environment:
+      POSTGRES_USER: student
+      POSTGRES_PASSWORD: student
+      POSTGRES_DB: postgresDB
+    networks:
+      - local_newtork
+
+  user-service:
+    # image: harbor.k8s.elab.rs/bolnica-2/user-service:1.0
+    build: ./user-service
+    container_name: user-service
+    restart: always
+    ports:
+      - "8081:8081"
+    networks:
+      - local_newtork
+    depends_on:
+      - user-db
+
+  patient-service:
+    # image: harbor.k8s.elab.rs/bolnica-2/patient-service:1.0
+    build: ./patient-service
+    container_name: patient-service
+    restart: always
+    ports:
+      - "8082:8082"
+    networks:
+      - local_newtork
+    depends_on:
+      - patient-db
+
+  laboratory-service:
+    # image: harbor.k8s.elab.rs/bolnica-2/laboratory-service:1.0
+    build: ./laboratory-service/
+    container_name: laboratory-service
+    restart: always
+    ports:
+      - "8083:8083"
+    networks:
+      - local_newtork
+    depends_on:
+      - laboratory-db
+
+networks:
+  local_newtork:
+    name : local_network
+

@@ -1,0 +1,36 @@
+logging:
+  level:
+    root: INFO
+spring:
+  application:
+    name: "IBIS Patient Service"
+  output:
+    ansi:
+      enabled: always
+  jpa:
+    hibernate:
+      ddl-auto: create
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  datasource:
+    url: "jdbc:postgresql://localhost:5432/postgresDB"
+    username: "student"
+    password: "student"
+    driver-class-name: org.postgresql.Driver
+
+  integration:
+    jdbc:
+      initialize-schema: always
+
+server:
+  port: 8082
+  servlet:
+    context-path: "/api"
+
+
+
+jwt.secret.key: "secret_key"
+
+# Duration of scheduled medical examination expressed in minutes
+duration.of.exam: 44
+
+user-service-url: "http://localhost:8081/api/users"

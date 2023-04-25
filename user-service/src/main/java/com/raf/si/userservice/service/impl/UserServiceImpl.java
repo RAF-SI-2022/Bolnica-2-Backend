@@ -4,10 +4,9 @@ import com.raf.si.userservice.dto.request.CreateUserRequest;
 import com.raf.si.userservice.dto.request.PasswordResetRequest;
 import com.raf.si.userservice.dto.request.UpdatePasswordRequest;
 import com.raf.si.userservice.dto.request.UpdateUserRequest;
-import com.raf.si.userservice.dto.response.MessageResponse;
-import com.raf.si.userservice.dto.response.UserListAndCountResponse;
-import com.raf.si.userservice.dto.response.UserResponse;
+import com.raf.si.userservice.dto.response.*;
 import com.raf.si.userservice.exception.BadRequestException;
+import com.raf.si.userservice.exception.ForbiddenException;
 import com.raf.si.userservice.exception.NotFoundException;
 import com.raf.si.userservice.mapper.UserMapper;
 import com.raf.si.userservice.model.Department;
@@ -27,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -91,11 +91,17 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public UserResponse deleteUser(Long id) {
+    public UserResponse deleteUser(Long id, UUID loggedLbz) {
         User user = userRepository.findById(id).orElseThrow(() -> {
             log.error("Ne postoji korisnik sa id-ijem '{}'", id);
             throw new NotFoundException("Korisnik sa datim id-ijem ne postoji");
         });
+
+        if (user.getLbz().equals(loggedLbz)) {
+            log.error("Korisnik je pokusao obrisati sam sebe, lbz '{}'", loggedLbz);
+            throw new ForbiddenException("Ova akcija nije dozvoljena");
+        }
+
         user.setDeleted(true);
         user = userRepository.save(user);
         log.info("Korisnicki nalog sa id-ijem '{}' je uspesno obrisan", id);
@@ -118,7 +124,7 @@ public class UserServiceImpl implements UserService {
                         }
                 );
 
-        User updatedUser = isAdmin? userMapper.updateRequestToModel(user, updateUserRequest, department)
+        User updatedUser = isAdmin ? userMapper.updateRequestToModel(user, updateUserRequest, department)
                 : userMapper.updateRegularRequestToModel(user, updateUserRequest);
 
         updatedUser = userRepository.save(updatedUser);
@@ -159,6 +165,32 @@ public class UserServiceImpl implements UserService {
         log.info("Sifra promenjena za korisnika sa email-om '{}'", updatedUser.getEmail());
 
         return new MessageResponse("Sifra je uspesno promenjena");
+    }
+
+    @Override
+    public List<DoctorResponse> getAllDoctors() {
+        List<String> doctorPermissions = Arrays.asList("ROLE_DR_SPEC_ODELJENJA", "ROLE_DR_SPEC", "ROLE_DR_SPEC_POV");
+        log.info("Listanje svih doktora...");
+        return userRepository.getAllDoctors(doctorPermissions)
+                .stream()
+                .map(userMapper::modelToDoctorResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<DoctorResponse> getAllDoctorsByDepartment(UUID pbo) {
+        List<String> doctorPermissions = Arrays.asList("ROLE_DR_SPEC_ODELJENJA", "ROLE_DR_SPEC", "ROLE_DR_SPEC_POV");
+        Department department = departmentRepository.findDepartmentByPbo(pbo).orElseThrow(() -> {
+            log.error("Odeljenje sa pbo '{}' ne postoji", pbo);
+            throw new NotFoundException("Odeljenje sa datim pbo ne postoji");
+        });
+
+        log.info("Listanje svih doktora po odeljenju...");
+        return userRepository.getAllDoctorsByDepartment(doctorPermissions, department)
+                .stream()
+                .map(userMapper::modelToDoctorResponse)
+                .collect(Collectors.toList());
+
     }
 
     private List<Boolean> adjustIncludeDeleteParameter(boolean includeDeleted) {

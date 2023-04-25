@@ -1,7 +1,8 @@
 package com.raf.si.patientservice.model.enums.medicalhistory;
 
-import com.raf.si.patientservice.model.enums.patient.Education;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum TreatmentResult {
     U_TOKU("U toku"),
     OPORAVLJEN("Oporavljen"),
