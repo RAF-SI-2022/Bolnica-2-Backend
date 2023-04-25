@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 
@@ -19,5 +20,5 @@ public interface ReferralRepository extends JpaRepository<Referral, Long> {
     Page<Referral> findByLbpAndCreationTimeBetweenAndDeletedFalse(UUID patientId, Date dateFrom, Date dateTo, Pageable pageable);
     @Query("SELECT r FROM Referral r WHERE r.lbp = :lbp AND r.pboReferredFrom = :pboFromToken AND r.status = :status AND r.deleted = false")
     List<Referral> findByLbpAndPboReferredFromAndStatus(@Param("lbp") UUID lbp, @Param("pboFromToken") UUID pboFromToken, @Param("status") ReferralStatus status);
-
+    Optional<Referral> findByLbp(UUID lbp);
 }

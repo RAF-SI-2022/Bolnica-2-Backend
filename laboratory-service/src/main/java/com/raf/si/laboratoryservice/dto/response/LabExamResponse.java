@@ -14,7 +14,6 @@ import java.util.UUID;
 @EqualsAndHashCode
 public class LabExamResponse {
     private Long id;
-    private UUID pbo;
     private UUID lbp;
     private Date scheduledDate;
     private ExamStatus examStatus;
