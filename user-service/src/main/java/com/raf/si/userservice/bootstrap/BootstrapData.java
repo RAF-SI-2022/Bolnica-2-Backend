@@ -11,27 +11,24 @@ import com.raf.si.userservice.repository.HospitalRepository;
 import com.raf.si.userservice.repository.PermissionsRepository;
 import com.raf.si.userservice.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
 public class BootstrapData implements CommandLineRunner {
-
-    private final String userData = "nzivanic2319rn@raf.rs,Klinika za ginekologiju,KBC Zvezdara,Vinogradska 3,ROLE_DR_SPEC_ODELJENJA;ROLE_DR_SPEC;ROLE_DR_SPEC_POV,2011043219231,06121321311,Beograd; Srbija,01/02/1982,Muski,Novak,Živanić,Prof. dr. med.,Spec. ginekolog\n" +
-            "mceculovic2819rn@raf.rs,Klinika za interne bolesti,KBC Zvezdara,Makenzijeva 28,ROLE_DR_SPEC_ODELJENJA;ROLE_DR_SPEC;ROLE_DR_SPEC_POV,2010213101321,06121321311,Beograd; Srbija,05/06/1985,Muski,Miloš,Čečulović,Prof. dr. med.,Spec. nefrolog\n" +
-            "dborovac10520rn@raf.rs,Klinika za interne bolesti,KBC Bežanijska kosa,Dubrovačka 14,ROLE_DR_SPEC_ODELJENJA;ROLE_DR_SPEC;ROLE_DR_SPEC_POV,2001023131232,06213213123,Beograd; Srbija,21/09/1990,Muski,Dario,Borovac,Prof. dr. med.,Spec. kardiolog\n" +
-            "ipejin8420rn@raf.rs,Služba za dijagnostičke procedure,KBC Bežanijska kosa,Bele Bartoka 29A,ROLE_LAB_TEHNICAR;ROLE_RECEPCIONER,20323402342323,0612343213,Beograd; Srbija,29/04/1992,Muski,Igor,Pejin,Mr,Lab. tehničar\n" +
-            "bgoretic1419rn@raf.rs,Klinika za interne bolesti,KBC Zemun,Porodice Ilić 8,ROLE_DR_SPEC_ODELJENJA;ROLE_DR_SPEC;ROLE_DR_SPEC_POV,201213213102,0692131230,Beograd; Srbija,08/03/1974,Muski,Bojan,Goretić,Dr sci. med.,Spec. neurolog";
 
     private final UserRepository userRepository;
     private final PermissionsRepository permissionsRepository;
@@ -50,7 +47,7 @@ public class BootstrapData implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws ParseException, IOException, URISyntaxException {
+    public void run(String... args) throws ParseException, IOException {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
         Hospital kbcZvezdara = addHospital("Dimitrija Tucovića 161", "01/12/1935", "Zdravstvena delatnost",
@@ -70,31 +67,50 @@ public class BootstrapData implements CommandLineRunner {
 
 
         addDepartmentsToHospital(
-                List.of("Klinika za ginekologiju", "Klinika za hirurgiju", "Klinika za interne bolesti",
-                        "Klinika za pedijatriju", "Klinika za psihijatriju", "Klinika za očne bolesti",
-                        "Klinika za uho grlo i nos", "Laboratorija", "Dijagnostika", "Stacionar"),
+                List.of("Ginekologija", "Hirurgija", "Interne bolesti",
+                        "Pedijatrija", "Psihijatrija", "Očne bolesti",
+                        "Laboratorija", "Dijagnostika", "Stacionar"),
+                List.of("0475d06f-c43d-4cf2-828e-f1545e15f768", "b259d83b-e6fb-4b8b-8104-d96a6ad1ad5a",
+                        "be7fed71-9a96-4644-8d0e-f80a216f77d6", "8436ec8b-19de-4d18-bd5c-469bd3512396",
+                        "620763b5-a3f7-449f-86d9-fcff72aeaf32", "f8894d56-1263-4a9f-85a5-9e17dc9351ce",
+                        "92c471d0-3980-41fb-a2bd-6a3e0e63e5e2", "29dde67e-d3a6-4983-babe-0a7b33c62608",
+                        "c0979e25-2bb1-4582-87a9-aa175777a65d"),
                 kbcZvezdara
         );
 
         addDepartmentsToHospital(
-                List.of("Klinika za infektivne i tropske bolesti", "Klinika za interne bolesti",
-                        "Klinika za psihijatriju", "Klinika za neurologiju", "Klinika za hirurgiju",
-                        "Klinika za ginekologiju i akušerstvo", "Klinika za očne bolesti",
-                        "Klinika za uho, grlo i nos", "Klinika za dermatovenerologiju", "Klinika za onkologiju",
+                List.of("Infektivne i tropske bolesti", "Interne bolesti",
+                        "Psihijatrija", "Neurologija", "Hirurgija",
+                        "Ginekologija i akušerstvo", "Očne bolesti",
+                        "Dermatovenerologija", "Onkologija",
                         "Laboratorija", "Dijagnostika", "Stacionar"),
+                List.of("a8b47778-52c2-4b02-9554-53e0196840ea", "50e3684b-e7d2-47c5-aa5d-0402f57ebe8d",
+                        "72d0a198-5267-42f6-afc9-59d906bfe9c0","d8764da4-a048-4ed5-9efe-ae7ebb700a47",
+                        "f3a3635d-f0d2-44c2-af25-06f18c72740c", "6d5ca2f5-6f71-462d-80c9-131ce39e8124",
+                        "4eefde68-24f3-4492-b1ed-e0a70bc2e14e", "ec047d3c-fbac-4276-a526-7d353964bf96",
+                        "fc39d46d-6662-42e8-80ca-9226eed4534d", "8c9169e8-01ff-4172-b537-9e816f102750",
+                        "3f12eda8-5af1-45a1-9a2f-eff348fcf8b9", "a4e94a9a-d4cb-4323-831a-da823bf8ff7a"
+                        ),
                 ukcSrbija
         );
 
         addDepartmentsToHospital(
-                List.of("Klinika za interne bolesti", "Klinika za hirurgiju",
-                        "Klinika za onkologiju", "Laboratorija", "Dijagnostika", "Stacionar"),
+                List.of("Interne bolesti", "Hirurgija",
+                        "Onkologija", "Laboratorija", "Dijagnostika", "Stacionar"),
+                List.of("baeeee67-231a-40e3-9f8f-7b0a609e25f1", "1647332e-2740-4839-adb7-762d8be6ac32",
+                        "ed2245ca-a66b-4402-a654-ca2ec5926480", "ccbba084-b9f3-4fe5-bf90-714795b735ad",
+                        "46f9e670-401d-4147-aab7-719d0047a941", "3e6eba4c-40a6-45d5-b20e-f4338c1c74d2"),
                 kbcBezanijskaKosa
         );
 
         addDepartmentsToHospital(
-                List.of("Klinika za interne bolesti", "Klinika za neurologiju",
-                        "Klinika za hirurgiju", "Klinika za ginekologiju i akušerstvo",
-                        "Klinika za onkologiju","Laboratorija", "Dijagnostika", "Stacionar"),
+                List.of("Interne bolesti", "Neurologija",
+                        "Hirurgija", "Ginekologija i akušerstvo",
+                        "Onkologija","Laboratorija", "Dijagnostika", "Stacionar"),
+                List.of("4349eb95-d671-41c6-8cb1-389a45466cde", "c2de9275-ee7d-4994-85e7-ab433c843529",
+                        "4260b200-9abf-42c5-acdf-8050fd55783e", "bf027665-8d73-4ec1-8f05-9e73ca4434a0",
+                        "73e69114-7e40-4bd9-a69d-1599ba011baf", "13531c13-ac0b-465c-9b2c-56ecd5bf3474",
+                        "4812d5d8-f43c-432a-a12c-7ff88c28fd4d", "49f62e58-d996-4f7d-bded-965a8719454f"),
                 kbcZemun
         );
 
@@ -133,7 +149,7 @@ public class BootstrapData implements CommandLineRunner {
         user.setPassword(passwordEncoder.encode("admin"));
         user.setUsername("admin");
         user.setDepartment(departmentRepository.
-                findDepartmentByNameAndHospital_ShortName("Klinika za hirurgiju", ukcSrbija.getShortName()));
+                findDepartmentByNameAndHospital_ShortName("Hirurgija", ukcSrbija.getShortName()));
         user.setResidentialAddress("Ljubiše Jelenkovića 73");
         user.setPermissions(adminPermissions);
         user.setJMBG("2013012312143");
@@ -188,12 +204,12 @@ public class BootstrapData implements CommandLineRunner {
         return hospitalRepository.save(hospital);
     }
 
-    private void addDepartmentsToHospital(List<String> departmentNames, Hospital hospital) {
-        for (String s : departmentNames) {
+    private void addDepartmentsToHospital(List<String> departmentNames, List<String> uuids, Hospital hospital) {
+        for (int i = 0; i < departmentNames.size(); i++) {
             Department department = new Department();
-            department.setName(s);
+            department.setName(departmentNames.get(i));
             department.setHospital(hospital);
-            department.setPbo(UUID.randomUUID());
+            department.setPbo(UUID.fromString(uuids.get(i)));
             departmentRepository.save(department);
         }
     }
@@ -206,15 +222,13 @@ public class BootstrapData implements CommandLineRunner {
         return permission;
     }
 
-    private void addOtherUsers() throws URISyntaxException, IOException, ParseException {
-//        ClassLoader classLoader = getClass().getClassLoader();
-//        URL resource = classLoader.getResource("bootstrap-data/employees.txt");
-//        if (resource == null) {
-//            throw new IllegalArgumentException("Cannot load bootstrap file!");
-//        }
 
-//        List<String> lines = Files.readAllLines(Path.of(resource.toURI()));
-        List<String> lines = userData.lines().collect(Collectors.toList());
+    private void addOtherUsers() throws IOException, ParseException {
+        Resource resource = new ClassPathResource("bootstrap-data/employees.txt");
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()));
+
+        List<String> lines = reader.lines().collect(Collectors.toList());
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
         for(String s: lines) {
@@ -239,7 +253,7 @@ public class BootstrapData implements CommandLineRunner {
             user.setLastName(split[11]);
             user.setTitle(Title.valueOfNotation(split[12]));
             user.setProfession(Profession.valueOfNotation(split[13]));
-            user.setLbz(UUID.randomUUID());
+            user.setLbz(UUID.fromString(split[14]));
             userRepository.save(user);
         }
 
