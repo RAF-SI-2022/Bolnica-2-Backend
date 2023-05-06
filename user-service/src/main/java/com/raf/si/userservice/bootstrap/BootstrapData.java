@@ -28,7 +28,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
-public class BootstrapData implements CommandLineRunner {
+public class  BootstrapData implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final PermissionsRepository permissionsRepository;

@@ -1,10 +1,7 @@
 package com.raf.si.laboratoryservice.unit.service;
 
-import com.raf.si.laboratoryservice.dto.request.order.OrderHistoryForLabRequest;
 import com.raf.si.laboratoryservice.dto.request.order.OrderHistoryRequest;
 import com.raf.si.laboratoryservice.dto.request.order.SaveResultRequest;
-import com.raf.si.laboratoryservice.dto.response.ReferralListResponse;
-import com.raf.si.laboratoryservice.dto.response.ReferralResponse;
 import com.raf.si.laboratoryservice.dto.response.order.OrderHistoryResponse;
 import com.raf.si.laboratoryservice.dto.response.order.OrderResponse;
 import com.raf.si.laboratoryservice.dto.response.order.ResultResponse;
@@ -13,17 +10,15 @@ import com.raf.si.laboratoryservice.exception.BadRequestException;
 import com.raf.si.laboratoryservice.mapper.OrderMapper;
 import com.raf.si.laboratoryservice.model.*;
 import com.raf.si.laboratoryservice.model.enums.labworkorder.OrderStatus;
+import com.raf.si.laboratoryservice.model.enums.parameter.ParameterType;
 import com.raf.si.laboratoryservice.model.enums.referral.ReferralStatus;
 import com.raf.si.laboratoryservice.repository.*;
 import com.raf.si.laboratoryservice.service.WorkOrderService;
 import com.raf.si.laboratoryservice.service.impl.WorkOrderServiceImplementation;
 import com.raf.si.laboratoryservice.utils.TokenPayload;
-import com.raf.si.laboratoryservice.utils.TokenPayloadUtil;
-import io.cucumber.java.bs.A;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Order;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -32,11 +27,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.sql.Ref;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @Slf4j
@@ -50,6 +43,7 @@ public class WorkOrderServiceTest {
     private AnalysisParameterRepository analysisParameterRepository;
     private WorkOrderService workOrderService;
     private Authentication authentication;
+
     @BeforeEach
     void setup(){
         referralRepository = mock(ReferralRepository.class);
@@ -203,7 +197,7 @@ public class WorkOrderServiceTest {
 
         OrderHistoryResponse orderHistoryResponse = createOrderHistoryResponse();
 
-        when(labWorkOrderRepository.findByLbpAndCreationTimeBetweenAndStatusIsNot(eq(lbp), eq(dateFrom), any(Date.class),
+        when(labWorkOrderRepository.findByLbpAndCreationTimeBetweenAndStatusNot(eq(lbp), eq(dateFrom), any(Date.class),
                 eq(OrderStatus.NEOBRADJEN),eq(pageable))).thenReturn(workOrderPage);
         when(orderMapper.orderPageToOrderHistoryResponse(workOrderPage)).thenReturn(orderHistoryResponse);
 
@@ -331,6 +325,176 @@ public class WorkOrderServiceTest {
         assertEquals("Nisu uneti svi rezultati analize parametara.", exception.getMessage());
     }
 
+    @Test
+    public void testOrderToOrderResponse(){
+        LabWorkOrder order = new LabWorkOrder();
+        order.setId(1L);
+        order.setLbp(UUID.randomUUID());
+        order.setLbzBiochemist(UUID.randomUUID());
+        order.setLbzTechnician(UUID.randomUUID());
+        order.setCreationTime(new Date());
+        order.setStatus(OrderStatus.NEOBRADJEN);
+        Referral referral = new Referral();
+        referral.setId(123L);
+        order.setReferral(referral);
+        order.setAnalysisParameterResults(new ArrayList<>());
+
+        OrderMapper om = new OrderMapper();
+        OrderResponse orderResponse = om.orderToOrderResponse(order);
+
+        assertEquals(order.getId(), orderResponse.getId());
+        assertEquals(order.getLbp(), orderResponse.getLbp());
+        assertEquals(order.getLbzTechnician(), orderResponse.getLbzTechnician());
+        assertEquals(order.getLbzBiochemist(), orderResponse.getLbzBiochemist());
+        assertEquals(order.getReferral().getId(), orderResponse.getReferralId());
+        assertEquals(order.getStatus(),orderResponse.getStatus());
+        assertEquals(order.getCreationTime(), orderResponse.getCreationTime());
+        assertEquals(order.getAnalysisParameterResults(), orderResponse.getAnalysisParameterResults());
+    }
+
+    @Test
+    public void testOrderPageToOrderHistoryResponse(){
+        LabWorkOrder order = new LabWorkOrder();
+        order.setId(1L);
+        order.setLbp(UUID.randomUUID());
+        order.setLbzBiochemist(UUID.randomUUID());
+        order.setLbzTechnician(UUID.randomUUID());
+        order.setCreationTime(new Date());
+        order.setStatus(OrderStatus.NEOBRADJEN);
+        Referral referral = new Referral();
+        referral.setId(123L);
+        order.setReferral(referral);
+        order.setAnalysisParameterResults(new ArrayList<>());
+
+        Page<LabWorkOrder> orderPage = new PageImpl<>(Collections.singletonList(order));
+
+        OrderMapper om = new OrderMapper();
+        OrderHistoryResponse historyResponse = om.orderPageToOrderHistoryResponse(orderPage);
+
+        assertEquals(order.getId(), historyResponse.getOrderList().get(0).getId());
+        assertEquals(order.getLbp(), historyResponse.getOrderList().get(0).getLbp());
+        assertEquals(order.getLbzTechnician(), historyResponse.getOrderList().get(0).getLbzTechnician());
+        assertEquals(order.getLbzBiochemist(), historyResponse.getOrderList().get(0).getLbzBiochemist());
+        assertEquals(order.getReferral().getId(), historyResponse.getOrderList().get(0).getReferralId());
+        assertEquals(order.getStatus(),historyResponse.getOrderList().get(0).getStatus());
+        assertEquals(order.getCreationTime(), historyResponse.getOrderList().get(0).getCreationTime());
+        assertEquals(order.getAnalysisParameterResults(), historyResponse.getOrderList().get(0).getAnalysisParameterResults());
+    }
+
+    @Test
+    public void testResultToSaveResultResponse(){
+        AnalysisParameterResult apr = new AnalysisParameterResult();
+        apr.setResult("Test result");
+        apr.setDateAndTime(new Date());
+        apr.setId(1L);
+        apr.setLbzBiochemist(UUID.randomUUID());
+
+        OrderMapper om = new OrderMapper();
+        SaveResultResponse response = om.resultToSaveResultResponse(apr);
+
+        assertEquals(apr.getResult(),response.getResult());
+        assertEquals(apr.getId(),response.getId());
+        assertEquals(apr.getDateAndTime(), response.getDate());
+        assertEquals(apr.getLbzBiochemist(), response.getLbzBiochemist());
+    }
+
+    @Test
+    public void testOrderPageToOrderHistoryForLabResponse(){
+        TokenPayload token = new TokenPayload();
+        token.setPbo(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        when(authentication.getPrincipal()).thenReturn(token);
+
+        LabWorkOrder order = new LabWorkOrder();
+        order.setId(1L);
+        order.setLbp(UUID.randomUUID());
+        order.setLbzBiochemist(UUID.randomUUID());
+        order.setLbzTechnician(UUID.randomUUID());
+        order.setCreationTime(new Date());
+        order.setStatus(OrderStatus.NEOBRADJEN);
+        Referral referral = new Referral();
+        referral.setId(123L);
+        referral.setPboReferredTo(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+        order.setReferral(referral);
+        order.setAnalysisParameterResults(new ArrayList<>());
+
+        Page<LabWorkOrder> orderPage = new PageImpl<>(Collections.singletonList(order));
+        OrderMapper om = new OrderMapper();
+        OrderHistoryResponse historyResponse = om.orderPageToOrderHistoryForLabResponse(orderPage);
+
+        assertEquals(order.getId(), historyResponse.getOrderList().get(0).getId());
+        assertEquals(order.getLbp(), historyResponse.getOrderList().get(0).getLbp());
+        assertEquals(order.getLbzTechnician(), historyResponse.getOrderList().get(0).getLbzTechnician());
+        assertEquals(order.getLbzBiochemist(), historyResponse.getOrderList().get(0).getLbzBiochemist());
+        assertEquals(order.getReferral().getId(), historyResponse.getOrderList().get(0).getReferralId());
+        assertEquals(order.getStatus(),historyResponse.getOrderList().get(0).getStatus());
+        assertEquals(order.getCreationTime(), historyResponse.getOrderList().get(0).getCreationTime());
+    }
+
+
+    @Test
+    public void testOrderToResultResponse(){
+        LabWorkOrder order = new LabWorkOrder();
+        order.setId(1L);
+        order.setLbp(UUID.randomUUID());
+        order.setLbzBiochemist(UUID.randomUUID());
+        order.setLbzTechnician(UUID.randomUUID());
+        order.setCreationTime(new Date());
+        order.setStatus(OrderStatus.NEOBRADJEN);
+        Referral referral = new Referral();
+        referral.setId(123L);
+        order.setReferral(referral);
+        AnalysisParameterResult apr = new AnalysisParameterResult();
+        apr.setResult("Test Result");
+        apr.setId(12L);
+        apr.setLbzBiochemist(UUID.randomUUID());
+        apr.setDateAndTime(new Date());
+        AnalysisParameter ap = new AnalysisParameter();
+        ap.setId(123L);
+        Parameter parameter = new Parameter();
+        parameter.setId(1234L);
+        parameter.setName("Test name");
+        parameter.setType(ParameterType.NUMERICKA);
+        parameter.setMeasureUnit("Test unit");
+        parameter.setUpperBound(7.0);
+        parameter.setLowerBound(4.0);
+        ap.setParameter(parameter);
+        LabAnalysis labAnalysis = new LabAnalysis();
+        labAnalysis.setId(12345L);
+        labAnalysis.setName("Test analysis");
+        labAnalysis.setAbbreviation("Ta");
+        ap.setAnalysis(labAnalysis);
+        apr.setAnalysisParameter(ap);
+        order.setAnalysisParameterResults(List.of(apr));
+
+        OrderMapper om = new OrderMapper();
+        ResultResponse response = om.orderToResultResponse(order);
+
+        assertEquals(order,response.getOrder());
+        assertEquals(apr.getResult(),response.getResults().get(0).getResult());
+        assertEquals(apr.getId(),response.getResults().get(0).getId());
+        assertEquals(apr.getLbzBiochemist(),response.getResults().get(0).getLbzBiochemist());
+        assertEquals(apr.getDateAndTime(),response.getResults().get(0).getDateAndTime());
+        assertEquals(apr.getAnalysisParameter().getAnalysis().getName(),
+                response.getResults().get(0).getAnalysis().getName());
+        assertEquals(apr.getAnalysisParameter().getAnalysis().getId(),
+                response.getResults().get(0).getAnalysis().getId());
+        assertEquals(apr.getAnalysisParameter().getAnalysis().getAbbreviation(),
+                response.getResults().get(0).getAnalysis().getAbbreviation());
+        assertEquals(apr.getAnalysisParameter().getParameter().getId(),
+                response.getResults().get(0).getParameter().getId());
+        assertEquals(apr.getAnalysisParameter().getParameter().getName(),
+                response.getResults().get(0).getParameter().getName());
+        assertEquals(apr.getAnalysisParameter().getParameter().getType().getNotation(),
+                response.getResults().get(0).getParameter().getType());
+        assertEquals(apr.getAnalysisParameter().getParameter().getMeasureUnit(),
+                response.getResults().get(0).getParameter().getMeasureUnit());
+        assertEquals(apr.getAnalysisParameter().getParameter().getUpperBound(),
+                response.getResults().get(0).getParameter().getUpperBound());
+        assertEquals(apr.getAnalysisParameter().getParameter().getLowerBound(),
+                response.getResults().get(0).getParameter().getLowerBound());
+    }
+
 
     private OrderHistoryResponse createOrderHistoryResponse(){
         List<OrderResponse> orderResponses = new ArrayList<>();
@@ -340,5 +504,6 @@ public class WorkOrderServiceTest {
         orderResponses.add(order);
         return new OrderHistoryResponse(orderResponses, 1L);
     }
+
 }
 
