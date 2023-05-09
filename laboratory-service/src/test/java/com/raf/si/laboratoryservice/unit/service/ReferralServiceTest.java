@@ -236,7 +236,7 @@ class ReferralServiceTest {
 
         when(referralRepository.findByLbpAndPboReferredFromAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN)).thenReturn((unprocessedReferrals));
 
-        List<UnprocessedReferralsResponse> actualResponse = referralService.unprocessedReferrals(lbp, token);
+        List<UnprocessedReferralsResponse> actualResponse = referralService.unprocessedReferrals(lbp, null, token);
         actualResponse.get(0).setCreationDate(null);
 
         assertEquals(expectedResponse, actualResponse);

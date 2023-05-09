@@ -10,6 +10,7 @@ import com.raf.si.laboratoryservice.model.LabWorkOrder;
 import com.raf.si.laboratoryservice.model.Referral;
 import com.raf.si.laboratoryservice.model.enums.labworkorder.OrderStatus;
 import com.raf.si.laboratoryservice.model.enums.referral.ReferralStatus;
+import com.raf.si.laboratoryservice.model.enums.referral.ReferralType;
 import com.raf.si.laboratoryservice.repository.LabWorkOrderRepository;
 import com.raf.si.laboratoryservice.repository.ReferralRepository;
 import com.raf.si.laboratoryservice.service.ReferralService;
@@ -92,7 +93,7 @@ public class ReferralServiceImpl implements ReferralService {
     }
 
     @Override
-    public List<UnprocessedReferralsResponse> unprocessedReferrals(UUID lbp, String authorizationHeader) {
+    public List<UnprocessedReferralsResponse> unprocessedReferrals(UUID lbp, String type, String authorizationHeader) {
         UUID pboFromToken = TokenPayloadUtil.getTokenPayload().getPbo();
         System.out.println(pboFromToken);
         List<Referral> unprocessedReferralsByThreeParams = referralRepository.findByLbpAndPboReferredFromAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN);
@@ -101,9 +102,24 @@ public class ReferralServiceImpl implements ReferralService {
             throw new NotFoundException("Uput sa zadatim parametrima nije pronadjen");
         }
 
-        List<Referral> unprocessedReferrals = unprocessedReferralsByThreeParams.stream()
-                .filter(referral -> referral.getLabWorkOrder() == null)
-                .collect(Collectors.toList());
+        List<Referral> unprocessedReferrals;
+        if (type == null) {
+            unprocessedReferrals = unprocessedReferralsByThreeParams.stream()
+                    .filter(referral -> referral.getLabWorkOrder() == null)
+                    .collect(Collectors.toList());
+        } else {
+            ReferralType referralType = ReferralType.valueOfNotation(type);
+
+            if (referralType == null) {
+                String errMessage = String.format("Tip uputa \'%s\' ne postoji", type);
+                log.error(errMessage);
+                throw new BadRequestException(errMessage);
+            }
+
+            unprocessedReferrals = unprocessedReferralsByThreeParams.stream()
+                    .filter(referral -> referral.getType() == referralType)
+                    .collect(Collectors.toList());
+        }
 
         List<UnprocessedReferralsResponse> unprocessedReferralsResponses = new ArrayList<>();
         List<DepartmentResponse> allDepartments = getDepartments(authorizationHeader);

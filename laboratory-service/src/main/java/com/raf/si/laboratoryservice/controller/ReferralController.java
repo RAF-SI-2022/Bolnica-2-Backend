@@ -58,8 +58,10 @@ public class ReferralController {
 
     @PreAuthorize("hasRole('ROLE_VISI_LAB_TEHNICAR')" + "or hasRole('ROLE_LAB_TEHNICAR')")
     @GetMapping(value = "/unprocessed")
-    public ResponseEntity<List<UnprocessedReferralsResponse>> unprocessedReferrals(@Valid @RequestParam UUID lbp, @RequestHeader("Authorization") String authorizationHeader) {
-        return ResponseEntity.ok(referralService.unprocessedReferrals(lbp, authorizationHeader));
+    public ResponseEntity<List<UnprocessedReferralsResponse>> unprocessedReferrals(@Valid @RequestParam UUID lbp,
+                                                                                   @RequestParam(required = false) String type,
+                                                                                   @RequestHeader("Authorization") String authorizationHeader) {
+        return ResponseEntity.ok(referralService.unprocessedReferrals(lbp, type, authorizationHeader));
     }
 
 }

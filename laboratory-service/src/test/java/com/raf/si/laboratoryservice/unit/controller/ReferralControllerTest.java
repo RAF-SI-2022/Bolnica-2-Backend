@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -98,9 +99,9 @@ public class ReferralControllerTest {
         List<UnprocessedReferralsResponse> expected = new ArrayList<>();
         List<UnprocessedReferralsResponse> referralsResponses = new ArrayList<>();
         String token = "Bearer woauhruoawbhfupaw";
-        when(referralService.unprocessedReferrals(lbp, token)).thenReturn(referralsResponses);
+        when(referralService.unprocessedReferrals(lbp, null, token)).thenReturn(referralsResponses);
 
-        ResponseEntity<List<UnprocessedReferralsResponse>> responseEntity = referralController.unprocessedReferrals(lbp, token);
+        ResponseEntity<List<UnprocessedReferralsResponse>> responseEntity = referralController.unprocessedReferrals(lbp, null, token);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(expected, responseEntity.getBody());
