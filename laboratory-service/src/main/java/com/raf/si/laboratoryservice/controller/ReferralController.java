@@ -64,4 +64,11 @@ public class ReferralController {
         return ResponseEntity.ok(referralService.unprocessedReferrals(lbp, type, authorizationHeader));
     }
 
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @PutMapping("/change-status/{id}")
+    public ResponseEntity<ReferralResponse> changeReferralStatus(@PathVariable("id") Long id,
+                                                                 @RequestParam String status) {
+
+        return ResponseEntity.ok(referralService.changeStatus(id, status));
+    }
 }

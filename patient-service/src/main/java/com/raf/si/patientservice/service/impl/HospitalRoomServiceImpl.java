@@ -1,9 +1,8 @@
 package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.response.HospitalRoomListResponse;
-import com.raf.si.patientservice.mapper.HospitalRoomMapper;
 import com.raf.si.patientservice.model.HospitalRoom;
-import com.raf.si.patientservice.repository.filtering.HospitalRoomRepository;
+import com.raf.si.patientservice.repository.HospitalRoomRepository;
 import com.raf.si.patientservice.service.HospitalRoomService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -17,18 +16,14 @@ import java.util.UUID;
 public class HospitalRoomServiceImpl implements HospitalRoomService {
 
     private final HospitalRoomRepository hospitalRoomRepository;
-    private final HospitalRoomMapper hospitalRoomMapper;
 
-    public HospitalRoomServiceImpl(HospitalRoomRepository hospitalRoomRepository,
-                                   HospitalRoomMapper hospitalRoomMapper) {
-
+    public HospitalRoomServiceImpl(HospitalRoomRepository hospitalRoomRepository) {
         this.hospitalRoomRepository = hospitalRoomRepository;
-        this.hospitalRoomMapper = hospitalRoomMapper;
     }
 
     @Override
     public HospitalRoomListResponse getHospitalRooms(UUID pbo, Pageable pageable) {
         Page<HospitalRoom> roomsPage = hospitalRoomRepository.findByPbo(pbo, pageable);
-        return hospitalRoomMapper.roomsToRoomListResponse(roomsPage);
+        return new HospitalRoomListResponse(roomsPage.toList(), roomsPage.getTotalElements());
     }
 }

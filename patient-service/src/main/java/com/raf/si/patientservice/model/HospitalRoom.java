@@ -25,4 +25,8 @@ public class HospitalRoom {
     @Column(nullable = false)
     private Integer occupation;
     private String description;
+
+    public void incrementCapacity() {
+        capacity++;
+    }
 }

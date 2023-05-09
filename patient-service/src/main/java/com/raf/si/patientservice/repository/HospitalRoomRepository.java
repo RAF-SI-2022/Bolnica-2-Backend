@@ -1,4 +1,4 @@
-package com.raf.si.patientservice.repository.filtering;
+package com.raf.si.patientservice.repository;
 
 import com.raf.si.patientservice.model.HospitalRoom;
 import org.springframework.data.domain.Page;
