@@ -22,5 +22,5 @@ public interface ReferralService {
 
     ReferralResponse deleteReferral(Long id);
 
-    List<UnprocessedReferralsResponse> unprocessedReferrals(UUID lbp, String authorizationHeader);
+    List<UnprocessedReferralsResponse> unprocessedReferrals(UUID lbp, String type, String authorizationHeader);
 }
