@@ -33,7 +33,7 @@ public class AppointmentController {
 
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @GetMapping
-    public ResponseEntity<AppointmentListResponse> getAppointments(@RequestParam(required = false) UUID lbp,
+    public ResponseEntity<AppointmentListResponse> getAppointments(@Valid @RequestParam(required = false) UUID lbp,
                                                                    @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
                                                                    @RequestParam(defaultValue = "0") int page,
                                                                    @RequestParam(defaultValue = "5") int size) {
