@@ -24,4 +24,8 @@ public enum AppointmentStatus {
         }
         return null;
     }
+
+    public String getNotation() {
+        return notation;
+    }
 }
