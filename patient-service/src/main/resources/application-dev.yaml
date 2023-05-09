@@ -34,3 +34,5 @@ jwt.secret.key: "secret_key"
 duration.of.exam: 44
 
 user-service-url: "http://localhost:8081/api/users"
+
+laboratory-service-url: "http://localhost:8083/api"

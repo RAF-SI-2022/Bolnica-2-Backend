@@ -36,6 +36,7 @@ public class BootstrapData implements CommandLineRunner {
     private final AllergenRepository allergenRepository;
     private final VaccineRepository vaccineRepository;
     private final ScheduledMedExamRepository scheduledMedExamRepository;
+    private final HospitalRoomRepository hospitalRoomRepository;
 
     public BootstrapData(PatientRepository patientRepository,
                          HealthRecordRepository healthRecordRepository,
@@ -46,7 +47,9 @@ public class BootstrapData implements CommandLineRunner {
                          AllergyRepository allergyRepository,
                          DiagnosisRepository diagnosisRepository,
                          AllergenRepository allergenRepository,
-                         VaccineRepository vaccineRepository, ScheduledMedExamRepository scheduledMedExamRepository) {
+                         VaccineRepository vaccineRepository,
+                         ScheduledMedExamRepository scheduledMedExamRepository,
+                         HospitalRoomRepository hospitalRoomRepository) {
 
         this.patientRepository = patientRepository;
         this.healthRecordRepository = healthRecordRepository;
@@ -59,11 +62,13 @@ public class BootstrapData implements CommandLineRunner {
         this.allergenRepository = allergenRepository;
         this.vaccineRepository = vaccineRepository;
         this.scheduledMedExamRepository = scheduledMedExamRepository;
+        this.hospitalRoomRepository = hospitalRoomRepository;
     }
 
     @Override
     public void run(String... args) throws ParseException, IOException {
         makePatient();
+        makeRoom();
         //makeSchedExam();
     }
 
@@ -519,4 +524,16 @@ public class BootstrapData implements CommandLineRunner {
         allergyRepository.saveAll(allergies);
     }
 
+    private void makeRoom() {
+        HospitalRoom hospitalRoom = new HospitalRoom();
+
+        hospitalRoom.setPbo(UUID.fromString("c0979e25-2bb1-4582-87a9-aa175777a65d"));
+        hospitalRoom.setDescription("Bolnička soba");
+        hospitalRoom.setRoomName("Soba 1");
+        hospitalRoom.setRoomNumber(1);
+        hospitalRoom.setCapacity(15);
+        hospitalRoom.setOccupation(0);
+
+        hospitalRoomRepository.save(hospitalRoom);
+    }
 }

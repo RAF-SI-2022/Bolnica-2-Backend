@@ -43,7 +43,7 @@ public class AppointmentController {
 
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @PutMapping("/change-status/{id}")
-    public ResponseEntity<AppointmentResponse> changeStatus(@PathVariable Long id,
+    public ResponseEntity<AppointmentResponse> changeStatus(@PathVariable("id") Long id,
                                                             @RequestParam String status) {
 
         return ResponseEntity.ok(appointmentService.changeStatus(id, status));

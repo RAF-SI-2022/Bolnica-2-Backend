@@ -60,10 +60,7 @@ public class ReferralServiceImpl implements ReferralService {
 
     @Override
     public ReferralResponse getReferral(Long id) {
-        Referral referral = referralRepository.findById(id).orElseThrow(() -> {
-            log.error("Ne postoji uput sa id-ijem '{}'", id);
-            throw new NotFoundException("Uput sa datim id-ijem ne postoji");
-        });
+        Referral referral = findReferral(id);
         return referralMapper.modelToResponse(referral);
     }
 
@@ -150,6 +147,16 @@ public class ReferralServiceImpl implements ReferralService {
         return unprocessedReferralsResponses;
     }
 
+    @Override
+    public ReferralResponse changeStatus(Long id, String status) {
+        Referral referral = findReferral(id);
+        ReferralStatus referralStatus = findReferralStatus(status);
+
+        referral.setStatus(referralStatus);
+        referral = referralRepository.save(referral);
+        return referralMapper.modelToResponse(referral);
+    }
+
     public List<DoctorResponse> getAllDoctors(String token) {
         List<DoctorResponse>  responseBody;
         try {
@@ -205,5 +212,23 @@ public class ReferralServiceImpl implements ReferralService {
             log.info(errMessage);
             throw new BadRequestException(errMessage);
         }
+    }
+
+    private Referral findReferral(Long id) {
+        Referral referral = referralRepository.findById(id).orElseThrow(() -> {
+            log.error("Ne postoji uput sa id-ijem '{}'", id);
+            throw new NotFoundException("Uput sa datim id-ijem ne postoji");
+        });
+        return referral;
+    }
+
+    private ReferralStatus findReferralStatus(String status) {
+        ReferralStatus referralStatus = ReferralStatus.valueOfNotation(status);
+        if(referralStatus == null) {
+            String errMessage = String.format("Status \'%s\' ne postoji", status);
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+        return referralStatus;
     }
 }
