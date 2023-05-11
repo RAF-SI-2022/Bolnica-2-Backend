@@ -1,9 +1,6 @@
 package com.raf.si.userservice.service.impl;
 
-import com.raf.si.userservice.dto.request.CreateUserRequest;
-import com.raf.si.userservice.dto.request.PasswordResetRequest;
-import com.raf.si.userservice.dto.request.UpdatePasswordRequest;
-import com.raf.si.userservice.dto.request.UpdateUserRequest;
+import com.raf.si.userservice.dto.request.*;
 import com.raf.si.userservice.dto.response.*;
 import com.raf.si.userservice.exception.BadRequestException;
 import com.raf.si.userservice.exception.ForbiddenException;
@@ -191,6 +188,14 @@ public class UserServiceImpl implements UserService {
                 .map(userMapper::modelToDoctorResponse)
                 .collect(Collectors.toList());
 
+    }
+
+    @Override
+    public List<UserResponse> getUsersByLbzList(UUIDListRequest lbzListRequest) {
+        return userRepository.findByLbzInList(lbzListRequest.getUuids())
+                .stream()
+                .map(userMapper::modelToResponse)
+                .collect(Collectors.toList());
     }
 
     private List<Boolean> adjustIncludeDeleteParameter(boolean includeDeleted) {

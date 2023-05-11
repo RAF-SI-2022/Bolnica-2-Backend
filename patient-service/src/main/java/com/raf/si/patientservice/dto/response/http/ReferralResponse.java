@@ -1,4 +1,4 @@
-package com.raf.si.patientservice.dto.response;
+package com.raf.si.patientservice.dto.response.http;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

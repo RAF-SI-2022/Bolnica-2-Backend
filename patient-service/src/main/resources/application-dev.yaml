@@ -33,6 +33,6 @@ jwt.secret.key: "secret_key"
 # Duration of scheduled medical examination expressed in minutes
 duration.of.exam: 44
 
-user-service-url: "http://localhost:8081/api/users"
+user-service-url: "http://localhost:8081/api"
 
 laboratory-service-url: "http://localhost:8083/api"
