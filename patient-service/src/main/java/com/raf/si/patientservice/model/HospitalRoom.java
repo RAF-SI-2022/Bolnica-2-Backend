@@ -26,7 +26,7 @@ public class HospitalRoom {
     private Integer occupation;
     private String description;
 
-    public void incrementCapacity() {
-        capacity++;
+    public void incrementOccupation() {
+        occupation++;
     }
 }

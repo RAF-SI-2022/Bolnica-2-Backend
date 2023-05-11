@@ -1,9 +1,11 @@
 package com.raf.si.userservice.service.impl;
 
+import com.raf.si.userservice.dto.request.UUIDListRequest;
 import com.raf.si.userservice.dto.response.DepartmentResponse;
 import com.raf.si.userservice.dto.response.HospitalResponse;
 import com.raf.si.userservice.exception.NotFoundException;
 import com.raf.si.userservice.mapper.DepartmentMapper;
+import com.raf.si.userservice.model.Department;
 import com.raf.si.userservice.model.Hospital;
 import com.raf.si.userservice.repository.DepartmentRepository;
 import com.raf.si.userservice.repository.HospitalRepository;
@@ -70,5 +72,17 @@ public class DepartmentServiceImpl implements DepartmentService {
                 .stream()
                 .map(departmentMapper::modelToDepartmentResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public DepartmentResponse getDepartmentByPbo(UUID pbo) {
+        Department department = departmentRepository.findDepartmentByPbo(pbo)
+                .orElseThrow( () -> {
+                    String errMessage = String.format("Departman sa pbo-om %s ne postoji", pbo.toString());
+                    log.error(errMessage);
+                    throw new NotFoundException(errMessage);
+                });
+        log.info(String.format("Departman sa pbo-om %s pronadjen", pbo));
+        return departmentMapper.modelToDepartmentResponse(department);
     }
 }

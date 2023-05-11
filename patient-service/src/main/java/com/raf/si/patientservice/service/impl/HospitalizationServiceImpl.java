@@ -59,7 +59,7 @@ public class HospitalizationServiceImpl implements HospitalizationService {
 
         updateReferralStatus(request.getReferralId(), token);
 
-        hospitalRoom.incrementCapacity();
+        hospitalRoom.incrementOccupation();
         hospitalizationRepository.save(hospitalization);
         hospitalRoomRepository.save(hospitalRoom);
 

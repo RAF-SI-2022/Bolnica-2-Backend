@@ -27,25 +27,29 @@ public class AppointmentController {
 
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @PostMapping("/create")
-    public ResponseEntity<AppointmentResponse> createAppointment(@Valid @RequestBody CreateAppointmentRequest request) {
-        return ResponseEntity.ok(appointmentService.createAppointment(request));
+    public ResponseEntity<AppointmentResponse> createAppointment(@Valid @RequestBody CreateAppointmentRequest request,
+                                                                 @RequestHeader("Authorization") String authorizationHeader) {
+
+        return ResponseEntity.ok(appointmentService.createAppointment(request, authorizationHeader));
     }
 
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @GetMapping
     public ResponseEntity<AppointmentListResponse> getAppointments(@Valid @RequestParam(required = false) UUID lbp,
                                                                    @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date date,
+                                                                   @RequestHeader("Authorization") String authorizationHeader,
                                                                    @RequestParam(defaultValue = "0") int page,
                                                                    @RequestParam(defaultValue = "5") int size) {
 
-        return ResponseEntity.ok(appointmentService.getAppointments(lbp, date, PageRequest.of(page, size)));
+        return ResponseEntity.ok(appointmentService.getAppointments(lbp, date, authorizationHeader, PageRequest.of(page, size)));
     }
 
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @PutMapping("/change-status/{id}")
     public ResponseEntity<AppointmentResponse> changeStatus(@PathVariable("id") Long id,
-                                                            @RequestParam String status) {
+                                                            @RequestParam String status,
+                                                            @RequestHeader("Authorization") String authorizationHeader) {
 
-        return ResponseEntity.ok(appointmentService.changeStatus(id, status));
+        return ResponseEntity.ok(appointmentService.changeStatus(id, status, authorizationHeader));
     }
 }

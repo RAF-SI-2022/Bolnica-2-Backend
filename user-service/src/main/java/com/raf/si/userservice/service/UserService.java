@@ -1,9 +1,6 @@
 package com.raf.si.userservice.service;
 
-import com.raf.si.userservice.dto.request.CreateUserRequest;
-import com.raf.si.userservice.dto.request.PasswordResetRequest;
-import com.raf.si.userservice.dto.request.UpdatePasswordRequest;
-import com.raf.si.userservice.dto.request.UpdateUserRequest;
+import com.raf.si.userservice.dto.request.*;
 import com.raf.si.userservice.dto.response.*;
 import org.springframework.data.domain.Pageable;
 
@@ -32,5 +29,7 @@ public interface UserService {
     List<DoctorResponse> getAllDoctors();
 
     List<DoctorResponse> getAllDoctorsByDepartment(UUID pbo);
+
+    List<UserResponse> getUsersByLbzList(UUIDListRequest lbzListRequest);
 
 }
