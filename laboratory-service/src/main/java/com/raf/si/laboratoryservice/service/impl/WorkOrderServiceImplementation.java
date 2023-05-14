@@ -138,7 +138,7 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
     public ResultResponse getResults(Long orderId) {
         List<String> permissions = TokenPayloadUtil.getTokenPayload().getPermissions();
         LabWorkOrder order = findOrder(orderId);
-        if (!permissions.contains("ROLE_MED_BIOHEM") && !permissions.contains("ROLE_SPEC_MED_BIOHEM")) {
+        if (!permissions.contains("ROLE_MED_BIOHEMICAR") && !permissions.contains("ROLE_SPEC_MED_BIOHEMIJE")) {
             if (!order.getStatus().equals(OrderStatus.OBRADJEN)) {
                 String errMessage = String.format("Radni nalog sa id-om '%s' nije obradjen", orderId);
                 log.info(errMessage);

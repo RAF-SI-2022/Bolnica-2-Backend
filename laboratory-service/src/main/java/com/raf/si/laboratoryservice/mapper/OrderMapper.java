@@ -1,13 +1,7 @@
 package com.raf.si.laboratoryservice.mapper;
 
-import com.raf.si.laboratoryservice.dto.request.order.SaveResultRequest;
 import com.raf.si.laboratoryservice.dto.response.order.*;
-import com.raf.si.laboratoryservice.exception.BadRequestException;
 import com.raf.si.laboratoryservice.model.*;
-import com.raf.si.laboratoryservice.model.enums.labworkorder.OrderStatus;
-import com.raf.si.laboratoryservice.repository.AnalysisParameterRepository;
-import com.raf.si.laboratoryservice.repository.AnalysisParameterResultRepository;
-import com.raf.si.laboratoryservice.repository.LabWorkOrderRepository;
 import com.raf.si.laboratoryservice.utils.TokenPayloadUtil;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,21 +68,26 @@ public class OrderMapper {
     public OrderHistoryResponse orderPageToOrderHistoryForLabResponse(Page<LabWorkOrder> orderPage) {
         List<OrderResponse> orders = orderPage.getContent()
                 .stream()
-                .filter(this::shouldRemove)
+                .filter(this::isWorkOrderReferredToMyDepartment)
                 .map(this::orderToOrderResponse)
                 .collect(Collectors.toList());
 
-        return new OrderHistoryResponse(orders, orderPage.getTotalElements());
+        return new OrderHistoryResponse(orders, (long) orders.size());
     }
 
-    private boolean shouldRemove(LabWorkOrder order){
+    private boolean isWorkOrderReferredToMyDepartment(LabWorkOrder order){
         UUID pbo = TokenPayloadUtil.getTokenPayload().getPbo();
-        return !order.getReferral().getPboReferredTo().equals(pbo);
+        return order.getReferral().getPboReferredTo().equals(pbo);
     }
 
     public ResultResponse orderToResultResponse(LabWorkOrder order){
         ResultResponse response = new ResultResponse();
-        response.setOrder(order);
+        response.setOrderId(order.getId());
+        response.setOrderStatus(order.getStatus());
+        response.setOrderCreationTime(order.getCreationTime());
+        response.setReferralId(order.getReferral().getId());
+        response.setLbp(order.getLbp());
+        response.setLbzTechnician(order.getLbzTechnician());
         response.setResults(new ArrayList<>());
         for(AnalysisParameterResult apr : order.getAnalysisParameterResults()){
             response.getResults().add(analysisReportToAnalysisReportResponse(apr));
