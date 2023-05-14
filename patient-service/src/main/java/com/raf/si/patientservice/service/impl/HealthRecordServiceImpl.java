@@ -16,6 +16,9 @@ import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -177,6 +180,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                 .anyMatch(permission -> permission.equals(PERMITTED_DOC));
     }
 
+    @Cacheable(value = "healthrecord", key = "#lbp")
     private HealthRecord getRecordByLbp(UUID lbp) {
         // dohvati iz baze korisnika
         Patient patient = patientService.findPatient(lbp);
@@ -190,6 +194,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     }
 
     @Override
+    @CacheEvict(value = "healthrecord", key = "#lbp")
     public BasicHealthRecordResponse updateHealthRecord(UpdateHealthRecordRequest updateHealthRecordRequest, UUID lbp) {
 
         // getrecordbylbp
@@ -202,6 +207,12 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         healthRecord = healthRecordRepository.save(healthRecord);
 
         return healthRecordMapper.healthRecordToBasicHealthRecordResponse(lbp, healthRecord);
+    }
+
+    @CachePut(value = "healthrecord", key="#healthrecord.lbp")
+    private HealthRecord addHealthrecordAllergy(HealthRecord healthRecord, Allergy allergy) {
+        healthRecord.getAllergies().add(allergy);
+        return healthRecord;
     }
 
     @Override
@@ -233,9 +244,15 @@ public class HealthRecordServiceImpl implements HealthRecordService {
 
         allergy = allergyRepository.save(allergy);
 
-        healthRecord.getAllergies().add(allergy);
+        addHealthrecordAllergy(healthRecord, allergy);
 
         return healthRecordMapper.allergyToExtendedAllergyResponse(healthRecord, allergy);
+    }
+
+    @CachePut(value = "healthrecord", key="#healthrecord.lbp")
+    private HealthRecord addHealthrecordVaccination(HealthRecord healthRecord, Vaccination vaccination) {
+        healthRecord.getVaccinations().add(vaccination);
+        return healthRecord;
     }
 
     @Override
@@ -287,7 +304,8 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         //update podatke
         Vaccination vaccination = healthRecordMapper.addVaccinationRequestToVaccinatin(addVaccinationRequest, healthRecord, vaccine);
 
-        healthRecord.getVaccinations().add(vaccination);
+        addHealthrecordVaccination(healthRecord, vaccination);
+        //healthRecord.getVaccinations().add(vaccination);
 
         // update podatke u bazi
         vaccination = vaccinationRepository.save(vaccination);
@@ -296,12 +314,14 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     }
 
     @Override
+    @Cacheable(value = "vaccines")
     public VaccineListResponse getAvailableVaccines() {
         List<Vaccine> vaccines = vaccineRepository.findAll();
         return healthRecordMapper.vaccineListToVaccineListResponse(vaccines);
     }
 
     @Override
+    @Cacheable(value = "allergens")
     public AllergenListResponse getAvailableAllergens() {
         List<Allergen> vaccines = allergenRepository.findAll();
         return healthRecordMapper.allergenListToAllergenListResponse(vaccines);
