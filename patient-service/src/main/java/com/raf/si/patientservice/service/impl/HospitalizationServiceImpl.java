@@ -51,6 +51,8 @@ public class HospitalizationServiceImpl implements HospitalizationService {
         entityManager.lock(hospitalRoom, LockModeType.PESSIMISTIC_READ);
 
         Patient patient = patientService.findPatient(request.getLbp());
+        checkPatientAlreadyHospitalized(patient);
+
         Hospitalization hospitalization = hospitalizationMapper.hospitalizationRequestToHospitalization(
                 request,
                 hospitalRoom,
@@ -94,6 +96,14 @@ public class HospitalizationServiceImpl implements HospitalizationService {
         } catch(Exception e) {
             log.error(e.getMessage());
             throw new BadRequestException(e.getMessage());
+        }
+    }
+
+    private void checkPatientAlreadyHospitalized(Patient patient) {
+        if (hospitalizationRepository.patientAlreadyHospitalized(patient)) {
+            String errMessage = String.format("Pacijent sa lbp-om %s je vec hospitalizovan", patient.getLbp());
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
         }
     }
 }

@@ -20,6 +20,7 @@ import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.utils.HttpUtils;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -50,6 +51,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     public AppointmentResponse createAppointment(CreateAppointmentRequest request, String token) {
         Patient patient = patientService.findPatient(request.getLbp());
         checkDate(request.getReceiptDate());
+        checkPatientHasAppointmentThatDay(patient, request.getReceiptDate());
 
         Appointment appointment = appointmentMapper.createAppointmentRequestToAppointment(
                 request,
@@ -125,6 +127,17 @@ public class AppointmentServiceImpl implements AppointmentService {
         Date currDate = new Date();
         if (currDate.after(date)) {
             String errMessage = String.format("Datum %s je u proslosti", date.toString());
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+    }
+
+    private void checkPatientHasAppointmentThatDay(Patient patient, Date appointmentDate) {
+        Date startDate = DateUtils.truncate(appointmentDate, Calendar.DAY_OF_MONTH);
+        Date endDate = DateUtils.addDays(startDate, 1);
+
+        if (appointmentRepository.patientHasAppointmentDateBetween(patient, startDate, endDate)) {
+            String errMessage = String.format("Pacijent sa lbp-om %s vec ima zakazanu posetu tog dana", patient.getLbp());
             log.error(errMessage);
             throw new BadRequestException(errMessage);
         }
