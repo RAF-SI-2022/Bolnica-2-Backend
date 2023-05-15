@@ -42,16 +42,6 @@ public class OrderMapper {
         return response;
     }
 
-    public OrderResponse orderToOrderResponse(LabWorkOrder order, List<AnalysisParameterResult> results) {
-        OrderResponse response = orderToOrderResponse(order);
-        List<AnalysisResultResponse> analysisResultResponses = new ArrayList<>();
-        if(results != null) {
-            results.forEach(result -> analysisResultResponses.add(analysisReportToAnalysisReportResponse(result)));
-        }
-        response.setAnalysisParameterResults(analysisResultResponses);
-        return response;
-    }
-
     public OrderHistoryResponse orderPageToOrderHistoryResponse(Page<LabWorkOrder> orderPage){
         List<OrderResponse> orders = orderPage.getContent()
                 .stream()
@@ -83,7 +73,7 @@ public class OrderMapper {
 
     private boolean shouldRemove(LabWorkOrder order){
         UUID pbo = TokenPayloadUtil.getTokenPayload().getPbo();
-        return !order.getReferral().getPboReferredTo().equals(pbo);
+        return order.getReferral().getPboReferredTo().equals(pbo);
     }
 
     public ResultResponse orderToResultResponse(LabWorkOrder order){

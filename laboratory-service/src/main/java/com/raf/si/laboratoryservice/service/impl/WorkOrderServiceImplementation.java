@@ -82,21 +82,22 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
             }
         }
 
-        labWorkOrderRepository.save(newOrder);
+
         referralRepository.save(referral);
+        labWorkOrderRepository.save(newOrder);
         analysisParameterResultRepository.saveAll(analysisParameterResults);
 
         newOrder = labWorkOrderRepository.save(newOrder);
         return orderMapper.orderToOrderResponse(newOrder);
-
     }
 
     @Override
     public OrderHistoryResponse orderHistory(OrderHistoryRequest historyRequest, Pageable pageable) {
-        Page<LabWorkOrder> orders = labWorkOrderRepository.findByLbpAndCreationTimeBetweenAndStatusIsNot(
+        Page<LabWorkOrder> orders = labWorkOrderRepository.findByLbpAndCreationTimeBetweenAndStatusNot(
                 historyRequest.getLbp(), historyRequest.getStartDate(), historyRequest.getEndDate(),
                 OrderStatus.NEOBRADJEN, pageable
         );
+
         return orderMapper.orderPageToOrderHistoryResponse(orders);
     }
 
