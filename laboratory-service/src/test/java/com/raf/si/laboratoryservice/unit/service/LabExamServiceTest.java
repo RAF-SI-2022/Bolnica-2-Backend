@@ -57,7 +57,6 @@ public class LabExamServiceTest {
         when(authentication.getPrincipal()).thenReturn(tokenPayload);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        when(referralRepository.findByLbp(any(UUID.class))).thenReturn(Optional.of(new Referral()));
         when(scheduledLabExamRepository.save(any(ScheduledLabExam.class))).thenReturn(scheduledLabExam);
 
         LabExamResponse labExamResponse = createLabExamResponse();
