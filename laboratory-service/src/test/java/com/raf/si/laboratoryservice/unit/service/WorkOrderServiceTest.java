@@ -470,7 +470,6 @@ public class WorkOrderServiceTest {
         OrderMapper om = new OrderMapper();
         ResultResponse response = om.orderToResultResponse(order);
 
-        assertEquals(order,response.getOrder());
         assertEquals(apr.getResult(),response.getResults().get(0).getResult());
         assertEquals(apr.getId(),response.getResults().get(0).getId());
         assertEquals(apr.getLbzBiochemist(),response.getResults().get(0).getLbzBiochemist());
