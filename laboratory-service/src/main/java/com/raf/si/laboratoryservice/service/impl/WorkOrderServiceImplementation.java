@@ -83,8 +83,8 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
         }
 
 
-        referralRepository.save(referral);
         labWorkOrderRepository.save(newOrder);
+        referralRepository.save(referral);
         analysisParameterResultRepository.saveAll(analysisParameterResults);
 
         newOrder = labWorkOrderRepository.save(newOrder);

@@ -317,19 +317,24 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         return healthRecordMapper.vaccinationToExtendedVaccinationResponse(healthRecord, vaccination);
     }
 
-
+    @Cacheable(value = "vaccines")
+    private List<Vaccine> findAllVaccines() {
+        return vaccineRepository.findAll();
+    }
     @Override
-//    @Cacheable(value = "vaccines")
     public VaccineListResponse getAvailableVaccines() {
-        List<Vaccine> vaccines = vaccineRepository.findAll();
+        List<Vaccine> vaccines = findAllVaccines();
         return healthRecordMapper.vaccineListToVaccineListResponse(vaccines);
     }
 
+    @Cacheable(value = "allergens")
+    private List<Allergen> findAllAllergens() {
+        return allergenRepository.findAll();
+    }
     @Override
-//    @Cacheable(value = "allergens")
     public AllergenListResponse getAvailableAllergens() {
-        List<Allergen> vaccines = allergenRepository.findAll();
-        return healthRecordMapper.allergenListToAllergenListResponse(vaccines);
+        List<Allergen> allergens = findAllAllergens();
+        return healthRecordMapper.allergenListToAllergenListResponse(allergens);
     }
 
     @Override
