@@ -224,7 +224,7 @@ class ReferralServiceTest {
 
         List<UnprocessedReferralsResponse> expectedResponse = new ArrayList<>();
         UnprocessedReferralsResponse unprocessedReferralResponse = new UnprocessedReferralsResponse();
-        unprocessedReferralResponse.setAnalysisParameters(null);
+        unprocessedReferralResponse.setRequiredAnalysis("Krvna slika");
         unprocessedReferralResponse.setComment("Komentar");
         expectedResponse.add(unprocessedReferralResponse);
 

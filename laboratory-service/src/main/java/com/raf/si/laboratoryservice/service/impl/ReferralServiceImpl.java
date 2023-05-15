@@ -138,7 +138,7 @@ public class ReferralServiceImpl implements ReferralService {
                     unprocessedReferral.setDoctorLastName(doctor.getLastName());
                 }
             }
-            unprocessedReferral.setAnalysisParameters(referral.getAnalysisParameters());
+            unprocessedReferral.setRequiredAnalysis(referral.getRequiredAnalysis());
             unprocessedReferral.setCreationDate(referral.getCreationTime());
             unprocessedReferral.setComment(referral.getComment());
             unprocessedReferralsResponses.add(unprocessedReferral);

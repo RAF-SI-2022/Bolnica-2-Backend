@@ -218,7 +218,7 @@ public class WorkOrderServiceTest {
     public void testForGetResultSuccessForBH(){
         TokenPayload tokenPayload = new TokenPayload();
         List<String> permissions = new ArrayList<>();
-        permissions.add("ROLE_MED_BIOHEM");
+        permissions.add("ROLE_MED_BIOHEMICAR");
         tokenPayload.setPermissions(permissions);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
