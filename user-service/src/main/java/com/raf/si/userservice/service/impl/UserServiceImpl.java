@@ -75,7 +75,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Cacheable(value = "user", key = "#lbz")
+//    @Cacheable(value = "user", key = "#lbz")
     public UserResponse getUserByLbz(UUID lbz) {
         User user = userRepository.findUserByLbz(lbz).orElseThrow(() -> {
             log.error("Ne postoji korisnik sa lbz-om '{}'", lbz);
@@ -92,7 +92,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    @CacheEvict(value = "user", key = "#loggedLbz")
+//    @CacheEvict(value = "user", key = "#loggedLbz")
     public UserResponse deleteUser(Long id, UUID loggedLbz) {
         User user = userRepository.findById(id).orElseThrow(() -> {
             log.error("Ne postoji korisnik sa id-ijem '{}'", id);
@@ -113,7 +113,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    @CacheEvict(value = "user", key = "#loggedLbz")
+//    @CacheEvict(value = "user", key = "#loggedLbz")
     public UserResponse updateUser(UUID lbz, UpdateUserRequest updateUserRequest, boolean isAdmin) {
         User user = userRepository.findUserByLbz(lbz).orElseThrow(() -> {
             log.error("Ne postoji korisnik sa lbz '{}'", lbz);
@@ -157,7 +157,7 @@ public class UserServiceImpl implements UserService {
         return new MessageResponse("Proverite vas email za resetovanje sifre");
     }
 
-    @CachePut(value = "user", key = "#user.lbz")
+//    @CachePut(value = "user", key = "#user.lbz")
     private User updateUserPassword(User user, UpdatePasswordRequest updatePasswordRequest) {
         return userRepository.save(userMapper.setUserPassword(user, updatePasswordRequest.getPassword()));
     }

@@ -49,7 +49,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
-    @Cacheable(value = "departments")
+//    @Cacheable(value = "departments")
     public List<DepartmentResponse> getAllDepartments() {
         log.info("Listanje svih odeljenja..");
         return departmentRepository.findAll()
@@ -59,7 +59,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
-    @Cacheable(value = "hospitals")
+//    @Cacheable(value = "hospitals")
     public List<HospitalResponse> getAllHospitals() {
         log.info("Listanje svih bolnica..");
         return hospitalRepository.findAll()

@@ -180,7 +180,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                 .anyMatch(permission -> permission.equals(PERMITTED_DOC));
     }
 
-    @Cacheable(value = "healthrecord", key = "#lbp")
+//    @Cacheable(value = "healthrecord", key = "#lbp")
     private HealthRecord getRecordByLbp(UUID lbp) {
         // dohvati iz baze korisnika
         Patient patient = patientService.findPatient(lbp);
@@ -194,7 +194,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     }
 
     @Override
-    @CacheEvict(value = "healthrecord", key = "#lbp")
+//    @CacheEvict(value = "healthrecord", key = "#lbp")
     public BasicHealthRecordResponse updateHealthRecord(UpdateHealthRecordRequest updateHealthRecordRequest, UUID lbp) {
 
         // getrecordbylbp
@@ -209,7 +209,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         return healthRecordMapper.healthRecordToBasicHealthRecordResponse(lbp, healthRecord);
     }
 
-    @CachePut(value = "healthrecord", key="#healthrecord.lbp")
+//    @CachePut(value = "healthrecord", key="#healthrecord.lbp")
     private HealthRecord addHealthrecordAllergy(HealthRecord healthRecord, Allergy allergy) {
         healthRecord.getAllergies().add(allergy);
         return healthRecord;
@@ -249,7 +249,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         return healthRecordMapper.allergyToExtendedAllergyResponse(healthRecord, allergy);
     }
 
-    @CachePut(value = "healthrecord", key="#healthrecord.lbp")
+//    @CachePut(value = "healthrecord", key="#healthrecord.lbp")
     private HealthRecord addHealthrecordVaccination(HealthRecord healthRecord, Vaccination vaccination) {
         healthRecord.getVaccinations().add(vaccination);
         return healthRecord;
@@ -314,14 +314,14 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     }
 
     @Override
-    @Cacheable(value = "vaccines")
+//    @Cacheable(value = "vaccines")
     public VaccineListResponse getAvailableVaccines() {
         List<Vaccine> vaccines = vaccineRepository.findAll();
         return healthRecordMapper.vaccineListToVaccineListResponse(vaccines);
     }
 
     @Override
-    @Cacheable(value = "allergens")
+//    @Cacheable(value = "allergens")
     public AllergenListResponse getAvailableAllergens() {
         List<Allergen> vaccines = allergenRepository.findAll();
         return healthRecordMapper.allergenListToAllergenListResponse(vaccines);
