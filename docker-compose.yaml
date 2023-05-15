@@ -2,6 +2,13 @@ version: '3.9'
 
 services:
 
+  redis:
+    image: harbor.k8s.elab.rs/bolnica-2/redis:7.0.11-alpine
+    expose:
+      - "6379"
+    ports:
+      - "6379:6379"
+
   user-db:
     image: harbor.k8s.elab.rs/bolnica-2/postgres:latest
     restart: always
@@ -15,8 +22,6 @@ services:
       POSTGRES_USER: student
       POSTGRES_PASSWORD: student
       POSTGRES_DB: postgresDB
-    networks:
-      - local_newtork
 
   patient-db:
     image: harbor.k8s.elab.rs/bolnica-2/postgres:latest
@@ -31,8 +36,6 @@ services:
       POSTGRES_USER: student
       POSTGRES_PASSWORD: student
       POSTGRES_DB: postgresDB
-    networks:
-      - local_newtork
 
   laboratory-db:
     image: harbor.k8s.elab.rs/bolnica-2/postgres:latest
@@ -47,8 +50,6 @@ services:
       POSTGRES_USER: student
       POSTGRES_PASSWORD: student
       POSTGRES_DB: postgresDB
-    networks:
-      - local_newtork
 
   user-service:
     # image: harbor.k8s.elab.rs/bolnica-2/user-service:1.0
@@ -57,10 +58,9 @@ services:
     restart: always
     ports:
       - "8081:8081"
-    networks:
-      - local_newtork
     depends_on:
       - user-db
+      - redis
 
   patient-service:
     # image: harbor.k8s.elab.rs/bolnica-2/patient-service:1.0
@@ -69,10 +69,9 @@ services:
     restart: always
     ports:
       - "8082:8082"
-    networks:
-      - local_newtork
     depends_on:
       - patient-db
+      - redis
 
   laboratory-service:
     # image: harbor.k8s.elab.rs/bolnica-2/laboratory-service:1.0
@@ -81,12 +80,8 @@ services:
     restart: always
     ports:
       - "8083:8083"
-    networks:
-      - local_newtork
     depends_on:
       - laboratory-db
+      - redis
 
-networks:
-  local_newtork:
-    name : local_network
 

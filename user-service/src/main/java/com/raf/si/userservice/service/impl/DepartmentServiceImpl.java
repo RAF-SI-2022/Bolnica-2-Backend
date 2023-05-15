@@ -11,6 +11,7 @@ import com.raf.si.userservice.repository.DepartmentRepository;
 import com.raf.si.userservice.repository.HospitalRepository;
 import com.raf.si.userservice.service.DepartmentService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -48,6 +49,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Cacheable(value = "departments")
     public List<DepartmentResponse> getAllDepartments() {
         log.info("Listanje svih odeljenja..");
         return departmentRepository.findAll()
@@ -57,6 +59,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Cacheable(value = "hospitals")
     public List<HospitalResponse> getAllHospitals() {
         log.info("Listanje svih bolnica..");
         return hospitalRepository.findAll()
