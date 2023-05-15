@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.criterion.Order;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -61,13 +62,16 @@ public class ReferralServiceImpl implements ReferralService {
     }
 
     @Override
-//    @Cacheable(value = "referral", key = "#id")
     public ReferralResponse getReferral(Long id) {
         Referral referral = findReferral(id);
         return referralMapper.modelToResponse(referral);
     }
 
-//    @CacheEvict(value = "referral", key = "#id")
+    @CacheEvict(value = "referral", key = "#referral.id")
+    private Referral referralSetDeleted(Referral referral) {
+        return referralRepository.save(referral);
+    }
+
     public ReferralResponse deleteReferral(Long id) {
         Referral referral = referralRepository.findById(id).orElseThrow(() -> {
             log.error("Ne postoji uput sa id-ijem '{}'", id);
@@ -88,7 +92,7 @@ public class ReferralServiceImpl implements ReferralService {
         }
 
         referral.setDeleted(true);
-        referral = referralRepository.save(referral);
+        referral = referralSetDeleted(referral);
         log.info("Uput sa id-ijem '{}' je uspesno obrisan", id);
         return referralMapper.modelToResponse(referral);
     }
@@ -151,14 +155,19 @@ public class ReferralServiceImpl implements ReferralService {
         return unprocessedReferralsResponses;
     }
 
+
+    @CachePut(value = "referral", key = "#referral.id")
+    private Referral updateReferral(Referral referral) {
+        return referralRepository.save(referral);
+    }
+
     @Override
-//    @CacheEvict(value = "referral", key = "#id")
     public ReferralResponse changeStatus(Long id, String status) {
         Referral referral = findReferral(id);
         ReferralStatus referralStatus = findReferralStatus(status);
 
         referral.setStatus(referralStatus);
-        referral = referralRepository.save(referral);
+        referral = updateReferral(referral);
         return referralMapper.modelToResponse(referral);
     }
 
@@ -186,7 +195,6 @@ public class ReferralServiceImpl implements ReferralService {
         return responseBody;
     }
 
-//    @Cacheable(value = "departments-lab", key="#token")
     private List<DepartmentResponse> getDepartments(String token) {
         List<DepartmentResponse> responseBody;
         try {
@@ -220,6 +228,7 @@ public class ReferralServiceImpl implements ReferralService {
         }
     }
 
+    @Cacheable(value = "referral", key = "#id")
     private Referral findReferral(Long id) {
         Referral referral = referralRepository.findById(id).orElseThrow(() -> {
             log.error("Ne postoji uput sa id-ijem '{}'", id);

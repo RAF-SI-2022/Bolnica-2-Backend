@@ -74,13 +74,18 @@ public class UserServiceImpl implements UserService {
         return userMapper.modelToResponse(user);
     }
 
-    @Override
-//    @Cacheable(value = "user", key = "#lbz")
-    public UserResponse getUserByLbz(UUID lbz) {
-        User user = userRepository.findUserByLbz(lbz).orElseThrow(() -> {
+
+    @Cacheable(value = "user", key = "#lbz")
+    private User findUserByLbz(UUID lbz) {
+        return userRepository.findUserByLbz(lbz).orElseThrow(() -> {
             log.error("Ne postoji korisnik sa lbz-om '{}'", lbz);
             throw new NotFoundException(String.format("Ne postoji korisnik sa lbz-om: %s ", lbz));
         });
+    }
+    @Override
+    public UserResponse getUserByLbz(UUID lbz) {
+        User user = findUserByLbz(lbz);
+
         return userMapper.modelToResponse(user);
 
     }
@@ -90,9 +95,14 @@ public class UserServiceImpl implements UserService {
         return userRepository.userExists(lbz, false);
     }
 
+
+    @CacheEvict(value = "user", key = "#user.lbz")
+    private User userSetDeleted(User user) {
+        return userRepository.save(user);
+    }
+
     @Transactional
     @Override
-//    @CacheEvict(value = "user", key = "#loggedLbz")
     public UserResponse deleteUser(Long id, UUID loggedLbz) {
         User user = userRepository.findById(id).orElseThrow(() -> {
             log.error("Ne postoji korisnik sa id-ijem '{}'", id);
@@ -105,15 +115,19 @@ public class UserServiceImpl implements UserService {
         }
 
         user.setDeleted(true);
-        user = userRepository.save(user);
+        user = userSetDeleted(user);
         log.info("Korisnicki nalog sa id-ijem '{}' je uspesno obrisan", id);
 
         return userMapper.modelToResponse(user);
     }
 
+
+    @CachePut(value = "user", key = "#user.lbz")
+    private User updateUser(User user) {
+        return userRepository.save(user);
+    }
     @Transactional
     @Override
-//    @CacheEvict(value = "user", key = "#loggedLbz")
     public UserResponse updateUser(UUID lbz, UpdateUserRequest updateUserRequest, boolean isAdmin) {
         User user = userRepository.findUserByLbz(lbz).orElseThrow(() -> {
             log.error("Ne postoji korisnik sa lbz '{}'", lbz);
@@ -130,7 +144,7 @@ public class UserServiceImpl implements UserService {
         User updatedUser = isAdmin ? userMapper.updateRequestToModel(user, updateUserRequest, department)
                 : userMapper.updateRegularRequestToModel(user, updateUserRequest);
 
-        updatedUser = userRepository.save(updatedUser);
+        updatedUser = updateUser(user);
         log.info("Korisnik sa lbz-om '{}' uspesno update-ovan", lbz);
         return userMapper.modelToResponse(updatedUser);
     }
@@ -157,9 +171,10 @@ public class UserServiceImpl implements UserService {
         return new MessageResponse("Proverite vas email za resetovanje sifre");
     }
 
-//    @CachePut(value = "user", key = "#user.lbz")
+
     private User updateUserPassword(User user, UpdatePasswordRequest updatePasswordRequest) {
-        return userRepository.save(userMapper.setUserPassword(user, updatePasswordRequest.getPassword()));
+        User userTmp = userMapper.setUserPassword(user, updatePasswordRequest.getPassword());
+        return updateUser(userTmp);
     }
 
     @Override

@@ -180,7 +180,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                 .anyMatch(permission -> permission.equals(PERMITTED_DOC));
     }
 
-//    @Cacheable(value = "healthrecord", key = "#lbp")
+    @Cacheable(value = "healthrecord", key = "#lbp")
     private HealthRecord getRecordByLbp(UUID lbp) {
         // dohvati iz baze korisnika
         Patient patient = patientService.findPatient(lbp);
@@ -193,8 +193,12 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         return healthRecord;
     }
 
+    @CacheEvict(value = "healthrecord", key = "#healthRecord.lbp")
+    private HealthRecord UpdateHealthRecord(HealthRecord healthRecord) {
+        return healthRecordRepository.save(healthRecord);
+    }
+
     @Override
-//    @CacheEvict(value = "healthrecord", key = "#lbp")
     public BasicHealthRecordResponse updateHealthRecord(UpdateHealthRecordRequest updateHealthRecordRequest, UUID lbp) {
 
         // getrecordbylbp
@@ -204,12 +208,12 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         healthRecord = healthRecordMapper.updateHealthRecordRequestToHealthRecord( updateHealthRecordRequest, healthRecord);
 
         // update podatke u bazi
-        healthRecord = healthRecordRepository.save(healthRecord);
+        healthRecord = UpdateHealthRecord(healthRecord);
 
         return healthRecordMapper.healthRecordToBasicHealthRecordResponse(lbp, healthRecord);
     }
 
-//    @CachePut(value = "healthrecord", key="#healthrecord.lbp")
+    @CachePut(value = "healthrecord", key="#healthrecord.lbp")
     private HealthRecord addHealthrecordAllergy(HealthRecord healthRecord, Allergy allergy) {
         healthRecord.getAllergies().add(allergy);
         return healthRecord;
@@ -312,6 +316,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
 
         return healthRecordMapper.vaccinationToExtendedVaccinationResponse(healthRecord, vaccination);
     }
+
 
     @Override
 //    @Cacheable(value = "vaccines")
