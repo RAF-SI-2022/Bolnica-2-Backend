@@ -51,7 +51,6 @@ public class WorkOrderServiceImplementation implements WorkOrderService {
             throw new BadRequestException(errMessage);
         });
 
-        System.out.println(referral.toString());
         UUID lbp = referral.getLbp();
         String[] requiredAnalysis = referral.getRequiredAnalysis().split(",");
         List<String> requiredAnalysislist = Arrays.asList(requiredAnalysis);
