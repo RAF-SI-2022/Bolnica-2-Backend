@@ -36,16 +36,6 @@ public class OrderMapper {
         return response;
     }
 
-    public OrderResponse orderToOrderResponse(LabWorkOrder order, List<AnalysisParameterResult> results) {
-        OrderResponse response = orderToOrderResponse(order);
-        List<AnalysisResultResponse> analysisResultResponses = new ArrayList<>();
-        if(results != null) {
-            results.forEach(result -> analysisResultResponses.add(analysisReportToAnalysisReportResponse(result)));
-        }
-        response.setAnalysisParameterResults(analysisResultResponses);
-        return response;
-    }
-
     public OrderHistoryResponse orderPageToOrderHistoryResponse(Page<LabWorkOrder> orderPage){
         List<OrderResponse> orders = orderPage.getContent()
                 .stream()
