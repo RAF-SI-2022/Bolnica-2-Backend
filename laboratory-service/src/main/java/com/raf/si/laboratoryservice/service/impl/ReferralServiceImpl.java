@@ -61,13 +61,13 @@ public class ReferralServiceImpl implements ReferralService {
     }
 
     @Override
-    @Cacheable(value = "referral", key = "#id")
+//    @Cacheable(value = "referral", key = "#id")
     public ReferralResponse getReferral(Long id) {
         Referral referral = findReferral(id);
         return referralMapper.modelToResponse(referral);
     }
 
-    @CacheEvict(value = "referral", key = "#id")
+//    @CacheEvict(value = "referral", key = "#id")
     public ReferralResponse deleteReferral(Long id) {
         Referral referral = referralRepository.findById(id).orElseThrow(() -> {
             log.error("Ne postoji uput sa id-ijem '{}'", id);
@@ -152,7 +152,7 @@ public class ReferralServiceImpl implements ReferralService {
     }
 
     @Override
-    @CacheEvict(value = "referral", key = "#id")
+//    @CacheEvict(value = "referral", key = "#id")
     public ReferralResponse changeStatus(Long id, String status) {
         Referral referral = findReferral(id);
         ReferralStatus referralStatus = findReferralStatus(status);
@@ -186,7 +186,7 @@ public class ReferralServiceImpl implements ReferralService {
         return responseBody;
     }
 
-    @Cacheable(value = "departments-lab", key="#token")
+//    @Cacheable(value = "departments-lab", key="#token")
     private List<DepartmentResponse> getDepartments(String token) {
         List<DepartmentResponse> responseBody;
         try {
