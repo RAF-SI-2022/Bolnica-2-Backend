@@ -253,7 +253,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         return healthRecordMapper.allergyToExtendedAllergyResponse(healthRecord, allergy);
     }
 
-//    @CachePut(value = "healthrecord", key="#healthrecord.lbp")
+    @CachePut(value = "healthrecord", key="#healthRecord.lbp")
     private HealthRecord addHealthrecordVaccination(HealthRecord healthRecord, Vaccination vaccination) {
         healthRecord.getVaccinations().add(vaccination);
         return healthRecord;
