@@ -46,6 +46,41 @@ public class BootstrapData implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        ScheduledLabExam exam = new ScheduledLabExam();
+        exam.setPbo(UUID.fromString("4e5911c8-ce7a-11ed-afa1-0242ac120002"));
+        exam.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+        exam.setExamStatus(ExamStatus.ZAKAZANO);
+        exam.setNote("Napomena");
+        exam.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        exam.setScheduledDate(new Date());
+
+        scheduledLabExamRepository.save(exam);
+
+
+        Referral referral = new Referral();
+        referral.setType(ReferralType.LABORATORIJA);
+        referral.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        referral.setPboReferredFrom(UUID.fromString("4e5911c8-ce7a-11ed-afa1-0242ac120002"));
+        referral.setPboReferredTo(UUID.fromString("4e5911c8-ce7a-11ed-afa1-0242ac120002"));
+        referral.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+        referral.setStatus(ReferralStatus.NEREALIZOVAN);
+        referral.setRequiredAnalysis("Glukoza");
+        referral.setComment("Komentar");
+        referral.setReferralDiagnosis("Mononukleoza");
+        referral.setReferralReason("Provera krvne slike pacijenta, da li je mononukleoza prosla");
+        referral.setDeleted(false);
+
+
+        LabWorkOrder workOrder = new LabWorkOrder();
+        workOrder.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+        workOrder.setStatus(OrderStatus.NEOBRADJEN);
+        workOrder.setLbzTechnician(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        workOrder.setLbzBiochemist(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+
+        referral.setLabWorkOrder(workOrder);
+        referralRepository.save(referral);
+        labWorkOrderRepository.save(workOrder);
+
         LabAnalysis analysis = new LabAnalysis();
         analysis.setName("Glukoza");
         analysis.setAbbreviation("GLU");
@@ -112,5 +147,14 @@ public class BootstrapData implements CommandLineRunner {
         analysisParameter4.setAnalysis(analysis4);
         analysisParameter4.setParameter(parameter4);
         analysisParameterRepository.save(analysisParameter4);
+
+        AnalysisParameterResult result = new AnalysisParameterResult();
+        result.setLabWorkOrder(workOrder);
+        result.setAnalysisParameter(analysisParameter);
+        result.setResult("Sve dobro");
+        result.setDateAndTime(new Date());
+        result.setLbzBiochemist(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+
+        analysisParameterResultRepository.save(result);
     }
 }

@@ -62,8 +62,8 @@ public class HospitalizationServiceImpl implements HospitalizationService {
         updateReferralStatus(request.getReferralId(), token);
 
         hospitalRoom.incrementOccupation();
-        hospitalizationRepository.save(hospitalization);
-        hospitalRoomRepository.save(hospitalRoom);
+        hospitalization = hospitalizationRepository.save(hospitalization);
+        hospitalRoom = hospitalRoomRepository.save(hospitalRoom);
 
         return hospitalizationMapper.hospitalizationToResponse(
                 hospitalization,
