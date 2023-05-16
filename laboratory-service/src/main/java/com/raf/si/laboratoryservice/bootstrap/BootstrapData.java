@@ -46,6 +46,20 @@ public class BootstrapData implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        Referral referral = new Referral();
+        referral.setStatus(ReferralStatus.NEREALIZOVAN);
+        referral.setReferralReason("Provera");
+        referral.setLbp(UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8"));
+        referral.setReferralDiagnosis("dijagnoza");
+        referral.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        referral.setType(ReferralType.STACIONAR);
+        referral.setRequiredAnalysis("Glukoza");
+        referral.setPboReferredTo(UUID.fromString("be7fed71-9a96-4644-8d0e-f80a216f77d6"));
+        referral.setPboReferredFrom(UUID.fromString("92c471d0-3980-41fb-a2bd-6a3e0e63e5e2"));
+        referral.setDeleted(false);
+
+        referralRepository.save(referral);
+
         LabAnalysis analysis = new LabAnalysis();
         analysis.setName("Glukoza");
         analysis.setAbbreviation("GLU");

@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long>, JpaSpecificationExecutor<Appointment> {
@@ -15,4 +17,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long>,
     @Query(value = "select case when (count(a) > 0) then true else false end " +
             "from Appointment a where a.patient=:patient and a.receiptDate between :startDate and :endDate")
     boolean patientHasAppointmentDateBetween(Patient patient, Date startDate, Date endDate);
+
+    Optional<Appointment> findByPatientAndPboAndReceiptDateBetween(Patient patient, UUID pbo, Date startDate, Date endDate);
 }

@@ -43,7 +43,7 @@ public class HttpUtils {
         return response;
     }
 
-    public static List<UserResponse> findUsersByLbzList(UUIDListRequest lbzListRequest, String token){
+    public static List<UserResponse> findUsersByLbzList(UUIDListRequest lbzListRequest, String token) {
         String url = USER_SERVICE_BASE_URL + "/users/lbz/list";
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
