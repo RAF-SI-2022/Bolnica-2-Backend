@@ -1,16 +1,18 @@
 package com.raf.si.patientservice.unit.service;
 
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
+import com.raf.si.patientservice.dto.response.HospitalisedPatientsListResponse;
+import com.raf.si.patientservice.dto.response.http.DoctorResponse;
 import com.raf.si.patientservice.dto.response.http.ReferralResponse;
-import com.raf.si.patientservice.dto.response.http.UserResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
-import com.raf.si.patientservice.exception.NotFoundException;
 import com.raf.si.patientservice.mapper.HospitalizationMapper;
 import com.raf.si.patientservice.model.HospitalRoom;
 import com.raf.si.patientservice.model.Hospitalization;
 import com.raf.si.patientservice.model.Patient;
 import com.raf.si.patientservice.repository.HospitalRoomRepository;
 import com.raf.si.patientservice.repository.HospitalizationRepository;
+import com.raf.si.patientservice.repository.filtering.filter.HospitalisedPatientSearchFilter;
+import com.raf.si.patientservice.repository.filtering.specification.HospitalisedPatientSpecification;
 import com.raf.si.patientservice.service.HospitalizationService;
 import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.impl.HospitalizationServiceImpl;
@@ -21,18 +23,22 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.persistence.EntityManager;
-
+import java.util.Collections;
 import java.util.Date;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.mock;
 
 public class HospitalizationServiceTest {
 
@@ -133,12 +139,49 @@ public class HospitalizationServiceTest {
                 hospitalizationMapper.hospitalizationToResponse(hospitalization, hospitalRoom, patient));
     }
 
+    @Test
+    void getHospitalisedPatients_Success() {
+        Patient patient = makePatient();
+        HospitalRoom hospitalRoom = makeHospitalRoom();
+        Hospitalization hospitalization = makeHospitalization(hospitalRoom, patient);
+        Pageable pageable = PageRequest.of(0, 5);
+        HospitalisedPatientSearchFilter filter = new HospitalisedPatientSearchFilter(null, hospitalRoom.getPbo(),
+                null, null, null);
+        HospitalisedPatientSpecification spec = new HospitalisedPatientSpecification(filter);
+        Page<Hospitalization> pages = new PageImpl<>(Collections.singletonList(hospitalization));
+
+        DoctorResponse doctorResponse = new DoctorResponse();
+        doctorResponse.setLbz(hospitalization.getDoctorLBZ());
+        doctorResponse.setFirstName("Ime");
+        doctorResponse.setLastName("Prezime");
+        mockFindDoctors(doctorResponse);
+
+        when(hospitalizationRepository.findAll(spec, pageable))
+                .thenReturn(pages);
+
+        assertEquals(hospitalizationService.getHospitalisedPatients(null, filter.getPbo(), null,
+                null, null, null,
+                PageRequest.of(0, 5)),
+                new HospitalisedPatientsListResponse(Collections.singletonList(hospitalizationMapper.
+                        hospitalizationToHospitalisedPatient(hospitalization, Collections.singletonList(doctorResponse))),
+                        1L));
+    }
+
     private void mockChangeStatus() {
         Mockito.mockStatic(HttpUtils.class);
         ResponseEntity<ReferralResponse> responseMock = mock(ResponseEntity.class);
 
         when(HttpUtils.changeReferralStatus(any(), any(), any()))
                 .thenReturn(responseMock);
+    }
+
+    private void mockFindDoctors(DoctorResponse doctorResponse) {
+        DoctorResponse[] arr = new DoctorResponse[]{doctorResponse};
+        ResponseEntity<DoctorResponse[]> responseEntity = mock(ResponseEntity.class);
+        when(responseEntity.getBody()).thenReturn(arr);
+
+        when(HttpUtils.findDoctors(any()))
+                .thenReturn(responseEntity);
     }
 
     private void mockTokenPayloadUtil() {
@@ -171,6 +214,10 @@ public class HospitalizationServiceTest {
 
         patient.setId(id);
         patient.setLbp(UUID.fromString("8a8ddcb8-f35b-11ed-a05b-0242ac120003"));
+        patient.setFirstName("Ime");
+        patient.setLastName("Prezime");
+        patient.setJmbg("512312311231");
+        patient.setBirthDate(new Date());
 
         return patient;
     }

@@ -2,6 +2,7 @@ package com.raf.si.patientservice.utils;
 
 import com.raf.si.patientservice.dto.request.UUIDListRequest;
 import com.raf.si.patientservice.dto.response.http.DepartmentResponse;
+import com.raf.si.patientservice.dto.response.http.DoctorResponse;
 import com.raf.si.patientservice.dto.response.http.ReferralResponse;
 import com.raf.si.patientservice.dto.response.http.UserResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ public class HttpUtils {
     private static String USER_GET_USER_INFO = "/users/employee-info";
     private static String USER_DEPARTMENT = "/departments";
     private static String CHANGE_REFERRAL_STATUS_URL = "/referral/change-status";
+    private static String USER_DOCTORS = "/users/doctors";
 
 
     public static ResponseEntity<UserResponse> findUserByLbz(String token, UUID lbz){
@@ -83,6 +85,21 @@ public class HttpUtils {
                 HttpMethod.PUT,
                 entity,
                 ReferralResponse.class
+        );
+        return response;
+    }
+
+    public static ResponseEntity<DoctorResponse[]> findDoctors(String token) {
+        String url = USER_SERVICE_BASE_URL + USER_DOCTORS;
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", token);
+        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        ResponseEntity<DoctorResponse[]> response = restTemplate.exchange(
+                url.trim(),
+                HttpMethod.GET,
+                entity,
+                DoctorResponse[].class
         );
         return response;
     }
