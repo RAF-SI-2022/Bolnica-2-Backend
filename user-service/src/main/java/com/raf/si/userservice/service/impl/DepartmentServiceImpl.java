@@ -1,14 +1,17 @@
 package com.raf.si.userservice.service.impl;
 
+import com.raf.si.userservice.dto.request.UUIDListRequest;
 import com.raf.si.userservice.dto.response.DepartmentResponse;
 import com.raf.si.userservice.dto.response.HospitalResponse;
 import com.raf.si.userservice.exception.NotFoundException;
 import com.raf.si.userservice.mapper.DepartmentMapper;
+import com.raf.si.userservice.model.Department;
 import com.raf.si.userservice.model.Hospital;
 import com.raf.si.userservice.repository.DepartmentRepository;
 import com.raf.si.userservice.repository.HospitalRepository;
 import com.raf.si.userservice.service.DepartmentService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -46,6 +49,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+//    @Cacheable(value = "departments")
     public List<DepartmentResponse> getAllDepartments() {
         log.info("Listanje svih odeljenja..");
         return departmentRepository.findAll()
@@ -55,6 +59,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+//    @Cacheable(value = "hospitals")
     public List<HospitalResponse> getAllHospitals() {
         log.info("Listanje svih bolnica..");
         return hospitalRepository.findAll()
@@ -70,5 +75,17 @@ public class DepartmentServiceImpl implements DepartmentService {
                 .stream()
                 .map(departmentMapper::modelToDepartmentResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public DepartmentResponse getDepartmentByPbo(UUID pbo) {
+        Department department = departmentRepository.findDepartmentByPbo(pbo)
+                .orElseThrow( () -> {
+                    String errMessage = String.format("Departman sa pbo-om %s ne postoji", pbo.toString());
+                    log.error(errMessage);
+                    throw new NotFoundException(errMessage);
+                });
+        log.info(String.format("Departman sa pbo-om %s pronadjen", pbo));
+        return departmentMapper.modelToDepartmentResponse(department);
     }
 }

@@ -2,6 +2,7 @@ package com.raf.si.patientservice.bootstrap;
 
 
 import com.raf.si.patientservice.model.*;
+import com.raf.si.patientservice.model.enums.appointment.AppointmentStatus;
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
 import com.raf.si.patientservice.model.enums.healthrecord.BloodType;
 import com.raf.si.patientservice.model.enums.healthrecord.RHFactor;
@@ -36,6 +37,9 @@ public class BootstrapData implements CommandLineRunner {
     private final AllergenRepository allergenRepository;
     private final VaccineRepository vaccineRepository;
     private final ScheduledMedExamRepository scheduledMedExamRepository;
+    private final HospitalRoomRepository hospitalRoomRepository;
+    private final HospitalizationRepository hospitalizationRepository;
+    private final AppointmentRepository appointmentRepository;
 
     public BootstrapData(PatientRepository patientRepository,
                          HealthRecordRepository healthRecordRepository,
@@ -46,7 +50,11 @@ public class BootstrapData implements CommandLineRunner {
                          AllergyRepository allergyRepository,
                          DiagnosisRepository diagnosisRepository,
                          AllergenRepository allergenRepository,
-                         VaccineRepository vaccineRepository, ScheduledMedExamRepository scheduledMedExamRepository) {
+                         VaccineRepository vaccineRepository,
+                         ScheduledMedExamRepository scheduledMedExamRepository,
+                         HospitalRoomRepository hospitalRoomRepository,
+                         HospitalizationRepository hospitalizationRepository,
+                         AppointmentRepository appointmentRepository) {
 
         this.patientRepository = patientRepository;
         this.healthRecordRepository = healthRecordRepository;
@@ -59,11 +67,17 @@ public class BootstrapData implements CommandLineRunner {
         this.allergenRepository = allergenRepository;
         this.vaccineRepository = vaccineRepository;
         this.scheduledMedExamRepository = scheduledMedExamRepository;
+        this.hospitalRoomRepository = hospitalRoomRepository;
+        this.hospitalizationRepository = hospitalizationRepository;
+        this.appointmentRepository = appointmentRepository;
     }
 
     @Override
     public void run(String... args) throws ParseException, IOException {
         makePatient();
+        HospitalRoom hospitalRoom = makeRoom();
+        makeHospitalization(hospitalRoom);
+        makeAppointment();
         //makeSchedExam();
     }
 
@@ -519,4 +533,42 @@ public class BootstrapData implements CommandLineRunner {
         allergyRepository.saveAll(allergies);
     }
 
+    private HospitalRoom makeRoom() {
+        HospitalRoom hospitalRoom = new HospitalRoom();
+
+        hospitalRoom.setPbo(UUID.fromString("c0979e25-2bb1-4582-87a9-aa175777a65d"));
+        hospitalRoom.setDescription("Bolnička soba");
+        hospitalRoom.setRoomName("Soba 1");
+        hospitalRoom.setRoomNumber(1);
+        hospitalRoom.setCapacity(15);
+        hospitalRoom.setOccupation(0);
+
+        hospitalRoomRepository.save(hospitalRoom);
+        return hospitalRoom;
+    }
+
+    private void makeHospitalization(HospitalRoom hospitalRoom) {
+        Hospitalization hospitalization = new Hospitalization();
+
+        hospitalization.setRegisterLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        hospitalization.setDoctorLBZ(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        hospitalization.setHospitalRoom(hospitalRoom);
+        hospitalization.setPatient(patientRepository.findByLbp(UUID.fromString("c1c8ba08-966a-4cc5-b633-d1ef15d7caaf")).get());
+        hospitalization.setDiagnosis("Lom ruke");
+        hospitalization.setReceiptDate(new Date());
+
+        hospitalizationRepository.save(hospitalization);
+    }
+
+    private void makeAppointment() {
+        Appointment appointment = new Appointment();
+
+        appointment.setStatus(AppointmentStatus.ZAKAZAN);
+        appointment.setPbo(UUID.fromString("c0979e25-2bb1-4582-87a9-aa175777a65d"));
+        appointment.setReceiptDate(new Date());
+        appointment.setEmployeeLBZ(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        appointment.setPatient(patientRepository.findByLbp(UUID.fromString("c1c8ba08-966a-4cc5-b633-d1ef15d7caaf")).get());
+
+        appointmentRepository.save(appointment);
+    }
 }

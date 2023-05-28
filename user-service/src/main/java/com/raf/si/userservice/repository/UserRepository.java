@@ -40,4 +40,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(value = "select distinct u from users u left join u.permissions p where p.name in :permissions and u.department = :department")
     List<User> getAllDoctorsByDepartment(@PathVariable("permissions") List<String> permissions, @PathVariable("department") Department department);
+
+    @Query(value = "select u from users u where u.lbz in (:lbzList)")
+    List<User> findByLbzInList(@PathVariable("lbz") List<UUID> lbzList);
 }

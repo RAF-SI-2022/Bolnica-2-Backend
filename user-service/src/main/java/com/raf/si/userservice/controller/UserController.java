@@ -1,13 +1,7 @@
 package com.raf.si.userservice.controller;
 
-import com.raf.si.userservice.dto.request.CreateUserRequest;
-import com.raf.si.userservice.dto.request.PasswordResetRequest;
-import com.raf.si.userservice.dto.request.UpdatePasswordRequest;
-import com.raf.si.userservice.dto.request.UpdateUserRequest;
-import com.raf.si.userservice.dto.response.DoctorResponse;
-import com.raf.si.userservice.dto.response.MessageResponse;
-import com.raf.si.userservice.dto.response.UserListAndCountResponse;
-import com.raf.si.userservice.dto.response.UserResponse;
+import com.raf.si.userservice.dto.request.*;
+import com.raf.si.userservice.dto.response.*;
 import com.raf.si.userservice.exception.ForbiddenException;
 import com.raf.si.userservice.service.UserService;
 import com.raf.si.userservice.utils.TokenPayload;
@@ -117,6 +111,11 @@ public class UserController {
     @PostMapping("/update-password")
     public ResponseEntity<MessageResponse> updatePassword(@Valid @RequestBody UpdatePasswordRequest updatePasswordRequest) {
         return ResponseEntity.ok(userService.updatePassword(updatePasswordRequest));
+    }
+
+    @PostMapping("/lbz/list")
+    public ResponseEntity<List<UserResponse>> getUsersByLbzList(@RequestBody UUIDListRequest request) {
+        return ResponseEntity.ok(userService.getUsersByLbzList(request));
     }
 
     private TokenPayload getPayload() {

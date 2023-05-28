@@ -1,5 +1,6 @@
 package com.raf.si.userservice.controller;
 
+import com.raf.si.userservice.dto.request.UUIDListRequest;
 import com.raf.si.userservice.dto.response.DepartmentResponse;
 import com.raf.si.userservice.dto.response.HospitalResponse;
 import com.raf.si.userservice.service.DepartmentService;
@@ -43,5 +44,10 @@ public class DepartmentController {
     @GetMapping("/name/{name}")
     public ResponseEntity<List<DepartmentResponse>> getDepartmentsByName(@PathVariable("name") String name) {
         return ResponseEntity.ok(departmentService.getDepartmentsByName(name));
+    }
+
+    @GetMapping("/pbo/{pbo}")
+    public ResponseEntity<DepartmentResponse> getDepartmentByPbo(@PathVariable("pbo") UUID pbo) {
+        return ResponseEntity.ok(departmentService.getDepartmentByPbo(pbo));
     }
 }

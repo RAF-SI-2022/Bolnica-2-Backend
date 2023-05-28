@@ -10,6 +10,7 @@ import com.raf.si.laboratoryservice.model.LabWorkOrder;
 import com.raf.si.laboratoryservice.model.Referral;
 import com.raf.si.laboratoryservice.model.enums.labworkorder.OrderStatus;
 import com.raf.si.laboratoryservice.model.enums.referral.ReferralStatus;
+import com.raf.si.laboratoryservice.model.enums.referral.ReferralType;
 import com.raf.si.laboratoryservice.repository.LabWorkOrderRepository;
 import com.raf.si.laboratoryservice.repository.ReferralRepository;
 import com.raf.si.laboratoryservice.service.ReferralService;
@@ -18,6 +19,9 @@ import com.raf.si.laboratoryservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.criterion.Order;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -59,11 +63,13 @@ public class ReferralServiceImpl implements ReferralService {
 
     @Override
     public ReferralResponse getReferral(Long id) {
-        Referral referral = referralRepository.findById(id).orElseThrow(() -> {
-            log.error("Ne postoji uput sa id-ijem '{}'", id);
-            throw new NotFoundException("Uput sa datim id-ijem ne postoji");
-        });
+        Referral referral = findReferral(id);
         return referralMapper.modelToResponse(referral);
+    }
+
+    @CacheEvict(value = "referral", key = "#referral.id")
+    private Referral referralSetDeleted(Referral referral) {
+        return referralRepository.save(referral);
     }
 
     public ReferralResponse deleteReferral(Long id) {
@@ -86,13 +92,13 @@ public class ReferralServiceImpl implements ReferralService {
         }
 
         referral.setDeleted(true);
-        referral = referralRepository.save(referral);
+        referral = referralSetDeleted(referral);
         log.info("Uput sa id-ijem '{}' je uspesno obrisan", id);
         return referralMapper.modelToResponse(referral);
     }
 
     @Override
-    public List<UnprocessedReferralsResponse> unprocessedReferrals(UUID lbp, String authorizationHeader) {
+    public List<UnprocessedReferralsResponse> unprocessedReferrals(UUID lbp, String type, String authorizationHeader) {
         UUID pboFromToken = TokenPayloadUtil.getTokenPayload().getPbo();
         System.out.println(pboFromToken);
         List<Referral> unprocessedReferralsByThreeParams = referralRepository.findByLbpAndPboReferredFromAndStatus(lbp, pboFromToken, ReferralStatus.NEREALIZOVAN);
@@ -101,9 +107,24 @@ public class ReferralServiceImpl implements ReferralService {
             throw new NotFoundException("Uput sa zadatim parametrima nije pronadjen");
         }
 
-        List<Referral> unprocessedReferrals = unprocessedReferralsByThreeParams.stream()
-                .filter(referral -> referral.getLabWorkOrder() == null)
-                .collect(Collectors.toList());
+        List<Referral> unprocessedReferrals;
+        if (type == null) {
+            unprocessedReferrals = unprocessedReferralsByThreeParams.stream()
+                    .filter(referral -> referral.getLabWorkOrder() == null)
+                    .collect(Collectors.toList());
+        } else {
+            ReferralType referralType = ReferralType.valueOfNotation(type);
+
+            if (referralType == null) {
+                String errMessage = String.format("Tip uputa \'%s\' ne postoji", type);
+                log.error(errMessage);
+                throw new BadRequestException(errMessage);
+            }
+
+            unprocessedReferrals = unprocessedReferralsByThreeParams.stream()
+                    .filter(referral -> referral.getType() == referralType)
+                    .collect(Collectors.toList());
+        }
 
         List<UnprocessedReferralsResponse> unprocessedReferralsResponses = new ArrayList<>();
         List<DepartmentResponse> allDepartments = getDepartments(authorizationHeader);
@@ -125,13 +146,29 @@ public class ReferralServiceImpl implements ReferralService {
                     unprocessedReferral.setDoctorLastName(doctor.getLastName());
                 }
             }
-            unprocessedReferral.setAnalysisParameters(referral.getAnalysisParameters());
+            unprocessedReferral.setRequiredAnalysis(referral.getRequiredAnalysis());
             unprocessedReferral.setCreationDate(referral.getCreationTime());
             unprocessedReferral.setComment(referral.getComment());
             unprocessedReferralsResponses.add(unprocessedReferral);
         }
 
         return unprocessedReferralsResponses;
+    }
+
+
+    @CachePut(value = "referral", key = "#referral.id")
+    private Referral updateReferral(Referral referral) {
+        return referralRepository.save(referral);
+    }
+
+    @Override
+    public ReferralResponse changeStatus(Long id, String status) {
+        Referral referral = findReferral(id);
+        ReferralStatus referralStatus = findReferralStatus(status);
+
+        referral.setStatus(referralStatus);
+        referral = updateReferral(referral);
+        return referralMapper.modelToResponse(referral);
     }
 
     public List<DoctorResponse> getAllDoctors(String token) {
@@ -189,5 +226,24 @@ public class ReferralServiceImpl implements ReferralService {
             log.info(errMessage);
             throw new BadRequestException(errMessage);
         }
+    }
+
+    @Cacheable(value = "referral", key = "#id")
+    private Referral findReferral(Long id) {
+        Referral referral = referralRepository.findById(id).orElseThrow(() -> {
+            log.error("Ne postoji uput sa id-ijem '{}'", id);
+            throw new NotFoundException("Uput sa datim id-ijem ne postoji");
+        });
+        return referral;
+    }
+
+    private ReferralStatus findReferralStatus(String status) {
+        ReferralStatus referralStatus = ReferralStatus.valueOfNotation(status);
+        if(referralStatus == null) {
+            String errMessage = String.format("Status \'%s\' ne postoji", status);
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+        return referralStatus;
     }
 }

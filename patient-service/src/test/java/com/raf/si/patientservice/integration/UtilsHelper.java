@@ -1,12 +1,14 @@
 package com.raf.si.patientservice.integration;
 
-import com.raf.si.patientservice.dto.request.PatientRequest;
-import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
-import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
+import com.raf.si.patientservice.dto.request.*;
+import com.raf.si.patientservice.model.Appointment;
+import com.raf.si.patientservice.model.HospitalRoom;
 import com.raf.si.patientservice.model.Patient;
 import com.raf.si.patientservice.model.ScheduledMedExamination;
+import com.raf.si.patientservice.model.enums.appointment.AppointmentStatus;
 import com.raf.si.patientservice.model.enums.user.Profession;
 import com.raf.si.patientservice.model.enums.user.Title;
+import com.raf.si.patientservice.unit.controller.PatientControllerTest;
 import com.raf.si.patientservice.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -23,6 +25,7 @@ public class UtilsHelper {
 
     private final String patientJmbg = "1209217282728";
     private final UUID patientBootstrapLbp = UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8");
+    private final UUID bootstrapPbo = UUID.fromString("be7fed71-9a96-4644-8d0e-f80a216f77d6");
 
     private final String vaccineBootstrap = "PRIORIX";
 
@@ -82,9 +85,41 @@ public class UtilsHelper {
         claims.put("lastName", "adminovic");
         claims.put("title", Title.DR_SCI_MED.getNotation());
         claims.put("profession", Profession.SPEC_HIRURG.getNotation());
+        claims.put("pbo", bootstrapPbo);
+        claims.put("departmentName", "departman");
+        claims.put("pbb", UUID.fromString("be7fed71-9a96-4644-8d0e-f80a216f77d6"));
+        claims.put("hospitalName", "Bolnica");
+        String[] roles = new String[]{"ROLE_ADMIN", "ROLE_DR_SPEC_ODELJENJA", "ROLE_DR_SPEC",
+                "ROLE_DR_SPEC_POV", "ROLE_VISA_MED_SESTRA", "ROLE_MED_SESTRA"};
+        claims.put("permissions", roles);
+        return jwtUtil.generateToken(claims, "5a2e71bb-e4ee-43dd-a3ad-28e043f8b435");
+    }
+
+    public String generateTokenEmployeeDoesntExist() {
+        Claims claims = Jwts.claims();
+        claims.put("firstName", "admin");
+        claims.put("lastName", "adminovic");
+        claims.put("title", Title.DR_SCI_MED.getNotation());
+        claims.put("profession", Profession.SPEC_HIRURG.getNotation());
         claims.put("pbo", UUID.randomUUID());
         claims.put("departmentName", "departman");
-        claims.put("pbb", UUID.randomUUID());
+        claims.put("pbb", UUID.fromString("be7fed71-9a96-4644-8d0e-f80a216f77d6"));
+        claims.put("hospitalName", "Bolnica");
+        String[] roles = new String[]{"ROLE_ADMIN", "ROLE_DR_SPEC_ODELJENJA", "ROLE_DR_SPEC",
+                "ROLE_DR_SPEC_POV", "ROLE_VISA_MED_SESTRA", "ROLE_MED_SESTRA"};
+        claims.put("permissions", roles);
+        return jwtUtil.generateToken(claims, String.valueOf(UUID.randomUUID()));
+    }
+
+    public String generateTokenDepartmentDoesntExist() {
+        Claims claims = Jwts.claims();
+        claims.put("firstName", "admin");
+        claims.put("lastName", "adminovic");
+        claims.put("title", Title.DR_SCI_MED.getNotation());
+        claims.put("profession", Profession.SPEC_HIRURG.getNotation());
+        claims.put("pbo", UUID.randomUUID());
+        claims.put("departmentName", "departman");
+        claims.put("pbb", UUID.fromString("be7fed71-9a96-4644-8d0e-f80a216f77d6"));
         claims.put("hospitalName", "Bolnica");
         String[] roles = new String[]{"ROLE_ADMIN", "ROLE_DR_SPEC_ODELJENJA", "ROLE_DR_SPEC",
                 "ROLE_DR_SPEC_POV", "ROLE_VISA_MED_SESTRA", "ROLE_MED_SESTRA"};
@@ -150,12 +185,57 @@ public class UtilsHelper {
         return scheduledMedExamination;
     }
 
+
+    public HospitalizationRequest makeHospitalizationRequest() {
+        HospitalizationRequest request = new HospitalizationRequest();
+        long id = 1;
+
+        request.setLbp(patientBootstrapLbp);
+        request.setReferralId(id);
+        request.setDiagnosis("Dijagnoza");
+        request.setSpecialistLbz(UUID.fromString("266a1e0c-cf45-11ed-afa1-0242ac120002"));
+        request.setNote("Napomena");
+        request.setHospitalRoomId(id);
+
+        return request;
+    }
+
+    public CreateAppointmentRequest makeCreateAppointmentRequest() {
+        CreateAppointmentRequest request = new CreateAppointmentRequest();
+
+        request.setLbp(patientBootstrapLbp);
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+        try {
+            request.setReceiptDate(formatter.parse("12-12-2050"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return request;
+    }
+
+    public Appointment makeAppointment() {
+        Appointment appointment = new Appointment();
+
+        appointment.setEmployeeLBZ(UUID.fromString("266a1e0c-cf45-11ed-afa1-0242ac120002"));
+        appointment.setPbo(bootstrapPbo);
+        appointment.setStatus(AppointmentStatus.ZAKAZAN);
+        appointment.setReceiptDate(new Date());
+
+        return appointment;
+    }
+
     public String getPatientJmbg(){
         return patientJmbg;
     }
 
     public UUID getPatientBootstrapLbp(){
         return patientBootstrapLbp;
+    }
+
+    public UUID getBootstrapPbo() {
+        return bootstrapPbo;
     }
 
     public String getVaccineBootstrap(){
