@@ -1,13 +1,16 @@
 package com.raf.si.patientservice.mapper;
 
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
+import com.raf.si.patientservice.dto.request.PatientConditionRequest;
 import com.raf.si.patientservice.dto.response.HospitalisedPatientsResponse;
 import com.raf.si.patientservice.dto.response.HospitalizationResponse;
+import com.raf.si.patientservice.dto.response.PatientConditionResponse;
 import com.raf.si.patientservice.dto.response.http.DoctorResponse;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.model.HospitalRoom;
 import com.raf.si.patientservice.model.Hospitalization;
 import com.raf.si.patientservice.model.Patient;
+import com.raf.si.patientservice.model.PatientCondition;
 import com.raf.si.patientservice.utils.TokenPayload;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -81,6 +85,38 @@ public class HospitalizationMapper {
                 });
         response.setDoctorFirstName(doctor.getFirstName());
         response.setDoctorLastName(doctor.getLastName());
+
+        return response;
+    }
+
+    public PatientCondition patientConditionRequestToPatientCondition(Patient patient, UUID registerLbz,
+                                                                      PatientConditionRequest patientConditionRequest) {
+        PatientCondition patientCondition = new PatientCondition();
+
+        patientCondition.setPatient(patient);
+        patientCondition.setRegisterLbz(registerLbz);
+        patientCondition.setDescription(patientConditionRequest.getDescription());
+        patientCondition.setAppliedTherapies(patientConditionRequest.getAppliedTherapies());
+        patientCondition.setBloodPressure(patientConditionRequest.getBloodPressure());
+        patientCondition.setCollectedInfoDate(patientConditionRequest.getCollectedInfoDate());
+        patientCondition.setPulse(patientConditionRequest.getPulse());
+        patientCondition.setTemperature(patientConditionRequest.getTemperature());
+
+        return patientCondition;
+    }
+
+    public PatientConditionResponse patientConditionToPatientConditionResponse(PatientCondition patientCondition) {
+        PatientConditionResponse response = new PatientConditionResponse();
+
+        response.setBloodPressure(patientCondition.getBloodPressure());
+        response.setAppliedTherapies(patientCondition.getAppliedTherapies());
+        response.setDescription(patientCondition.getDescription());
+        response.setPulse(patientCondition.getPulse());
+        response.setId(patientCondition.getId());
+        response.setLbp(patientCondition.getPatient().getLbp());
+        response.setCollectedInfoDate(patientCondition.getCollectedInfoDate());
+        response.setTemperature(patientCondition.getTemperature());
+        response.setRegisterLbz(patientCondition.getRegisterLbz());
 
         return response;
     }

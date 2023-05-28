@@ -1,8 +1,11 @@
 package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
+import com.raf.si.patientservice.dto.request.PatientConditionRequest;
 import com.raf.si.patientservice.dto.response.HospitalisedPatientsListResponse;
 import com.raf.si.patientservice.dto.response.HospitalizationResponse;
+import com.raf.si.patientservice.dto.response.PatientConditionListResponse;
+import com.raf.si.patientservice.dto.response.PatientConditionResponse;
 import com.raf.si.patientservice.dto.response.http.DoctorResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
@@ -10,13 +13,18 @@ import com.raf.si.patientservice.mapper.HospitalizationMapper;
 import com.raf.si.patientservice.model.HospitalRoom;
 import com.raf.si.patientservice.model.Hospitalization;
 import com.raf.si.patientservice.model.Patient;
+import com.raf.si.patientservice.model.PatientCondition;
 import com.raf.si.patientservice.repository.HospitalRoomRepository;
 import com.raf.si.patientservice.repository.HospitalizationRepository;
+import com.raf.si.patientservice.repository.PatientConditionRepository;
 import com.raf.si.patientservice.repository.filtering.filter.HospitalisedPatientSearchFilter;
+import com.raf.si.patientservice.repository.filtering.filter.PatientConditionFilter;
 import com.raf.si.patientservice.repository.filtering.specification.HospitalisedPatientSpecification;
+import com.raf.si.patientservice.repository.filtering.specification.PatientConditionSpecification;
 import com.raf.si.patientservice.service.HospitalizationService;
 import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.utils.HttpUtils;
+import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +35,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -39,6 +48,7 @@ public class HospitalizationServiceImpl implements HospitalizationService {
     private final HospitalRoomRepository hospitalRoomRepository;
     private final HospitalizationMapper hospitalizationMapper;
     private final PatientService patientService;
+    private final PatientConditionRepository patientConditionRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -46,12 +56,14 @@ public class HospitalizationServiceImpl implements HospitalizationService {
     public HospitalizationServiceImpl(HospitalizationRepository hospitalizationRepository,
                                       HospitalRoomRepository hospitalRoomRepository,
                                       HospitalizationMapper hospitalizationMapper,
-                                      PatientService patientService) {
+                                      PatientService patientService,
+                                      PatientConditionRepository patientConditionRepository) {
 
         this.hospitalizationRepository = hospitalizationRepository;
         this.hospitalRoomRepository = hospitalRoomRepository;
         this.hospitalizationMapper = hospitalizationMapper;
         this.patientService = patientService;
+        this.patientConditionRepository = patientConditionRepository;
     }
 
     @Transactional
@@ -86,14 +98,46 @@ public class HospitalizationServiceImpl implements HospitalizationService {
     @Override
     public HospitalisedPatientsListResponse getHospitalisedPatients(String token, UUID pbo, UUID lbp, String firstName,
                                                                     String lastName, String jmbg, Pageable pageable) {
-        log.info("Getting hospitalised patients..");
+        log.info("Dohvatanje hospitalizovanih pacijenata..");
         HospitalisedPatientSearchFilter filter = new HospitalisedPatientSearchFilter(lbp, pbo, firstName, lastName, jmbg);
         HospitalisedPatientSpecification spec = new HospitalisedPatientSpecification(filter);
         Page<Hospitalization> hospitalizations =  hospitalizationRepository.findAll(spec, pageable);
         List<DoctorResponse> doctorResponseList = getDoctorsResponse(token);
         return new HospitalisedPatientsListResponse(
-                hospitalizations.map((h) -> hospitalizationMapper.hospitalizationToHospitalisedPatient(h, doctorResponseList)).stream().collect(Collectors.toList()),
+                hospitalizations.map((h) -> hospitalizationMapper.hospitalizationToHospitalisedPatient(h, doctorResponseList))
+                        .stream()
+                        .collect(Collectors.toList()),
                 hospitalizations.getTotalElements());
+    }
+
+    @Override
+    public PatientConditionResponse createPatientCondition(UUID lbp, PatientConditionRequest patientConditionRequest) {
+        if(patientConditionRequest.allNull()) {
+            log.error("Sva polja za kreiranje stanja pacijenta su null");
+            throw new BadRequestException("Barem jedno polje stanja pacijenta ne sme biti null");
+        }
+
+        Patient patient = patientService.findPatient(lbp);
+
+        log.info("Kreiranje stanja pacijenta...");
+        PatientCondition patientCondition = patientConditionRepository.save(
+                hospitalizationMapper.patientConditionRequestToPatientCondition(
+                        patient, TokenPayloadUtil.getTokenPayload().getLbz(), patientConditionRequest
+                )
+        );
+
+        return hospitalizationMapper.patientConditionToPatientConditionResponse(patientCondition);
+    }
+
+    @Override
+    public PatientConditionListResponse getPatientConditions(UUID lbp, Date dateFrom, Date dateTo, Pageable pageable) {
+        PatientConditionFilter filter = new PatientConditionFilter(lbp, dateFrom, dateTo);
+        PatientConditionSpecification specification = new PatientConditionSpecification(filter);
+        Page<PatientCondition> responseList = patientConditionRepository.findAll(specification, pageable);
+        List<PatientConditionResponse> patientConditionResponses = responseList.map(hospitalizationMapper::patientConditionToPatientConditionResponse)
+                .stream().collect(Collectors.toList());
+
+        return new PatientConditionListResponse(patientConditionResponses, responseList.getTotalElements());
     }
 
     private List<DoctorResponse> getDoctorsResponse(String token) {

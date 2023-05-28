@@ -1,7 +1,9 @@
 package com.raf.si.patientservice.unit.service;
 
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
+import com.raf.si.patientservice.dto.request.PatientConditionRequest;
 import com.raf.si.patientservice.dto.response.HospitalisedPatientsListResponse;
+import com.raf.si.patientservice.dto.response.PatientConditionListResponse;
 import com.raf.si.patientservice.dto.response.http.DoctorResponse;
 import com.raf.si.patientservice.dto.response.http.ReferralResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
@@ -9,10 +11,13 @@ import com.raf.si.patientservice.mapper.HospitalizationMapper;
 import com.raf.si.patientservice.model.HospitalRoom;
 import com.raf.si.patientservice.model.Hospitalization;
 import com.raf.si.patientservice.model.Patient;
+import com.raf.si.patientservice.model.PatientCondition;
 import com.raf.si.patientservice.repository.HospitalRoomRepository;
 import com.raf.si.patientservice.repository.HospitalizationRepository;
+import com.raf.si.patientservice.repository.PatientConditionRepository;
 import com.raf.si.patientservice.repository.filtering.filter.HospitalisedPatientSearchFilter;
 import com.raf.si.patientservice.repository.filtering.specification.HospitalisedPatientSpecification;
+import com.raf.si.patientservice.repository.filtering.specification.PatientConditionSpecification;
 import com.raf.si.patientservice.service.HospitalizationService;
 import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.impl.HospitalizationServiceImpl;
@@ -38,12 +43,14 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class HospitalizationServiceTest {
 
     private HospitalizationRepository hospitalizationRepository;
     private HospitalRoomRepository hospitalRoomRepository;
+    private PatientConditionRepository patientConditionRepository;
     private PatientService patientService;
     private HospitalizationMapper hospitalizationMapper;
     private HospitalizationService hospitalizationService;
@@ -53,6 +60,7 @@ public class HospitalizationServiceTest {
     void setup() {
         hospitalizationRepository = mock(HospitalizationRepository.class);
         hospitalRoomRepository = mock(HospitalRoomRepository.class);
+        patientConditionRepository = mock(PatientConditionRepository.class);
         patientService = mock(PatientService.class);
         hospitalizationMapper = new HospitalizationMapper();
         entityManager = mock(EntityManager.class);
@@ -61,8 +69,8 @@ public class HospitalizationServiceTest {
                 hospitalizationRepository,
                 hospitalRoomRepository,
                 hospitalizationMapper,
-                patientService
-        );
+                patientService,
+                patientConditionRepository);
 
         ReflectionTestUtils.setField(
                 hospitalizationService,
@@ -167,6 +175,45 @@ public class HospitalizationServiceTest {
                         1L));
     }
 
+    @Test
+    void createPatientCondition_WhenAllPropertiesAreNull_ThrowsBadRequestException() {
+        UUID lbp = UUID.randomUUID();
+        PatientConditionRequest patientConditionRequest = new PatientConditionRequest();
+
+        assertThrows(BadRequestException.class,
+                () -> hospitalizationService.createPatientCondition(lbp, patientConditionRequest));
+    }
+
+    @Test
+    void createPatientCondition_Success() {
+        UUID lbp = UUID.randomUUID();
+        PatientConditionRequest patientConditionRequest = makePatientConditionRequest();
+        Patient patient = makePatient();
+
+        when(patientService.findPatient(lbp)).thenReturn(patient);
+
+        PatientCondition patientCondition = hospitalizationMapper.patientConditionRequestToPatientCondition(patient, makeTokenPayload().getLbz(), patientConditionRequest);
+
+        when(patientConditionRepository.save(any()))
+                .thenReturn(patientCondition);
+
+        assertEquals(hospitalizationService.createPatientCondition(lbp, patientConditionRequest),
+                hospitalizationMapper.patientConditionToPatientConditionResponse(patientCondition));
+    }
+
+    @Test
+    void getPatientConditions() {
+        UUID lbp = UUID.randomUUID();
+        Pageable pageable = PageRequest.of(0, 5);
+
+        when(patientConditionRepository.findAll(any(PatientConditionSpecification.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Collections.emptyList()));
+
+        assertEquals(hospitalizationService.getPatientConditions(lbp, null, null, pageable),
+                new PatientConditionListResponse(Collections.emptyList(), 0L));
+    }
+
+    @SuppressWarnings("unchecked")
     private void mockChangeStatus() {
         Mockito.mockStatic(HttpUtils.class);
         ResponseEntity<ReferralResponse> responseMock = mock(ResponseEntity.class);
@@ -175,6 +222,7 @@ public class HospitalizationServiceTest {
                 .thenReturn(responseMock);
     }
 
+    @SuppressWarnings("unchecked")
     private void mockFindDoctors(DoctorResponse doctorResponse) {
         DoctorResponse[] arr = new DoctorResponse[]{doctorResponse};
         ResponseEntity<DoctorResponse[]> responseEntity = mock(ResponseEntity.class);
@@ -191,6 +239,16 @@ public class HospitalizationServiceTest {
 
         when(TokenPayloadUtil.getTokenPayload())
                 .thenReturn(tokenPayload);
+    }
+
+    private PatientConditionRequest makePatientConditionRequest() {
+        PatientConditionRequest request = new PatientConditionRequest();
+        request.setDescription("Description");
+        request.setAppliedTherapies("Therapies");
+        request.setBloodPressure("80/120");
+        request.setPulse("70");
+
+        return request;
     }
 
     private HospitalRoom makeHospitalRoom() {
