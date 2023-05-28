@@ -1,5 +1,6 @@
 package com.raf.si.userservice.service;
 
+import com.raf.si.userservice.dto.request.UUIDListRequest;
 import com.raf.si.userservice.dto.response.DepartmentResponse;
 import com.raf.si.userservice.dto.response.HospitalResponse;
 
@@ -14,4 +15,6 @@ public interface DepartmentService {
     List<HospitalResponse> getAllHospitals();
 
     List<DepartmentResponse> getDepartmentsByName(String name);
+
+    DepartmentResponse getDepartmentByPbo(UUID pbo);
 }

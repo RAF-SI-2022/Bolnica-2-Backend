@@ -21,6 +21,12 @@ spring:
     jdbc:
       initialize-schema: always
 
+  cache:
+    type: redis
+  redis:
+    host: redis
+    port: 6379
+
 server:
   port: 8082
   servlet:
@@ -30,4 +36,5 @@ jwt.secret.key: "secret_key"
 # Duration of scheduled medical examination expressed in minutes
 duration.of.exam: 44
 
-user-service-url: "http://user-service:8081/api/users"
+user-service-url: "http://user-service:8081/api"
+laboratory-service-url: "http://laboratory-service:8083/api"

@@ -41,12 +41,6 @@ public class LabExamServiceImpl implements LabExamService {
     public LabExamResponse createExamination(CreateLabExamRequest createLabExamRequest) {
         checkExamDates(createLabExamRequest.getScheduledDate());
 
-        Optional<Referral> referral = referralRepository.findByLbp(createLabExamRequest.getLbp());
-        if (referral.isEmpty()) {
-            log.error("Ne postoji uput za pacijenta sa ličnim brojem '{}'", createLabExamRequest.getLbp());
-            throw new NotFoundException("Uput sa datim lbp-om ne postoji");
-        }
-
         UUID lbzFromToken = TokenPayloadUtil.getTokenPayload().getLbz();
         UUID pboFromToken = TokenPayloadUtil.getTokenPayload().getPbo();
         ScheduledLabExam scheduledLabExam = scheduledLabExamRepository.save(labExamMapper.requestToModel(createLabExamRequest, lbzFromToken, pboFromToken));

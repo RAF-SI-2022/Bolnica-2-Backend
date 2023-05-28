@@ -57,7 +57,6 @@ public class LabExamServiceTest {
         when(authentication.getPrincipal()).thenReturn(tokenPayload);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        when(referralRepository.findByLbp(any(UUID.class))).thenReturn(Optional.of(new Referral()));
         when(scheduledLabExamRepository.save(any(ScheduledLabExam.class))).thenReturn(scheduledLabExam);
 
         LabExamResponse labExamResponse = createLabExamResponse();
@@ -68,26 +67,6 @@ public class LabExamServiceTest {
 
         verify(scheduledLabExamRepository, times(1)).save(any(ScheduledLabExam.class));
     }
-
-    @Test
-    void testCreateExamination_noReferral() {
-        CreateLabExamRequest createLabExamRequest = createLabExamRequest();
-        createLabExamRequest.setLbp(UUID.fromString("742e71bb-e4ee-43dd-a3ad-28e043f8b436"));
-
-        TokenPayload tokenPayload = new TokenPayload();
-        tokenPayload.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
-        tokenPayload.setPbo(UUID.fromString("4e5911c8-ce7a-11ed-afa1-0242ac120002"));
-
-        when(referralRepository.findByLbp(any(UUID.class))).thenReturn(Optional.empty());
-
-        assertThrows(NotFoundException.class, () -> {
-            labExamService.createExamination(createLabExamRequest);
-        });
-
-        verify(scheduledLabExamRepository, never()).save(any(ScheduledLabExam.class));
-    }
-
-
 
     @Test
     void testGetScheduledExamCount() {

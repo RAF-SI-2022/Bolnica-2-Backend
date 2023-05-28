@@ -1,9 +1,6 @@
 package com.raf.si.userservice.service.impl;
 
-import com.raf.si.userservice.dto.request.CreateUserRequest;
-import com.raf.si.userservice.dto.request.PasswordResetRequest;
-import com.raf.si.userservice.dto.request.UpdatePasswordRequest;
-import com.raf.si.userservice.dto.request.UpdateUserRequest;
+import com.raf.si.userservice.dto.request.*;
 import com.raf.si.userservice.dto.response.*;
 import com.raf.si.userservice.exception.BadRequestException;
 import com.raf.si.userservice.exception.ForbiddenException;
@@ -18,6 +15,9 @@ import com.raf.si.userservice.repository.UserRepository;
 import com.raf.si.userservice.service.EmailService;
 import com.raf.si.userservice.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,12 +74,18 @@ public class UserServiceImpl implements UserService {
         return userMapper.modelToResponse(user);
     }
 
-    @Override
-    public UserResponse getUserByLbz(UUID lbz) {
-        User user = userRepository.findUserByLbz(lbz).orElseThrow(() -> {
+
+    @Cacheable(value = "user", key = "#lbz")
+    private User findUserByLbz(UUID lbz) {
+        return userRepository.findUserByLbz(lbz).orElseThrow(() -> {
             log.error("Ne postoji korisnik sa lbz-om '{}'", lbz);
             throw new NotFoundException(String.format("Ne postoji korisnik sa lbz-om: %s ", lbz));
         });
+    }
+    @Override
+    public UserResponse getUserByLbz(UUID lbz) {
+        User user = findUserByLbz(lbz);
+
         return userMapper.modelToResponse(user);
 
     }
@@ -87,6 +93,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean userExistsByLbzAndIsDeleted(UUID lbz) {
         return userRepository.userExists(lbz, false);
+    }
+
+
+    @CacheEvict(value = "user", key = "#user.lbz")
+    private User userSetDeleted(User user) {
+        return userRepository.save(user);
     }
 
     @Transactional
@@ -103,12 +115,17 @@ public class UserServiceImpl implements UserService {
         }
 
         user.setDeleted(true);
-        user = userRepository.save(user);
+        user = userSetDeleted(user);
         log.info("Korisnicki nalog sa id-ijem '{}' je uspesno obrisan", id);
 
         return userMapper.modelToResponse(user);
     }
 
+
+    @CachePut(value = "user", key = "#user.lbz")
+    private User updateUser(User user) {
+        return userRepository.save(user);
+    }
     @Transactional
     @Override
     public UserResponse updateUser(UUID lbz, UpdateUserRequest updateUserRequest, boolean isAdmin) {
@@ -127,7 +144,7 @@ public class UserServiceImpl implements UserService {
         User updatedUser = isAdmin ? userMapper.updateRequestToModel(user, updateUserRequest, department)
                 : userMapper.updateRegularRequestToModel(user, updateUserRequest);
 
-        updatedUser = userRepository.save(updatedUser);
+        updatedUser = updateUser(user);
         log.info("Korisnik sa lbz-om '{}' uspesno update-ovan", lbz);
         return userMapper.modelToResponse(updatedUser);
     }
@@ -154,6 +171,12 @@ public class UserServiceImpl implements UserService {
         return new MessageResponse("Proverite vas email za resetovanje sifre");
     }
 
+
+    private User updateUserPassword(User user, UpdatePasswordRequest updatePasswordRequest) {
+        User userTmp = userMapper.setUserPassword(user, updatePasswordRequest.getPassword());
+        return updateUser(userTmp);
+    }
+
     @Override
     public MessageResponse updatePassword(UpdatePasswordRequest updatePasswordRequest) {
         User user = userRepository.findByPasswordToken(updatePasswordRequest.getResetToken())
@@ -161,7 +184,7 @@ public class UserServiceImpl implements UserService {
                     log.error("Token sifra '{}' ne postoji", updatePasswordRequest.getResetToken());
                     throw new NotFoundException("Token sifra ne postoji");
                 });
-        User updatedUser = userRepository.save(userMapper.setUserPassword(user, updatePasswordRequest.getPassword()));
+        User updatedUser = updateUserPassword(user, updatePasswordRequest);
         log.info("Sifra promenjena za korisnika sa email-om '{}'", updatedUser.getEmail());
 
         return new MessageResponse("Sifra je uspesno promenjena");
@@ -191,6 +214,14 @@ public class UserServiceImpl implements UserService {
                 .map(userMapper::modelToDoctorResponse)
                 .collect(Collectors.toList());
 
+    }
+
+    @Override
+    public List<UserResponse> getUsersByLbzList(UUIDListRequest lbzListRequest) {
+        return userRepository.findByLbzInList(lbzListRequest.getUuids())
+                .stream()
+                .map(userMapper::modelToResponse)
+                .collect(Collectors.toList());
     }
 
     private List<Boolean> adjustIncludeDeleteParameter(boolean includeDeleted) {

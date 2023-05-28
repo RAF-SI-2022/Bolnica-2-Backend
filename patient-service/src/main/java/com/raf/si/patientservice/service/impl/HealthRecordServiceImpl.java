@@ -16,6 +16,9 @@ import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -177,6 +180,7 @@ public class HealthRecordServiceImpl implements HealthRecordService {
                 .anyMatch(permission -> permission.equals(PERMITTED_DOC));
     }
 
+    @Cacheable(value = "healthrecord", key = "#lbp")
     private HealthRecord getRecordByLbp(UUID lbp) {
         // dohvati iz baze korisnika
         Patient patient = patientService.findPatient(lbp);
@@ -189,6 +193,11 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         return healthRecord;
     }
 
+    @CacheEvict(value = "healthrecord", key = "#healthRecord.lbp")
+    private HealthRecord UpdateHealthRecord(HealthRecord healthRecord) {
+        return healthRecordRepository.save(healthRecord);
+    }
+
     @Override
     public BasicHealthRecordResponse updateHealthRecord(UpdateHealthRecordRequest updateHealthRecordRequest, UUID lbp) {
 
@@ -199,9 +208,15 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         healthRecord = healthRecordMapper.updateHealthRecordRequestToHealthRecord( updateHealthRecordRequest, healthRecord);
 
         // update podatke u bazi
-        healthRecord = healthRecordRepository.save(healthRecord);
+        healthRecord = UpdateHealthRecord(healthRecord);
 
         return healthRecordMapper.healthRecordToBasicHealthRecordResponse(lbp, healthRecord);
+    }
+
+    @CachePut(value = "healthrecord", key="#healthRecord.lbp")
+    private HealthRecord addHealthrecordAllergy(HealthRecord healthRecord, Allergy allergy) {
+        healthRecord.getAllergies().add(allergy);
+        return healthRecord;
     }
 
     @Override
@@ -233,9 +248,15 @@ public class HealthRecordServiceImpl implements HealthRecordService {
 
         allergy = allergyRepository.save(allergy);
 
-        healthRecord.getAllergies().add(allergy);
+        addHealthrecordAllergy(healthRecord, allergy);
 
         return healthRecordMapper.allergyToExtendedAllergyResponse(healthRecord, allergy);
+    }
+
+    @CachePut(value = "healthrecord", key="#healthRecord.lbp")
+    private HealthRecord addHealthrecordVaccination(HealthRecord healthRecord, Vaccination vaccination) {
+        healthRecord.getVaccinations().add(vaccination);
+        return healthRecord;
     }
 
     @Override
@@ -287,7 +308,8 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         //update podatke
         Vaccination vaccination = healthRecordMapper.addVaccinationRequestToVaccinatin(addVaccinationRequest, healthRecord, vaccine);
 
-        healthRecord.getVaccinations().add(vaccination);
+        addHealthrecordVaccination(healthRecord, vaccination);
+        //healthRecord.getVaccinations().add(vaccination);
 
         // update podatke u bazi
         vaccination = vaccinationRepository.save(vaccination);
@@ -295,16 +317,24 @@ public class HealthRecordServiceImpl implements HealthRecordService {
         return healthRecordMapper.vaccinationToExtendedVaccinationResponse(healthRecord, vaccination);
     }
 
+    @Cacheable(value = "vaccines")
+    private List<Vaccine> findAllVaccines() {
+        return vaccineRepository.findAll();
+    }
     @Override
     public VaccineListResponse getAvailableVaccines() {
-        List<Vaccine> vaccines = vaccineRepository.findAll();
+        List<Vaccine> vaccines = findAllVaccines();
         return healthRecordMapper.vaccineListToVaccineListResponse(vaccines);
     }
 
+    @Cacheable(value = "allergens")
+    private List<Allergen> findAllAllergens() {
+        return allergenRepository.findAll();
+    }
     @Override
     public AllergenListResponse getAvailableAllergens() {
-        List<Allergen> vaccines = allergenRepository.findAll();
-        return healthRecordMapper.allergenListToAllergenListResponse(vaccines);
+        List<Allergen> allergens = findAllAllergens();
+        return healthRecordMapper.allergenListToAllergenListResponse(allergens);
     }
 
     @Override

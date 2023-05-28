@@ -16,13 +16,14 @@ public class Appointment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "department_id", nullable = false)
-    private Long departmentId;
-    @ManyToOne
+    @Column(name = "pbo", nullable = false)
+    private UUID pbo;
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
     private Patient patient;
     @Column(name = "receipt_date", nullable = false)
     private Date receiptDate;
+    @Enumerated(value = EnumType.STRING)
     private AppointmentStatus status = AppointmentStatus.ZAKAZAN;
     private String note;
     @Column(name = "employee_lbz", nullable = false)
