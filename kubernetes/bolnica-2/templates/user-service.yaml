@@ -1,0 +1,59 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  labels:
+    app: user-service
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+      - name: user-service
+        image: "{{ .Values.image.repository_url }}/{{ .Values.image.repository_name }}/user-service:{{ .Values.git_version }}"
+        imagePullPolicy: Always
+        env:
+        - name: spring.datasource.url
+          value: "jdbc:postgresql://user-db-ha:5432/postgresDB"
+        - name: spring.datasource.username
+          valueFrom: { secretKeyRef: { name: user-db-pguser-admin, key: user } }
+        - name: spring.datasource.password
+          valueFrom: { secretKeyRef: { name: user-db-pguser-admin, key: password } }
+        - name: spring.data.redis.host
+          value: redis
+        - name: sping.jpa.hibernate.ddl-auto
+          value: update
+        - name: server.servlet.context-path
+          value: /
+        ports:
+          - containerPort: 8081
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: user-service
+  name: user-service
+  namespace: {{ .Values.namespace }}
+spec:
+  # Portove promeniti po potrebi u zavisnosti koje portove koristi vas mikroservis.
+  ports:
+    - port: 8081
+      protocol: TCP
+      targetPort: 8081
+  # Selector je skup labela po kojima ce Kubernetes da nadje Podove koji treba
+  # da budu obuhvaceni ovim servisom. Ove labele treba da budu iste kao labele
+  # definisane u Deploymentu (.spec.template.metadata.labels).
+  selector:
+    app: user-service
+  type: ClusterIP

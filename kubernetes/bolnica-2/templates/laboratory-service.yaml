@@ -1,0 +1,61 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laboratory-service
+  labels:
+    app: laboratory-service
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: laboratory-service
+  template:
+    metadata:
+      labels:
+        app: laboratory-service
+    spec:
+      containers:
+      - name: laboratory-service
+        image: "{{ .Values.image.repository_url }}/{{ .Values.image.repository_name }}/laboratory-service:{{ .Values.git_version }}"
+        imagePullPolicy: Always
+        env:
+        - name: spring.datasource.url
+          value: "jdbc:postgresql://lab-db-ha:5432/postgresDB"
+        - name: spring.datasource.username
+          valueFrom: { secretKeyRef: { name: lab-db-pguser-admin, key: user } }
+        - name: spring.datasource.password
+          valueFrom: { secretKeyRef: { name: lab-db-pguser-admin, key: password } }
+        - name: spring.data.redis.host
+          value: redis
+        - name: sping.jpa.hibernate.ddl-auto
+          value: update
+        - name: server.servlet.context-path
+          value: /
+        - name: user-service-url
+          value: "http://user-service:8081/"
+        ports:
+          - containerPort: 8083
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: laboratory-service
+  name: laboratory-service
+  namespace: {{ .Values.namespace }}
+spec:
+  # Portove promeniti po potrebi u zavisnosti koje portove koristi vas mikroservis.
+  ports:
+    - port: 8083
+      protocol: TCP
+      targetPort: 8083
+  # Selector je skup labela po kojima ce Kubernetes da nadje Podove koji treba
+  # da budu obuhvaceni ovim servisom. Ove labele treba da budu iste kao labele
+  # definisane u Deploymentu (.spec.template.metadata.labels).
+  selector:
+    app: laboratory-service
+  type: ClusterIP
