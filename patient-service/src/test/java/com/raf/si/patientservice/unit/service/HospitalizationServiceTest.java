@@ -2,8 +2,10 @@ package com.raf.si.patientservice.unit.service;
 
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
 import com.raf.si.patientservice.dto.request.PatientConditionRequest;
+import com.raf.si.patientservice.dto.response.HospPatientByHospitalListResponse;
 import com.raf.si.patientservice.dto.response.HospitalisedPatientsListResponse;
 import com.raf.si.patientservice.dto.response.PatientConditionListResponse;
+import com.raf.si.patientservice.dto.response.http.DepartmentResponse;
 import com.raf.si.patientservice.dto.response.http.DoctorResponse;
 import com.raf.si.patientservice.dto.response.http.ReferralResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
@@ -154,7 +156,7 @@ public class HospitalizationServiceTest {
         Hospitalization hospitalization = makeHospitalization(hospitalRoom, patient);
         Pageable pageable = PageRequest.of(0, 5);
         HospitalisedPatientSearchFilter filter = new HospitalisedPatientSearchFilter(null, hospitalRoom.getPbo(),
-                null, null, null);
+                null, null, null, null);
         HospitalisedPatientSpecification spec = new HospitalisedPatientSpecification(filter);
         Page<Hospitalization> pages = new PageImpl<>(Collections.singletonList(hospitalization));
 
@@ -173,6 +175,47 @@ public class HospitalizationServiceTest {
                 new HospitalisedPatientsListResponse(Collections.singletonList(hospitalizationMapper.
                         hospitalizationToHospitalisedPatient(hospitalization, Collections.singletonList(doctorResponse))),
                         1L));
+    }
+
+    @Test
+    void getHospitalisedPatientsByHospital_Success() {
+        UUID pbb = UUID.randomUUID();
+        Patient patient = makePatient();
+        HospitalRoom hospitalRoom = makeHospitalRoom();
+        Hospitalization hospitalization = makeHospitalization(hospitalRoom, patient);
+        Pageable pageable = PageRequest.of(0, 5);
+        HospitalisedPatientSearchFilter filter = new HospitalisedPatientSearchFilter(null, null,
+                null, null, null, Collections.singletonList(hospitalRoom.getPbo()));
+        HospitalisedPatientSpecification spec = new HospitalisedPatientSpecification(filter);
+        Page<Hospitalization> pages = new PageImpl<>(Collections.singletonList(hospitalization));
+
+        DoctorResponse doctorResponse = new DoctorResponse();
+        doctorResponse.setLbz(hospitalization.getDoctorLBZ());
+        doctorResponse.setFirstName("Ime");
+        doctorResponse.setLastName("Prezime");
+        mockFindDoctors(doctorResponse);
+        DepartmentResponse departmentResponse = new DepartmentResponse();
+        departmentResponse.setPbo(hospitalRoom.getPbo());
+        departmentResponse.setName("Name");
+
+        mockFindDepartmentsByHospital(departmentResponse);
+
+        when(hospitalizationRepository.findAll(spec, pageable))
+                .thenReturn(pages);
+
+        assertEquals(hospitalizationService.getHospitalisedPatientsByHospital(null, pbb, null,
+                null, null, null,
+                PageRequest.of(0, 5)),
+                new HospPatientByHospitalListResponse(
+                        Collections.singletonList(hospitalizationMapper.
+                                hospitalizationToHospPatientByHospitalResponse(
+                                        hospitalization,
+                                        Collections.singletonList(doctorResponse),
+                                        Collections.singletonList(departmentResponse))
+                        ),
+                        1L
+                )
+        );
     }
 
     @Test
@@ -229,6 +272,16 @@ public class HospitalizationServiceTest {
         when(responseEntity.getBody()).thenReturn(arr);
 
         when(HttpUtils.findDoctors(any()))
+                .thenReturn(responseEntity);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void mockFindDepartmentsByHospital(DepartmentResponse departmentResponse) {
+        DepartmentResponse[] arr = new DepartmentResponse[]{departmentResponse};
+        ResponseEntity<DepartmentResponse[]> responseEntity = mock(ResponseEntity.class);
+        when(responseEntity.getBody()).thenReturn(arr);
+
+        when(HttpUtils.findDepartmentsByHospital(any(), any()))
                 .thenReturn(responseEntity);
     }
 

@@ -1,9 +1,6 @@
 package com.raf.si.patientservice.dto.response.http;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -11,6 +8,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode
+@ToString
 public class DepartmentResponse {
 
     private UUID pbo;

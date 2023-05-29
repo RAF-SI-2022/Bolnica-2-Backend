@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -16,4 +17,5 @@ public class HospitalisedPatientSearchFilter {
     private final String firstName;
     private final String lastName;
     private final String jmbg;
+    private final List<UUID> departmentIds;
 }

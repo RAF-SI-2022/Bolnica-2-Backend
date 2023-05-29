@@ -3,10 +3,7 @@ package com.raf.si.patientservice.unit.controller;
 import com.raf.si.patientservice.controller.HospitalizationController;
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
 import com.raf.si.patientservice.dto.request.PatientConditionRequest;
-import com.raf.si.patientservice.dto.response.HospitalisedPatientsListResponse;
-import com.raf.si.patientservice.dto.response.HospitalizationResponse;
-import com.raf.si.patientservice.dto.response.PatientConditionListResponse;
-import com.raf.si.patientservice.dto.response.PatientConditionResponse;
+import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.service.HospitalizationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,6 +50,23 @@ public class HospitalizationControllerTest {
         ).thenReturn(response);
 
         assertEquals(hospitalizationController.getHospitalisedPatients(pbo, null,
+                null, null,
+                null, 0,
+                5, null)
+                        .getBody(),
+                response);
+    }
+
+    @Test
+    void getHospitalisedPatientsByHospital() {
+        HospPatientByHospitalListResponse response = new HospPatientByHospitalListResponse(new ArrayList<>(), 0L);
+        UUID pbb = UUID.randomUUID();
+
+        when(hospitalizationService.getHospitalisedPatientsByHospital(
+                null, pbb, null, null, null, null, PageRequest.of(0, 5))
+        ).thenReturn(response);
+
+        assertEquals(hospitalizationController.getHospitalisedPatientsByHospital(pbb, null,
                 null, null,
                 null, 0,
                 5, null)

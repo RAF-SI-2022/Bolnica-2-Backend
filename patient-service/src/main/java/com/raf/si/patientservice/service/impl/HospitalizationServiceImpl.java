@@ -2,13 +2,12 @@ package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
 import com.raf.si.patientservice.dto.request.PatientConditionRequest;
-import com.raf.si.patientservice.dto.response.HospitalisedPatientsListResponse;
-import com.raf.si.patientservice.dto.response.HospitalizationResponse;
-import com.raf.si.patientservice.dto.response.PatientConditionListResponse;
-import com.raf.si.patientservice.dto.response.PatientConditionResponse;
+import com.raf.si.patientservice.dto.response.*;
+import com.raf.si.patientservice.dto.response.http.DepartmentResponse;
 import com.raf.si.patientservice.dto.response.http.DoctorResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
+import com.raf.si.patientservice.exception.NotFoundException;
 import com.raf.si.patientservice.mapper.HospitalizationMapper;
 import com.raf.si.patientservice.model.HospitalRoom;
 import com.raf.si.patientservice.model.Hospitalization;
@@ -28,8 +27,10 @@ import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -98,10 +99,10 @@ public class HospitalizationServiceImpl implements HospitalizationService {
     @Override
     public HospitalisedPatientsListResponse getHospitalisedPatients(String token, UUID pbo, UUID lbp, String firstName,
                                                                     String lastName, String jmbg, Pageable pageable) {
-        log.info("Dohvatanje hospitalizovanih pacijenata..");
-        HospitalisedPatientSearchFilter filter = new HospitalisedPatientSearchFilter(lbp, pbo, firstName, lastName, jmbg);
+        log.info("Dohvatanje hospitalizovanih pacijenata po odeljenju..");
+        HospitalisedPatientSearchFilter filter = new HospitalisedPatientSearchFilter(lbp, pbo, firstName, lastName, jmbg, null);
         HospitalisedPatientSpecification spec = new HospitalisedPatientSpecification(filter);
-        Page<Hospitalization> hospitalizations =  hospitalizationRepository.findAll(spec, pageable);
+        Page<Hospitalization> hospitalizations = hospitalizationRepository.findAll(spec, pageable);
         List<DoctorResponse> doctorResponseList = getDoctorsResponse(token);
         return new HospitalisedPatientsListResponse(
                 hospitalizations.map((h) -> hospitalizationMapper.hospitalizationToHospitalisedPatient(h, doctorResponseList))
@@ -111,8 +112,31 @@ public class HospitalizationServiceImpl implements HospitalizationService {
     }
 
     @Override
+    public HospPatientByHospitalListResponse getHospitalisedPatientsByHospital(String token, UUID pbb, UUID lbp, String firstName, String lastName, String jmbg, Pageable pageable) {
+        log.info("Dohvatanje hospitalizovanih pacijenata po bolnici..");
+        List<DepartmentResponse> departmentResponses = getDepartmentsByHospital(pbb, token);
+        List<DoctorResponse> doctorResponseList = getDoctorsResponse(token);
+        HospitalisedPatientSearchFilter filter = new HospitalisedPatientSearchFilter(
+                lbp, null, firstName, lastName, jmbg,
+                departmentResponses.stream()
+                        .map(DepartmentResponse::getPbo)
+                        .collect(Collectors.toList())
+        );
+        HospitalisedPatientSpecification spec = new HospitalisedPatientSpecification(filter);
+        Page<Hospitalization> hospitalizations = hospitalizationRepository.findAll(spec, pageable);
+
+        return new HospPatientByHospitalListResponse(
+                hospitalizations.map(
+                        h -> hospitalizationMapper.hospitalizationToHospPatientByHospitalResponse(h, doctorResponseList, departmentResponses)
+                ).stream()
+                        .collect(Collectors.toList()),
+                hospitalizations.getTotalElements()
+        );
+    }
+
+    @Override
     public PatientConditionResponse createPatientCondition(UUID lbp, PatientConditionRequest patientConditionRequest) {
-        if(patientConditionRequest.allNull()) {
+        if (patientConditionRequest.allNull()) {
             log.error("Sva polja za kreiranje stanja pacijenta su null");
             throw new BadRequestException("Barem jedno polje stanja pacijenta ne sme biti null");
         }
@@ -145,6 +169,18 @@ public class HospitalizationServiceImpl implements HospitalizationService {
             return Arrays.asList(HttpUtils.findDoctors(token).getBody());
         } catch (Exception e) {
             log.error(e.getMessage());
+            throw new InternalServerErrorException(e.getMessage());
+        }
+    }
+
+    private List<DepartmentResponse> getDepartmentsByHospital(UUID pbb, String token) {
+        try {
+            return Arrays.asList(HttpUtils.findDepartmentsByHospital(pbb, token).getBody());
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            if (e instanceof HttpClientErrorException && ((HttpClientErrorException) e).getStatusCode() == HttpStatus.NOT_FOUND) {
+                throw new NotFoundException(e.getMessage());
+            }
             throw new InternalServerErrorException(e.getMessage());
         }
     }

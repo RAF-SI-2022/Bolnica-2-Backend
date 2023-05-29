@@ -2,9 +2,11 @@ package com.raf.si.patientservice.mapper;
 
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
 import com.raf.si.patientservice.dto.request.PatientConditionRequest;
+import com.raf.si.patientservice.dto.response.HospPatientByHospitalResponse;
 import com.raf.si.patientservice.dto.response.HospitalisedPatientsResponse;
 import com.raf.si.patientservice.dto.response.HospitalizationResponse;
 import com.raf.si.patientservice.dto.response.PatientConditionResponse;
+import com.raf.si.patientservice.dto.response.http.DepartmentResponse;
 import com.raf.si.patientservice.dto.response.http.DoctorResponse;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.model.HospitalRoom;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -67,6 +70,43 @@ public class HospitalizationMapper {
         response.setHospitalRoomId(hospitalization.getHospitalRoom().getId());
         response.setRoomNumber(hospitalization.getHospitalRoom().getRoomNumber());
         response.setRoomCapacity(hospitalization.getHospitalRoom().getCapacity());
+        response.setLbp(hospitalization.getPatient().getLbp());
+        response.setPatientFirstName(hospitalization.getPatient().getFirstName());
+        response.setPatientLastName(hospitalization.getPatient().getLastName());
+        response.setBirthDate(hospitalization.getPatient().getBirthDate());
+        response.setJmbg(hospitalization.getPatient().getJmbg());
+        response.setReceiptDate(hospitalization.getReceiptDate());
+        response.setDiagnosis(hospitalization.getDiagnosis());
+        response.setNote(hospitalization.getNote());
+        DoctorResponse doctor = doctors.stream()
+                .filter(d -> d.getLbz().equals(hospitalization.getDoctorLBZ()))
+                .findFirst()
+                .orElseThrow(() -> {
+                    log.error("Cannot find doctor with lbz {} for hospitalization with id {}",
+                            hospitalization.getDoctorLBZ(), hospitalization.getId());
+                    throw new InternalServerErrorException("Greska na serveru");
+                });
+        response.setDoctorFirstName(doctor.getFirstName());
+        response.setDoctorLastName(doctor.getLastName());
+
+        return response;
+    }
+
+    public HospPatientByHospitalResponse hospitalizationToHospPatientByHospitalResponse(Hospitalization hospitalization,
+                                                                                        List<DoctorResponse> doctors,
+                                                                                        List<DepartmentResponse> departmentResponses) {
+        HospPatientByHospitalResponse response = new HospPatientByHospitalResponse();
+        response.setHospitalRoomId(hospitalization.getHospitalRoom().getId());
+        response.setRoomNumber(hospitalization.getHospitalRoom().getRoomNumber());
+        UUID pbo = hospitalization.getHospitalRoom().getPbo();
+        response.setPbo(pbo);
+        response.setDepartmentName(
+                Objects.requireNonNull(
+                        departmentResponses.stream()
+                                .filter(d -> d.getPbo().equals(pbo))
+                                .findFirst()
+                                .orElse(null))
+                        .getName());
         response.setLbp(hospitalization.getPatient().getLbp());
         response.setPatientFirstName(hospitalization.getPatient().getFirstName());
         response.setPatientLastName(hospitalization.getPatient().getLastName());

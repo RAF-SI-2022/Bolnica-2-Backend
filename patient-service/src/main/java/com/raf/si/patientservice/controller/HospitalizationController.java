@@ -2,10 +2,7 @@ package com.raf.si.patientservice.controller;
 
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
 import com.raf.si.patientservice.dto.request.PatientConditionRequest;
-import com.raf.si.patientservice.dto.response.HospitalisedPatientsListResponse;
-import com.raf.si.patientservice.dto.response.HospitalizationResponse;
-import com.raf.si.patientservice.dto.response.PatientConditionListResponse;
-import com.raf.si.patientservice.dto.response.PatientConditionResponse;
+import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.service.HospitalizationService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -53,6 +50,26 @@ public class HospitalizationController {
         );
     }
 
+
+    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA') or hasRole('ROLE_DR_SPEC') or hasRole('ROLE_DR_SPEC_POV') " +
+            "or hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA') or hasRole('ROLE_RECEPCIONER')")
+    @GetMapping("/hospital/{pbb}")
+    public ResponseEntity<HospPatientByHospitalListResponse> getHospitalisedPatientsByHospital(@PathVariable("pbb") UUID pbb,
+                                                                                               @RequestParam(name = "lbp", required = false) UUID lbp,
+                                                                                               @RequestParam(name = "firstName", required = false) String firstName,
+                                                                                               @RequestParam(name = "lastName", required = false) String lastName,
+                                                                                               @RequestParam(name = "jmbg", required = false) String jmbg,
+                                                                                               @RequestParam(defaultValue = "0") int page,
+                                                                                               @RequestParam(defaultValue = "5") int size,
+                                                                                               @RequestHeader("Authorization") String authorizationHeader) {
+        return ResponseEntity.ok(
+                hospitalizationService.getHospitalisedPatientsByHospital(
+                        authorizationHeader, pbb, lbp, firstName,
+                        lastName, jmbg, PageRequest.of(0, 5)
+                )
+        );
+    }
+
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @PostMapping("/patient-condition/{lbp}")
     public ResponseEntity<PatientConditionResponse> createPatientCondition(@PathVariable("lbp") UUID lbp,
@@ -61,6 +78,8 @@ public class HospitalizationController {
         return ResponseEntity.ok(hospitalizationService.createPatientCondition(lbp, patientConditionRequest));
     }
 
+    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA') or hasRole('ROLE_DR_SPEC') or hasRole('ROLE_DR_SPEC_POV') " +
+            "or hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @GetMapping("/patient-condition/{lbp}")
     public ResponseEntity<PatientConditionListResponse> getPatientConditions(@PathVariable("lbp") UUID lbp,
                                                                              @RequestParam(name = "dateFrom", required = false)
