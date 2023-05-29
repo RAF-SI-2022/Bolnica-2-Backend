@@ -1,0 +1,8 @@
+domain: bolnica-2.k8s.elab.rs
+namespace: "bolnica-2-prod"
+git_version: 1.1
+git_version_front: 1.1
+image:
+  repository_url: "harbor.k8s.elab.rs"
+  repository_name: "bolnica-2"
+  type: "startProdS"

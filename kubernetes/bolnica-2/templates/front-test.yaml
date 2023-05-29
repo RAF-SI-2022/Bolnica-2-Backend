@@ -1,0 +1,49 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: "{{ .Values.image.repository_url }}/{{ .Values.image.repository_name }}/frontend:{{ .Values.git_version_front }}"
+        imagePullPolicy: Always
+        command:
+          - /bin/sh
+          - -c
+        args:
+          - |-
+            npm run {{ .Values.image.type }}
+        ports:
+          - name: frontend
+            containerPort: 4200
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+  namespace: {{ .Values.namespace }}
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: frontend

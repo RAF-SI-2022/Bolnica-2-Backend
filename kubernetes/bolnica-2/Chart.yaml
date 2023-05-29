@@ -1,0 +1,10 @@
+apiVersion: v2
+name: bolnica-2
+version: 1.0.0
+appVersion: "1.0.0"
+# kubeVersion: ~1.26.1 # mozda nepotrebno
+description: "chart za bolnicu 2"
+type: application
+maintainers:
+  - name: djovak
+    email: novakzivanic@gmail.com
