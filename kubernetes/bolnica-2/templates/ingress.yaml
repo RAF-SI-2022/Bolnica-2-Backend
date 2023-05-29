@@ -1,0 +1,67 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: bolnica-2-ingress-frontend
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - {{ .Values.domain }}
+      secretName: bolnica-2-https-certs
+  rules:
+  - host: {{ .Values.domain }}
+    http:
+      paths:
+        - pathType: Prefix
+          path: "/"
+          backend:
+            service:
+              name: frontend
+              port:
+                number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bolnica-2-api
+  namespace: {{ .Values.namespace }}
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - {{ .Values.domain }}
+      secretName: bolnica-2-https-certs
+  rules:
+  - host: {{ .Values.domain }}
+    http:
+      paths:
+        - pathType: Prefix
+          path: "/api/user(/|$)(.*)"
+          backend:
+            service:
+              name: user-service
+              port:
+                number: 8081
+        - pathType: Prefix
+          path: "/api/patient(/|$)(.*)"
+          backend:
+            service:
+              name: patient-service
+              port:
+                number: 8082
+        - pathType: Prefix
+          path: "/api/lab(/|$)(.*)"
+          backend:
+            service:
+              name: laboratory-service
+              port:
+                number: 8083
