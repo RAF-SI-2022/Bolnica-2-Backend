@@ -53,7 +53,7 @@ presubmits:
               # kubectl apply -f kubernetes/bolnica-2 --set git_version=$commit_hash
 
               # TODO update dev helm chart
-              # helm upgrade bolnica-2-prod -f kubernetes/bolnica-2 --set git_version=$commit_hash -n bolnica-2-prod
+              helm upgrade bolnica-2-prod -f kubernetes/bolnica-2 --set git_version=$commit_hash -n bolnica-2-prod
 
           securityContext:
             privileged: true
@@ -112,7 +112,7 @@ presubmits:
               # kubectl apply -f kubernetes/bolnica-2 --set git_version=$commit_hash
 
               # TODO update dev helm chart
-              # helm upgrade bolnica-2-dev -f kubernetes/bolnica-2 --set git_version=$commit_hash -n bolnica-2-dev
+              helm upgrade bolnica-2-dev -f kubernetes/bolnica-2 --set git_version=$commit_hash -n bolnica-2-dev
 
           securityContext:
             privileged: true
