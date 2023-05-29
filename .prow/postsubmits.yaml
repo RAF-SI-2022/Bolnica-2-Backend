@@ -90,6 +90,7 @@ presubmits:
               docker build -t harbor.k8s.elab.rs/bolnica-2/laboratory-service:$commit_hash ./laboratory-service
 
               
+              
               # push images
               docker push harbor.k8s.elab.rs/bolnica-2/user-service:develop-latest
               docker push harbor.k8s.elab.rs/bolnica-2/patient-service:develop-latest
