@@ -1,4 +1,4 @@
-presubmits:
+postsubmits:
   - name: post-bolnica-2-backend-prod-deploy
     labels:
       preset-github-ro-token: "true"
