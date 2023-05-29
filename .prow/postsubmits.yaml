@@ -91,9 +91,9 @@ presubmits:
               docker build -t harbor.k8s.elab.rs/bolnica-2/patient-service:develop-latest ./patient-service
               docker build -t harbor.k8s.elab.rs/bolnica-2/laboratory-service:develop-latest ./laboratory-service
               
-              # docker build -t harbor.k8s.elab.rs/bolnica-2/user-service:$commit_hash ./user-service
-              # docker build -t harbor.k8s.elab.rs/bolnica-2/patient-service:$commit_hash ./patient-service
-              # docker build -t harbor.k8s.elab.rs/bolnica-2/laboratory-service:$commit_hash ./laboratory-service
+              docker build -t harbor.k8s.elab.rs/bolnica-2/user-service:$commit_hash ./user-service
+              docker build -t harbor.k8s.elab.rs/bolnica-2/patient-service:$commit_hash ./patient-service
+              docker build -t harbor.k8s.elab.rs/bolnica-2/laboratory-service:$commit_hash ./laboratory-service
 
               
               # push images
@@ -101,9 +101,9 @@ presubmits:
               docker push harbor.k8s.elab.rs/bolnica-2/patient-service:develop-latest
               docker push harbor.k8s.elab.rs/bolnica-2/laboratory-service:develop-latest
 
-              # docker push harbor.k8s.elab.rs/bolnica-2/user-service:$commit_hash
-              # docker push harbor.k8s.elab.rs/bolnica-2/patient-service:$commit_hash
-              # docker push harbor.k8s.elab.rs/bolnica-2/laboratory-service:$commit_hash
+              docker push harbor.k8s.elab.rs/bolnica-2/user-service:$commit_hash
+              docker push harbor.k8s.elab.rs/bolnica-2/patient-service:$commit_hash
+              docker push harbor.k8s.elab.rs/bolnica-2/laboratory-service:$commit_hash
               
 
               # sed --in-place "s;__COMMIT_HASH__;$commit_hash;g" kubernetes/

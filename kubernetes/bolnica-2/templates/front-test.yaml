@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: "{{ .Values.image.repository_url }}/{{ .Values.image.repository_name }}/frontend:1.1"
+        image: "{{ .Values.image.repository_url }}/{{ .Values.image.repository_name }}/frontend:{{ .Values.git_version_front }}"
         imagePullPolicy: Always
         command:
           - /bin/sh

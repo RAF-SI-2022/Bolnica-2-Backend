@@ -1,5 +1,6 @@
 domain: bolnica-2.k8s.elab.rs
 git_version: 1.1
+git_version_front: 1.1
 namespace: "bolnica-2-prod"
 image:
   repository_url: "harbor.k8s.elab.rs"
