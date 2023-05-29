@@ -1,4 +1,4 @@
-postsubmits:
+presubmits:
   - name: post-bolnica-2-backend-prod-deploy
     labels:
       preset-github-ro-token: "true"
@@ -46,14 +46,8 @@ postsubmits:
               docker push harbor.k8s.elab.rs/bolnica-2/patient-service:$commit_hash
               docker push harbor.k8s.elab.rs/bolnica-2/laboratory-service:$commit_hash
               
-
-              # sed --in-place "s;__COMMIT_HASH__;$commit_hash;g" kubernetes/
-              # find . -type f -exec sed -i.bak "s;__COMMIT_HASH__;$commit_hash;g" {} \;
-
-              # kubectl apply -f kubernetes/bolnica-2 --set git_version=$commit_hash
-
               # update dev helm chart
-              helm upgrade bolnica-2-prod ./kubernetes/bolnica-2 --reuse-values --set git_version=$commit_hash -n bolnica-2-prod
+              helm upgrade bolnica-2-prod oci://harbor.k8s.elab.rs/bolnica-2/bolnica-2 --version 1.0.1 --reuse-values --set git_version=$commit_hash -n bolnica-2-prod
 
           securityContext:
             privileged: true
@@ -105,14 +99,8 @@ postsubmits:
               docker push harbor.k8s.elab.rs/bolnica-2/patient-service:$commit_hash
               docker push harbor.k8s.elab.rs/bolnica-2/laboratory-service:$commit_hash
               
-
-              # sed --in-place "s;__COMMIT_HASH__;$commit_hash;g" kubernetes/
-              # find . -type f -exec sed -i.bak "s;__COMMIT_HASH__;$commit_hash;g" {} \;
-
-              # kubectl apply -f kubernetes/bolnica-2 --set git_version=$commit_hash
-
               # update dev helm chart
-              helm upgrade bolnica-2-dev kubernetes/bolnica-2 --reuse-values --set git_version=$commit_hash -n bolnica-2-dev
+              helm upgrade bolnica-2-dev oci://harbor.k8s.elab.rs/bolnica-2/bolnica-2 --version 1.0.1 --reuse-values --set git_version=$commit_hash -n bolnica-2-dev
 
           securityContext:
             privileged: true
