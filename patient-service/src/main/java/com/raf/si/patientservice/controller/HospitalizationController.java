@@ -65,7 +65,7 @@ public class HospitalizationController {
         return ResponseEntity.ok(
                 hospitalizationService.getHospitalisedPatientsByHospital(
                         authorizationHeader, pbb, lbp, firstName,
-                        lastName, jmbg, PageRequest.of(0, 5)
+                        lastName, jmbg, PageRequest.of(page, size)
                 )
         );
     }
