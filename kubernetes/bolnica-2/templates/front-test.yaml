@@ -25,7 +25,7 @@ spec:
           - -c
         args:
           - |-
-            npm run startProdS
+            npm run {{ .Values.image.type }}
         ports:
           - name: frontend
             containerPort: 4200
