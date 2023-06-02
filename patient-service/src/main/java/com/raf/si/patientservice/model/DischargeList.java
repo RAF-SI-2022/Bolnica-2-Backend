@@ -35,5 +35,5 @@ public class DischargeList {
     @Column(name = "head_department", nullable = false)
     private UUID headDepartment;
     @Column(nullable = false)
-    private Date date;
+    private Date date = new Date();
 }

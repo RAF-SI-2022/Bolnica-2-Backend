@@ -182,6 +182,18 @@ public class UserControllerTest {
                 ResponseEntity.of(Optional.of(messageResponse)));
     }
 
+    @Test
+    public void getHeadOfDepartment_Success() {
+        UUID pbo = UUID.randomUUID();
+        DoctorResponse doctorResponse = createDoctorResponse(UUID.randomUUID());
+
+        when(userService.getHeadOfDepartment(pbo))
+                .thenReturn(doctorResponse);
+
+        assertEquals(userController.getHeadOfDepartment(pbo).getBody(),
+                doctorResponse);
+    }
+
     private CreateUserRequest createUserRequest() {
         CreateUserRequest createUserRequest = new CreateUserRequest();
         createUserRequest.setFirstName("firstName");

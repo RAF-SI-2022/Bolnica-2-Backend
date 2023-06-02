@@ -22,10 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -82,6 +79,7 @@ public class UserServiceImpl implements UserService {
             throw new NotFoundException(String.format("Ne postoji korisnik sa lbz-om: %s ", lbz));
         });
     }
+
     @Override
     public UserResponse getUserByLbz(UUID lbz) {
         User user = findUserByLbz(lbz);
@@ -126,6 +124,7 @@ public class UserServiceImpl implements UserService {
     private User updateUser(User user) {
         return userRepository.save(user);
     }
+
     @Transactional
     @Override
     public UserResponse updateUser(UUID lbz, UpdateUserRequest updateUserRequest, boolean isAdmin) {
@@ -222,6 +221,23 @@ public class UserServiceImpl implements UserService {
                 .stream()
                 .map(userMapper::modelToResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public DoctorResponse getHeadOfDepartment(UUID pbo) {
+        Department department = departmentRepository.findDepartmentByPbo(pbo).orElseThrow(() -> {
+            log.error("Odeljenje sa pbo '{}' ne postoji", pbo);
+            throw new NotFoundException("Odeljenje sa datim pbo ne postoji");
+        });
+
+        log.info("Dohvatanje nacelnika odeljenja za pbo '{}'", pbo);
+
+        User user = userRepository.getHeadOfDepartment(department, "ROLE_DR_SPEC_ODELJENJA")
+                .orElseThrow(() -> {
+                    log.error("Ne postoji nacelnik odeljenja za pbo '{}'", pbo);
+                    throw new NotFoundException("Ne postoji nacelnik odeljenja za dato odeljenje");
+                });
+        return userMapper.modelToDoctorResponse(user);
     }
 
     private List<Boolean> adjustIncludeDeleteParameter(boolean includeDeleted) {

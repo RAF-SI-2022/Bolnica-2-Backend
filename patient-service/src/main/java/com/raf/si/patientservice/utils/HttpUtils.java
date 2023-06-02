@@ -2,6 +2,7 @@ package com.raf.si.patientservice.utils;
 
 import com.raf.si.patientservice.dto.request.UUIDListRequest;
 import com.raf.si.patientservice.dto.response.http.DepartmentResponse;
+import com.raf.si.patientservice.dto.response.http.DoctorResponse;
 import com.raf.si.patientservice.dto.response.http.ReferralResponse;
 import com.raf.si.patientservice.dto.response.http.UserResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,24 +24,25 @@ public class HttpUtils {
     private static String USER_SERVICE_BASE_URL;
     private static String LABORATORY_SERVICE_BASE_URL;
 
-    private static String USER_GET_USER_INFO = "/users/employee-info";
-    private static String USER_DEPARTMENT = "/departments";
-    private static String CHANGE_REFERRAL_STATUS_URL = "/referral/change-status";
+    private static final String USER_GET_USER_INFO = "/users/employee-info";
+    private static final String USER_HEAD_OF_DEPARTMENT = "/users/head-department";
+    private static final String USER_DEPARTMENT = "/departments";
+    private static final String CHANGE_REFERRAL_STATUS_URL = "/referral/change-status";
+    private static final String USER_DOCTORS = "/users/doctors";
 
 
-    public static ResponseEntity<UserResponse> findUserByLbz(String token, UUID lbz){
-        String url = USER_SERVICE_BASE_URL +USER_GET_USER_INFO+ "/" + lbz;
+    public static ResponseEntity<UserResponse> findUserByLbz(String token, UUID lbz) {
+        String url = USER_SERVICE_BASE_URL + USER_GET_USER_INFO + "/" + lbz;
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", token);
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
-        ResponseEntity<UserResponse> response = restTemplate.exchange(
+        return restTemplate.exchange(
                 url.trim(),
                 HttpMethod.GET,
                 entity,
                 UserResponse.class
         );
-        return response;
     }
 
     public static List<UserResponse> findUsersByLbzList(UUIDListRequest lbzListRequest, String token) {
@@ -64,12 +66,11 @@ public class HttpUtils {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", token);
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
-        ResponseEntity<DepartmentResponse> response = restTemplate.exchange(url.trim(),
+        return restTemplate.exchange(url.trim(),
                 HttpMethod.GET,
                 entity,
                 DepartmentResponse.class
         );
-        return response;
     }
 
     public static ResponseEntity<ReferralResponse> changeReferralStatus(Long id, String status, String token) {
@@ -78,18 +79,58 @@ public class HttpUtils {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", token);
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
-        ResponseEntity<ReferralResponse> response = restTemplate.exchange(
+        return restTemplate.exchange(
                 url.trim(),
                 HttpMethod.PUT,
                 entity,
                 ReferralResponse.class
         );
-        return response;
+    }
+
+    public static ResponseEntity<DoctorResponse[]> findDoctors(String token) {
+        String url = USER_SERVICE_BASE_URL + USER_DOCTORS;
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", token);
+        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        return restTemplate.exchange(
+                url.trim(),
+                HttpMethod.GET,
+                entity,
+                DoctorResponse[].class
+        );
+    }
+
+    public static ResponseEntity<DepartmentResponse[]> findDepartmentsByHospital(UUID pbb, String token) {
+        String url = USER_SERVICE_BASE_URL + USER_DEPARTMENT + "/" + pbb;
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", token);
+        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        return restTemplate.exchange(
+                url.trim(),
+                HttpMethod.GET,
+                entity,
+                DepartmentResponse[].class
+        );
+    }
+
+    public static ResponseEntity<DoctorResponse> getHeadOfDepartment(UUID pbo, String token) {
+        String url = USER_SERVICE_BASE_URL + USER_HEAD_OF_DEPARTMENT + "/" + pbo;
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", token);
+        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        return restTemplate.exchange(url.trim(),
+                HttpMethod.GET,
+                entity,
+                DoctorResponse.class
+        );
     }
 
     @Autowired
     private void setStaticVariables(@Value("${user-service-url}") String userServiceUrl,
-                                    @Value("${laboratory-service-url}") String labServiceUrl){
+                                    @Value("${laboratory-service-url}") String labServiceUrl) {
 
         HttpUtils.USER_SERVICE_BASE_URL = userServiceUrl;
         HttpUtils.LABORATORY_SERVICE_BASE_URL = labServiceUrl;
