@@ -155,10 +155,10 @@ public class UserControllerTest {
 
         UserListAndCountResponse userListAndCountResponse = new UserListAndCountResponse(new ArrayList<>(), 1L);
 
-        when(userService.listUsers(firstName, lastName, departmentName, hospitalName, true, PageRequest.of(page, size)))
+        when(userService.listUsers(firstName, lastName, departmentName, hospitalName, true, null, PageRequest.of(page, size)))
                 .thenReturn(userListAndCountResponse);
 
-        assertEquals(userController.listUsers(firstName, lastName, departmentName, hospitalName, true, page, size),
+        assertEquals(userController.listUsers(firstName, lastName, departmentName, hospitalName, true, null, page, size),
                 ResponseEntity.of(Optional.of(userListAndCountResponse)));
     }
 

@@ -154,11 +154,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserListAndCountResponse listUsers(String firstName, String lastName,
                                               String departmentName, String hospitalName,
-                                              boolean includeDeleted, Pageable pageable) {
+                                              boolean includeDeleted, Boolean hasCovidAccess,
+                                              Pageable pageable) {
 
         return userMapper.modelToUserListAndCountResponse(userRepository.listAllUsers(firstName.toLowerCase(), lastName.toLowerCase(),
                 departmentName.toLowerCase(), hospitalName.toLowerCase(),
-                adjustIncludeDeleteParameter(includeDeleted), pageable));
+                adjustIncludeDeleteParameter(includeDeleted),
+                adjustHasCovidAccessParameter(hasCovidAccess), pageable));
     }
 
     @Override
@@ -264,6 +266,13 @@ public class UserServiceImpl implements UserService {
         if (includeDeleted)
             list.add(true);
         return list;
+    }
+
+    private List<Boolean> adjustHasCovidAccessParameter(Boolean hasCovidAccess) {
+        if (hasCovidAccess == null) {
+            return Arrays.asList(new Boolean[] {true, false});
+        }
+        return Arrays.asList(new Boolean[]{hasCovidAccess});
     }
 
     private boolean canUpdateCovidAccess(User userForUpdate) {

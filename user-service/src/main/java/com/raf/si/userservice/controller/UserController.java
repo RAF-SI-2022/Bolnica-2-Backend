@@ -99,9 +99,10 @@ public class UserController {
                                                               @RequestParam(defaultValue = "") String departmentName,
                                                               @RequestParam(defaultValue = "") String hospitalName,
                                                               @RequestParam(defaultValue = "false") boolean includeDeleted,
+                                                              @RequestParam(required = false) Boolean covidAccess,
                                                               @RequestParam(defaultValue = "0") int page,
                                                               @RequestParam(defaultValue = "5") int size) {
-        return ResponseEntity.ok(userService.listUsers(firstName, lastName, departmentName, hospitalName, includeDeleted, PageRequest.of(page, size)));
+        return ResponseEntity.ok(userService.listUsers(firstName, lastName, departmentName, hospitalName, includeDeleted, covidAccess, PageRequest.of(page, size)));
     }
 
     @PostMapping("/reset-password")
@@ -117,7 +118,7 @@ public class UserController {
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_DR_SPEC_ODELJENJA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @PutMapping("/update-covid-access/{lbz}")
     public ResponseEntity<UserResponse> updateCovidAccess(@PathVariable("lbz") UUID lbz,
-                                                             @RequestParam("covidAccess") Boolean covidAccess) {
+                                                          @RequestParam("covidAccess") Boolean covidAccess) {
 
         return ResponseEntity.ok(userService.updateCovidAccess(lbz, covidAccess));
     }

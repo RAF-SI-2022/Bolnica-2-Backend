@@ -20,7 +20,8 @@ public interface UserService {
     UserResponse updateUser(UUID lbz, UpdateUserRequest updateUserRequest, boolean isAdmin);
 
     UserListAndCountResponse listUsers(String firstName, String lastName, String departmentName,
-                                       String hospitalName, boolean includeDeleted, Pageable pageable);
+                                       String hospitalName, boolean includeDeleted, Boolean hasCovidAccess,
+                                       Pageable pageable);
 
     MessageResponse resetPassword(PasswordResetRequest passwordResetRequest);
 
