@@ -7,6 +7,7 @@ import com.raf.si.userservice.exception.ForbiddenException;
 import com.raf.si.userservice.exception.NotFoundException;
 import com.raf.si.userservice.mapper.UserMapper;
 import com.raf.si.userservice.model.Department;
+import com.raf.si.userservice.model.Hospital;
 import com.raf.si.userservice.model.Permission;
 import com.raf.si.userservice.model.User;
 import com.raf.si.userservice.repository.DepartmentRepository;
@@ -14,6 +15,8 @@ import com.raf.si.userservice.repository.PermissionsRepository;
 import com.raf.si.userservice.repository.UserRepository;
 import com.raf.si.userservice.service.EmailService;
 import com.raf.si.userservice.service.UserService;
+import com.raf.si.userservice.utils.TokenPayload;
+import com.raf.si.userservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -190,6 +193,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserResponse updateCovidAccess(UUID lbz, boolean covidAccess) {
+        User user = findUserByLbz(lbz);
+
+        if (!canUpdateCovidAccess(user)) {
+            String errMessage = String.format("Nemate permisiju da promenite pristup covid-u za korisnika sa lbz-om '%s'", lbz);
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+
+        user.setCovidAccess(covidAccess);
+        user = userRepository.save(user);
+        return userMapper.modelToResponse(user);
+    }
+
+    @Override
     public List<DoctorResponse> getAllDoctors() {
         List<String> doctorPermissions = Arrays.asList("ROLE_DR_SPEC_ODELJENJA", "ROLE_DR_SPEC", "ROLE_DR_SPEC_POV");
         log.info("Listanje svih doktora...");
@@ -246,5 +264,33 @@ public class UserServiceImpl implements UserService {
         if (includeDeleted)
             list.add(true);
         return list;
+    }
+
+    private boolean canUpdateCovidAccess(User userForUpdate) {
+        TokenPayload token = TokenPayloadUtil.getTokenPayload();
+        List<String> loggedInRoles = token.getPermissions();
+        Department department = userForUpdate.getDepartment();
+        Hospital hospital = department.getHospital();
+
+        if (loggedInRoles.contains("ROLE_ADMIN") && hospital.getPbb().equals(token.getPbb())) {
+            return true;
+        }
+
+        if (loggedInRoles.contains("ROLE_DR_SPEC_ODELJENJA") && department.getPbo().equals(token.getPbo())) {
+            return true;
+        }
+
+        if (loggedInRoles.contains("ROLE_VISA_MED_SESTRA") && department.getPbo().equals(token.getPbo())) {
+            List<String> roles = userForUpdate.getPermissions()
+                    .stream()
+                    .map(Permission::getName)
+                    .collect(Collectors.toList());
+
+            if (roles.contains("ROLE_VISA_MED_SESTRA") || roles.contains("ROLE_MED_SESTRA")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

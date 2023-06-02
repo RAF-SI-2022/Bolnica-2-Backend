@@ -26,6 +26,8 @@ public interface UserService {
 
     MessageResponse updatePassword(UpdatePasswordRequest updatePasswordRequest);
 
+    UserResponse updateCovidAccess(UUID lbz, boolean covidAccess);
+
     List<DoctorResponse> getAllDoctors();
 
     List<DoctorResponse> getAllDoctorsByDepartment(UUID pbo);

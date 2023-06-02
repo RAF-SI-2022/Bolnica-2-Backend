@@ -34,4 +34,5 @@ public class UserResponse {
     private String username;
     private boolean isDeleted;
     private List<String> permissions;
+    private boolean covidAccess;
 }

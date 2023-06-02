@@ -90,6 +90,7 @@ public class UserMapper {
         userResponse.setPlaceOfLiving(user.getPlaceOfLiving());
         userResponse.setDepartment(user.getDepartment());
         userResponse.setPermissions(user.getPermissions().stream().map(Permission::getName).collect(Collectors.toList()));
+        userResponse.setCovidAccess(user.isCovidAccess());
 
         return userResponse;
     }
@@ -171,6 +172,7 @@ public class UserMapper {
         doctorResponse.setLbz(user.getLbz());
         doctorResponse.setFirstName(user.getFirstName());
         doctorResponse.setLastName(user.getLastName());
+        doctorResponse.setCovidAccess(user.isCovidAccess());
 
         return doctorResponse;
     }
@@ -188,6 +190,7 @@ public class UserMapper {
         userListResponse.setDateOfBirth(user.getDateOfBirth());
         userListResponse.setDepartmentName(user.getDepartment().getName());
         userListResponse.setHospitalName(user.getDepartment().getHospital().getFullName());
+        userListResponse.setCovidAccess(user.isCovidAccess());
 
         return userListResponse;
     }
