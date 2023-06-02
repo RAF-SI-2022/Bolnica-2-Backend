@@ -1,12 +1,10 @@
 package com.raf.si.patientservice.unit.service;
 
+import com.raf.si.patientservice.dto.request.DischargeRequest;
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
 import com.raf.si.patientservice.dto.request.MedicalReportRequest;
 import com.raf.si.patientservice.dto.request.PatientConditionRequest;
-import com.raf.si.patientservice.dto.response.HospPatientByHospitalListResponse;
-import com.raf.si.patientservice.dto.response.HospitalisedPatientsListResponse;
-import com.raf.si.patientservice.dto.response.MedicalReportListResponse;
-import com.raf.si.patientservice.dto.response.PatientConditionListResponse;
+import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.dto.response.http.DepartmentResponse;
 import com.raf.si.patientservice.dto.response.http.DoctorResponse;
 import com.raf.si.patientservice.dto.response.http.ReferralResponse;
@@ -14,11 +12,9 @@ import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.NotFoundException;
 import com.raf.si.patientservice.mapper.HospitalizationMapper;
 import com.raf.si.patientservice.model.*;
-import com.raf.si.patientservice.repository.HospitalRoomRepository;
-import com.raf.si.patientservice.repository.HospitalizationRepository;
-import com.raf.si.patientservice.repository.MedicalReportRepository;
-import com.raf.si.patientservice.repository.PatientConditionRepository;
+import com.raf.si.patientservice.repository.*;
 import com.raf.si.patientservice.repository.filtering.filter.HospitalisedPatientSearchFilter;
+import com.raf.si.patientservice.repository.filtering.specification.DischargeSpecification;
 import com.raf.si.patientservice.repository.filtering.specification.HospitalisedPatientSpecification;
 import com.raf.si.patientservice.repository.filtering.specification.MedicalReportSpecification;
 import com.raf.si.patientservice.repository.filtering.specification.PatientConditionSpecification;
@@ -58,6 +54,7 @@ public class HospitalizationServiceTest {
     private HospitalizationService hospitalizationService;
     private EntityManager entityManager;
     private MedicalReportRepository medicalReportRepository;
+    private DischargeListRepository dischargeRepository;
 
     @BeforeEach
     void setup() {
@@ -68,13 +65,16 @@ public class HospitalizationServiceTest {
         hospitalizationMapper = new HospitalizationMapper();
         entityManager = mock(EntityManager.class);
         medicalReportRepository = mock(MedicalReportRepository.class);
+        dischargeRepository = mock(DischargeListRepository.class);
 
         hospitalizationService = new HospitalizationServiceImpl(
                 hospitalizationRepository,
                 hospitalRoomRepository,
                 hospitalizationMapper,
                 patientService,
-                patientConditionRepository, medicalReportRepository);
+                patientConditionRepository,
+                medicalReportRepository,
+                dischargeRepository);
 
         ReflectionTestUtils.setField(
                 hospitalizationService,
@@ -304,6 +304,59 @@ public class HospitalizationServiceTest {
                 new MedicalReportListResponse(Collections.emptyList(), 0L));
     }
 
+    @Test
+    void createDischarge_WhenHospitalizationDoesNotExist_ThrowNotFoundException() {
+        UUID lbp = UUID.randomUUID();
+
+        when(hospitalizationRepository.getHospitalizationByLbp(lbp))
+                .thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> hospitalizationService.createDischarge(lbp, null, ""));
+    }
+
+    @Test
+    void createDischarge_Success() {
+        UUID lbp = UUID.randomUUID();
+        Patient patient = makePatient();
+        HospitalRoom hospitalRoom = makeHospitalRoom();
+        Hospitalization hospitalization = makeHospitalization(hospitalRoom, patient);
+
+        when(hospitalizationRepository.getHospitalizationByLbp(lbp))
+                .thenReturn(Optional.of(hospitalization));
+        DoctorResponse doctorResponse = makeDoctorResponse();
+
+        mockGetHeadOfDepartment(doctorResponse);
+
+        DischargeRequest request = new DischargeRequest();
+        request.setAnamnesis("anamnesis");
+        request.setConclusion("conclusion");
+
+        DischargeList discharge = hospitalizationMapper.dischargeListRequestToModel(request, hospitalization,
+                doctorResponse.getLbz(), doctorResponse.getLbz());
+
+        when(dischargeRepository.save(any()))
+                .thenReturn(discharge);
+
+        assertEquals(hospitalizationService.createDischarge(lbp, request, UUID.randomUUID().toString()),
+                hospitalizationMapper.modelToDischargeResponse(discharge, doctorResponse, doctorResponse));
+    }
+
+    @Test
+    void getDischarge_Success() {
+        UUID lbp = UUID.randomUUID();
+        Pageable pageable = PageRequest.of(0, 5);
+
+        when(dischargeRepository.findAll(any(DischargeSpecification.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Collections.emptyList()));
+
+        DoctorResponse doctorResponse = makeDoctorResponse();
+
+        mockFindDoctors(doctorResponse);
+
+        assertEquals(hospitalizationService.getDischarge(lbp, null, null, pageable, "token"),
+                new DischargeListResponse(Collections.emptyList(), 0L));
+    }
+
     @SuppressWarnings("unchecked")
     private void mockChangeStatus() {
         Mockito.mockStatic(HttpUtils.class);
@@ -330,6 +383,15 @@ public class HospitalizationServiceTest {
         when(responseEntity.getBody()).thenReturn(arr);
 
         when(HttpUtils.findDepartmentsByHospital(any(), any()))
+                .thenReturn(responseEntity);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void mockGetHeadOfDepartment(DoctorResponse doctorResponse) {
+        ResponseEntity<DoctorResponse> responseEntity = mock(ResponseEntity.class);
+        when(responseEntity.getBody()).thenReturn(doctorResponse);
+
+        when(HttpUtils.getHeadOfDepartment(any(), any()))
                 .thenReturn(responseEntity);
     }
 
@@ -416,6 +478,16 @@ public class HospitalizationServiceTest {
         hospitalization.setRegisterLbz(UUID.fromString("8a8ddcb8-f35b-11ed-a05b-0242ac120003"));
 
         return hospitalization;
+    }
+
+    private DoctorResponse makeDoctorResponse() {
+        DoctorResponse doctorResponse = new DoctorResponse();
+        TokenPayload tokenPayload = makeTokenPayload();
+        doctorResponse.setLbz(tokenPayload.getLbz());
+        doctorResponse.setFirstName(tokenPayload.getFirstName());
+        doctorResponse.setLastName(tokenPayload.getLastName());
+
+        return doctorResponse;
     }
 
     private TokenPayload makeTokenPayload() {

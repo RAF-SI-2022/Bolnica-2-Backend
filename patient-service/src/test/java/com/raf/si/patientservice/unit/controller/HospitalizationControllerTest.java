@@ -1,6 +1,7 @@
 package com.raf.si.patientservice.unit.controller;
 
 import com.raf.si.patientservice.controller.HospitalizationController;
+import com.raf.si.patientservice.dto.request.DischargeRequest;
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
 import com.raf.si.patientservice.dto.request.MedicalReportRequest;
 import com.raf.si.patientservice.dto.request.PatientConditionRequest;
@@ -128,6 +129,38 @@ public class HospitalizationControllerTest {
                 .thenReturn(response);
 
         assertEquals(hospitalizationController.getMedicalReports(lbp, null, null, 0, 5).getBody(),
+                response);
+    }
+
+    @Test
+    void createDischarge() {
+        UUID lbp = UUID.randomUUID();
+        String token = UUID.randomUUID().toString();
+        DischargeRequest dischargeRequest = new DischargeRequest();
+        dischargeRequest.setAnamnesis("anamnesis");
+        dischargeRequest.setConclusion("conclusion");
+
+        DischargeResponse dischargeResponse = new DischargeResponse();
+        dischargeResponse.setAnamnesis(dischargeRequest.getAnamnesis());
+        dischargeResponse.setConclusion(dischargeRequest.getConclusion());
+
+        when(hospitalizationService.createDischarge(lbp, dischargeRequest, token))
+                .thenReturn(dischargeResponse);
+
+        assertEquals(hospitalizationController.createDischarge(lbp, dischargeRequest, token).getBody(),
+                dischargeResponse);
+    }
+
+    @Test
+    void getDischarges() {
+        UUID lbp = UUID.randomUUID();
+        String token = UUID.randomUUID().toString();
+        DischargeListResponse response = new DischargeListResponse(new ArrayList<>(), 0L);
+
+        when(hospitalizationService.getDischarge(lbp, null, null, PageRequest.of(0, 5), token))
+                .thenReturn(response);
+
+        assertEquals(hospitalizationController.getDischarges(lbp, null, null, 0, 5, token).getBody(),
                 response);
     }
 }

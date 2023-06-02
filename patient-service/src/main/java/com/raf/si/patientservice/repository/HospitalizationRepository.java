@@ -21,6 +21,9 @@ public interface HospitalizationRepository extends JpaRepository<Hospitalization
 
     Optional<Hospitalization> findByHospitalRoomAndPatientAndDischargeDateIsNull(HospitalRoom hospitalRoom, Patient patient);
 
-    @Query(value = "select p from Hospitalization h left join h.patient p where p.lbp = :lbp")
+    @Query(value = "select p from Hospitalization h left join h.patient p where p.lbp = :lbp and h.dischargeDate is null")
     Optional<Patient> getHospitalizedPatient(@PathVariable("lbp")UUID lbp);
+
+    @Query(value = "select h from Hospitalization h join fetch h.patient p where p.lbp = :lbp and h.dischargeDate is null")
+    Optional<Hospitalization> getHospitalizationByLbp(@PathVariable("lbp")UUID lbp);
 }

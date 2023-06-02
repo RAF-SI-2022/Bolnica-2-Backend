@@ -25,6 +25,7 @@ public class HttpUtils {
     private static String LABORATORY_SERVICE_BASE_URL;
 
     private static final String USER_GET_USER_INFO = "/users/employee-info";
+    private static final String USER_HEAD_OF_DEPARTMENT = "/users/head-department";
     private static final String USER_DEPARTMENT = "/departments";
     private static final String CHANGE_REFERRAL_STATUS_URL = "/referral/change-status";
     private static final String USER_DOCTORS = "/users/doctors";
@@ -111,6 +112,19 @@ public class HttpUtils {
                 HttpMethod.GET,
                 entity,
                 DepartmentResponse[].class
+        );
+    }
+
+    public static ResponseEntity<DoctorResponse> getHeadOfDepartment(UUID pbo, String token) {
+        String url = USER_SERVICE_BASE_URL + USER_HEAD_OF_DEPARTMENT + "/" + pbo;
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", token);
+        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        return restTemplate.exchange(url.trim(),
+                HttpMethod.GET,
+                entity,
+                DoctorResponse.class
         );
     }
 

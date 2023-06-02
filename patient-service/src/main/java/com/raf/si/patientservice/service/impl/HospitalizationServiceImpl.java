@@ -1,5 +1,6 @@
 package com.raf.si.patientservice.service.impl;
 
+import com.raf.si.patientservice.dto.request.DischargeRequest;
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
 import com.raf.si.patientservice.dto.request.MedicalReportRequest;
 import com.raf.si.patientservice.dto.request.PatientConditionRequest;
@@ -11,13 +12,12 @@ import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.exception.NotFoundException;
 import com.raf.si.patientservice.mapper.HospitalizationMapper;
 import com.raf.si.patientservice.model.*;
-import com.raf.si.patientservice.repository.HospitalRoomRepository;
-import com.raf.si.patientservice.repository.HospitalizationRepository;
-import com.raf.si.patientservice.repository.MedicalReportRepository;
-import com.raf.si.patientservice.repository.PatientConditionRepository;
+import com.raf.si.patientservice.repository.*;
+import com.raf.si.patientservice.repository.filtering.filter.DischargeFilter;
 import com.raf.si.patientservice.repository.filtering.filter.HospitalisedPatientSearchFilter;
 import com.raf.si.patientservice.repository.filtering.filter.MedicalReportFilter;
 import com.raf.si.patientservice.repository.filtering.filter.PatientConditionFilter;
+import com.raf.si.patientservice.repository.filtering.specification.DischargeSpecification;
 import com.raf.si.patientservice.repository.filtering.specification.HospitalisedPatientSpecification;
 import com.raf.si.patientservice.repository.filtering.specification.MedicalReportSpecification;
 import com.raf.si.patientservice.repository.filtering.specification.PatientConditionSpecification;
@@ -52,6 +52,7 @@ public class HospitalizationServiceImpl implements HospitalizationService {
     private final PatientService patientService;
     private final PatientConditionRepository patientConditionRepository;
     private final MedicalReportRepository medicalReportRepository;
+    private final DischargeListRepository dischargeRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -61,7 +62,8 @@ public class HospitalizationServiceImpl implements HospitalizationService {
                                       HospitalizationMapper hospitalizationMapper,
                                       PatientService patientService,
                                       PatientConditionRepository patientConditionRepository,
-                                      MedicalReportRepository medicalReportRepository) {
+                                      MedicalReportRepository medicalReportRepository,
+                                      DischargeListRepository dischargeRepository) {
 
         this.hospitalizationRepository = hospitalizationRepository;
         this.hospitalRoomRepository = hospitalRoomRepository;
@@ -69,6 +71,7 @@ public class HospitalizationServiceImpl implements HospitalizationService {
         this.patientService = patientService;
         this.patientConditionRepository = patientConditionRepository;
         this.medicalReportRepository = medicalReportRepository;
+        this.dischargeRepository = dischargeRepository;
     }
 
     @Transactional
@@ -204,6 +207,64 @@ public class HospitalizationServiceImpl implements HospitalizationService {
                         .collect(Collectors.toList()),
                 medicalReports.getTotalElements()
         );
+    }
+
+    @Transactional
+    @Override
+    public DischargeResponse createDischarge(UUID lbp, DischargeRequest request, String token) {
+        Hospitalization hospitalization = getHospitalizationByLbp(lbp);
+        HospitalRoom hospitalRoom = hospitalization.getHospitalRoom();
+        DoctorResponse headOfDepartment = getHeadOfDepartment(TokenPayloadUtil.getTokenPayload().getPbo(), token);
+
+        entityManager.lock(hospitalRoom, LockModeType.PESSIMISTIC_READ);
+        entityManager.lock(hospitalization, LockModeType.PESSIMISTIC_READ);
+
+        hospitalRoom.decrementOccupation();
+        hospitalization.setDischargeDate(new Date());
+
+        hospitalRoomRepository.save(hospitalRoom);
+        hospitalizationRepository.save(hospitalization);
+
+        DischargeList dischargeList = hospitalizationMapper.dischargeListRequestToModel(request, hospitalization,
+                TokenPayloadUtil.getTokenPayload().getLbz(), headOfDepartment.getLbz());
+
+        dischargeList = dischargeRepository.save(dischargeList);
+
+        return hospitalizationMapper.modelToDischargeResponse(
+                dischargeList,
+                hospitalizationMapper.tokenPayloadToUserResponse(TokenPayloadUtil.getTokenPayload()),
+                headOfDepartment
+        );
+    }
+
+    @Override
+    public DischargeListResponse getDischarge(UUID lbp, Date dateFrom, Date dateTo,
+                                              Pageable pageable, String token) {
+        DischargeFilter filter = new DischargeFilter(lbp, dateFrom, dateTo);
+        DischargeSpecification specification = new DischargeSpecification(filter);
+        List<DoctorResponse> doctorResponses = getDoctorsResponse(token);
+        Page<DischargeList> dischargeLists = dischargeRepository.findAll(specification, pageable);
+        return hospitalizationMapper.modelToDischargeListResponse(dischargeLists, doctorResponses);
+    }
+
+    private Hospitalization getHospitalizationByLbp(UUID lbp) {
+        return hospitalizationRepository.getHospitalizationByLbp(lbp)
+                .orElseThrow(() -> {
+                    log.error("Ne postoji hospitalizovan pacijent sa lbp '{}'", lbp);
+                    throw new NotFoundException("Ne postoji hospitalizovan pacijent sa datim lbp-om");
+                });
+    }
+
+    private DoctorResponse getHeadOfDepartment(UUID pbo, String token) {
+        try {
+            return HttpUtils.getHeadOfDepartment(pbo, token).getBody();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            if (e instanceof HttpClientErrorException && ((HttpClientErrorException) e).getStatusCode() == HttpStatus.NOT_FOUND) {
+                throw new NotFoundException(e.getMessage());
+            }
+            throw new InternalServerErrorException(e.getMessage());
+        }
     }
 
     private List<DoctorResponse> getDoctorsResponse(String token) {

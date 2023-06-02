@@ -1,5 +1,6 @@
 package com.raf.si.patientservice.mapper;
 
+import com.raf.si.patientservice.dto.request.DischargeRequest;
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
 import com.raf.si.patientservice.dto.request.MedicalReportRequest;
 import com.raf.si.patientservice.dto.request.PatientConditionRequest;
@@ -11,12 +12,14 @@ import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.utils.TokenPayload;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -186,5 +189,68 @@ public class HospitalizationMapper {
         response.setDoctorLbz(medicalReport.getDoctorLBZ());
 
         return response;
+    }
+
+    public DischargeList dischargeListRequestToModel(DischargeRequest request, Hospitalization hospitalization,
+                                                     UUID prescribingDoctor, UUID headOfDepartment) {
+        DischargeList dischargeList = new DischargeList();
+
+        dischargeList.setHospitalization(hospitalization);
+        dischargeList.setAnamnesis(request.getAnamnesis());
+        dischargeList.setAttendDiagnoses(request.getAttendDiagnoses());
+        dischargeList.setConclusion(request.getConclusion());
+        dischargeList.setCourseDisease(request.getCourseDisease());
+        dischargeList.setHeadDepartment(headOfDepartment);
+        dischargeList.setPrescribingDoctor(prescribingDoctor);
+        dischargeList.setPatient(hospitalization.getPatient());
+        dischargeList.setTherapy(request.getTherapy());
+
+        return dischargeList;
+    }
+
+    public DischargeResponse modelToDischargeResponse(DischargeList dischargeList, DoctorResponse prescribingDoctor,
+                                                      DoctorResponse headOfDepartment) {
+        DischargeResponse response = new DischargeResponse();
+        response.setId(dischargeList.getId());
+        response.setLbp(dischargeList.getPatient().getLbp());
+        response.setHospitalizationId(dischargeList.getHospitalization().getId());
+        response.setReceiptDate(dischargeList.getHospitalization().getReceiptDate());
+        response.setDischargeDate(dischargeList.getHospitalization().getDischargeDate());
+        response.setDiagnosis(dischargeList.getHospitalization().getDiagnosis());
+        response.setAttendDiagnoses(dischargeList.getAttendDiagnoses());
+        response.setAnamnesis(dischargeList.getAnamnesis());
+        response.setCourseDisease(dischargeList.getCourseDisease());
+        response.setConclusion(dischargeList.getConclusion());
+        response.setTherapy(dischargeList.getTherapy());
+        response.setDoctor(prescribingDoctor);
+        response.setHeadOfDepartment(headOfDepartment);
+        response.setDate(dischargeList.getDate());
+
+        return response;
+    }
+
+    public DischargeListResponse modelToDischargeListResponse(Page<DischargeList> dischargeListPage, List<DoctorResponse> doctorResponses) {
+        List<DischargeResponse> responseList = dischargeListPage.map(d -> {
+            DoctorResponse doctor = doctorResponses.stream()
+                    .filter(dr -> dr.getLbz().equals(d.getPrescribingDoctor()))
+                    .findFirst()
+                    .orElse(null);
+            DoctorResponse headOfDepartment = doctorResponses.stream()
+                    .filter(dr -> dr.getLbz().equals(d.getHeadDepartment()))
+                    .findFirst()
+                    .orElse(null);
+            return modelToDischargeResponse(d, doctor, headOfDepartment);
+        }).stream().collect(Collectors.toList());
+
+        return new DischargeListResponse(responseList, dischargeListPage.getTotalElements());
+    }
+
+    public DoctorResponse tokenPayloadToUserResponse(TokenPayload tokenPayload) {
+        DoctorResponse doctorResponse = new DoctorResponse();
+        doctorResponse.setLbz(tokenPayload.getLbz());
+        doctorResponse.setFirstName(tokenPayload.getFirstName());
+        doctorResponse.setLastName(tokenPayload.getLastName());
+
+        return doctorResponse;
     }
 }

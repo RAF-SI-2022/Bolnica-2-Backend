@@ -118,6 +118,11 @@ public class UserController {
         return ResponseEntity.ok(userService.getUsersByLbzList(request));
     }
 
+    @GetMapping("/head-department/{pbo}")
+    public ResponseEntity<DoctorResponse> getHeadOfDepartment(@PathVariable("pbo") UUID pbo) {
+        return ResponseEntity.ok(userService.getHeadOfDepartment(pbo));
+    }
+
     private TokenPayload getPayload() {
         Authentication authentication = SecurityContextHolder.getContext()
                 .getAuthentication();

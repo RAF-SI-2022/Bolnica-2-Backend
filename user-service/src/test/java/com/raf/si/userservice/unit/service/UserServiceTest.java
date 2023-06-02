@@ -309,14 +309,14 @@ public class UserServiceTest {
 
     @Test
     public void getAllDoctors_Success() {
-       User user = createUser();
+        User user = createUser();
 
-       when(userRepository.getAllDoctors(any()))
-               .thenReturn(Collections.singletonList(user));
+        when(userRepository.getAllDoctors(any()))
+                .thenReturn(Collections.singletonList(user));
 
-       DoctorResponse doctorResponse = userMapper.modelToDoctorResponse(user);
+        DoctorResponse doctorResponse = userMapper.modelToDoctorResponse(user);
 
-       assertEquals(userService.getAllDoctors(), Collections.singletonList(doctorResponse));
+        assertEquals(userService.getAllDoctors(), Collections.singletonList(doctorResponse));
     }
 
     @Test
@@ -344,6 +344,44 @@ public class UserServiceTest {
 
         assertEquals(userService.getAllDoctorsByDepartment(user.getDepartment().getPbo()),
                 Collections.singletonList(doctorResponse));
+    }
+
+    @Test
+    public void getHeadOfDepartment_WhenDepartmentDoesNotExist_ThrowNotFoundException() {
+        UUID pbo = UUID.randomUUID();
+
+        when(departmentRepository.findDepartmentByPbo(pbo))
+                .thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> userService.getHeadOfDepartment(pbo));
+    }
+
+    @Test
+    public void getHeadOfDepartment_WhenHeadOfDepartmentDoesNotExist_ThrowNotFoundException() {
+        Department department = createDepartment();
+
+        when(departmentRepository.findDepartmentByPbo(department.getPbo()))
+                .thenReturn(Optional.of(department));
+
+        when(userRepository.getHeadOfDepartment(any(), any()))
+                .thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> userService.getHeadOfDepartment(department.getPbo()));
+    }
+
+    @Test
+    public void getHeadOfDepartment_Success() {
+        Department department = createDepartment();
+        User user = createUser();
+
+        when(departmentRepository.findDepartmentByPbo(department.getPbo()))
+                .thenReturn(Optional.of(department));
+
+        when(userRepository.getHeadOfDepartment(any(), any()))
+                .thenReturn(Optional.of(user));
+
+        assertEquals(userService.getHeadOfDepartment(department.getPbo()),
+                userMapper.modelToDoctorResponse(user));
     }
 
     private CreateUserRequest createUserRequest() {

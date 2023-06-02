@@ -32,4 +32,5 @@ public interface UserService {
 
     List<UserResponse> getUsersByLbzList(UUIDListRequest lbzListRequest);
 
+    DoctorResponse getHeadOfDepartment(UUID pbo);
 }

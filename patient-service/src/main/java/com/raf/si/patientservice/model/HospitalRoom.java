@@ -29,4 +29,8 @@ public class HospitalRoom {
     public void incrementOccupation() {
         occupation++;
     }
+
+    public void decrementOccupation() {
+        occupation--;
+    }
 }
