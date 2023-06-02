@@ -7,8 +7,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface HospitalizationRepository extends JpaRepository<Hospitalization, Long>, JpaSpecificationExecutor<Hospitalization> {
@@ -18,4 +20,7 @@ public interface HospitalizationRepository extends JpaRepository<Hospitalization
     boolean patientAlreadyHospitalized(Patient patient);
 
     Optional<Hospitalization> findByHospitalRoomAndPatientAndDischargeDateIsNull(HospitalRoom hospitalRoom, Patient patient);
+
+    @Query(value = "select p from Hospitalization h left join h.patient p where p.lbp = :lbp")
+    Optional<Patient> getHospitalizedPatient(@PathVariable("lbp")UUID lbp);
 }

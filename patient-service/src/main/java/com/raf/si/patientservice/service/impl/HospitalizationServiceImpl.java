@@ -1,6 +1,7 @@
 package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
+import com.raf.si.patientservice.dto.request.MedicalReportRequest;
 import com.raf.si.patientservice.dto.request.PatientConditionRequest;
 import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.dto.response.http.DepartmentResponse;
@@ -9,16 +10,16 @@ import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.exception.NotFoundException;
 import com.raf.si.patientservice.mapper.HospitalizationMapper;
-import com.raf.si.patientservice.model.HospitalRoom;
-import com.raf.si.patientservice.model.Hospitalization;
-import com.raf.si.patientservice.model.Patient;
-import com.raf.si.patientservice.model.PatientCondition;
+import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.repository.HospitalRoomRepository;
 import com.raf.si.patientservice.repository.HospitalizationRepository;
+import com.raf.si.patientservice.repository.MedicalReportRepository;
 import com.raf.si.patientservice.repository.PatientConditionRepository;
 import com.raf.si.patientservice.repository.filtering.filter.HospitalisedPatientSearchFilter;
+import com.raf.si.patientservice.repository.filtering.filter.MedicalReportFilter;
 import com.raf.si.patientservice.repository.filtering.filter.PatientConditionFilter;
 import com.raf.si.patientservice.repository.filtering.specification.HospitalisedPatientSpecification;
+import com.raf.si.patientservice.repository.filtering.specification.MedicalReportSpecification;
 import com.raf.si.patientservice.repository.filtering.specification.PatientConditionSpecification;
 import com.raf.si.patientservice.service.HospitalizationService;
 import com.raf.si.patientservice.service.PatientService;
@@ -50,6 +51,7 @@ public class HospitalizationServiceImpl implements HospitalizationService {
     private final HospitalizationMapper hospitalizationMapper;
     private final PatientService patientService;
     private final PatientConditionRepository patientConditionRepository;
+    private final MedicalReportRepository medicalReportRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -58,13 +60,15 @@ public class HospitalizationServiceImpl implements HospitalizationService {
                                       HospitalRoomRepository hospitalRoomRepository,
                                       HospitalizationMapper hospitalizationMapper,
                                       PatientService patientService,
-                                      PatientConditionRepository patientConditionRepository) {
+                                      PatientConditionRepository patientConditionRepository,
+                                      MedicalReportRepository medicalReportRepository) {
 
         this.hospitalizationRepository = hospitalizationRepository;
         this.hospitalRoomRepository = hospitalRoomRepository;
         this.hospitalizationMapper = hospitalizationMapper;
         this.patientService = patientService;
         this.patientConditionRepository = patientConditionRepository;
+        this.medicalReportRepository = medicalReportRepository;
     }
 
     @Transactional
@@ -112,7 +116,8 @@ public class HospitalizationServiceImpl implements HospitalizationService {
     }
 
     @Override
-    public HospPatientByHospitalListResponse getHospitalisedPatientsByHospital(String token, UUID pbb, UUID lbp, String firstName, String lastName, String jmbg, Pageable pageable) {
+    public HospPatientByHospitalListResponse getHospitalisedPatientsByHospital(String token, UUID pbb, UUID lbp, String firstName,
+                                                                               String lastName, String jmbg, Pageable pageable) {
         log.info("Dohvatanje hospitalizovanih pacijenata po bolnici..");
         List<DepartmentResponse> departmentResponses = getDepartmentsByHospital(pbb, token);
         List<DoctorResponse> doctorResponseList = getDoctorsResponse(token);
@@ -141,7 +146,7 @@ public class HospitalizationServiceImpl implements HospitalizationService {
             throw new BadRequestException("Barem jedno polje stanja pacijenta ne sme biti null");
         }
 
-        Patient patient = patientService.findPatient(lbp);
+        Patient patient = getHospitalisedPatientByLbp(lbp);
 
         log.info("Kreiranje stanja pacijenta...");
         PatientCondition patientCondition = patientConditionRepository.save(
@@ -162,6 +167,43 @@ public class HospitalizationServiceImpl implements HospitalizationService {
                 .stream().collect(Collectors.toList());
 
         return new PatientConditionListResponse(patientConditionResponses, responseList.getTotalElements());
+    }
+
+    @Override
+    public Patient getHospitalisedPatientByLbp(UUID lbp) {
+        return hospitalizationRepository.getHospitalizedPatient(lbp).orElseThrow(() -> {
+            log.error("Ne postoji hospitalizovan pacijent sa lbp '{}'", lbp);
+            throw new NotFoundException("Ne postoji hospitalizovan pacijent sa datim lbp-om");
+        });
+    }
+
+    @Override
+    public MedicalReportResponse createMedicalReport(UUID lbp, MedicalReportRequest request) {
+        Patient patient = getHospitalisedPatientByLbp(lbp);
+
+        log.info("Kreiranje lekarskog izvestaja...");
+        MedicalReport medicalReport = medicalReportRepository.save(
+                hospitalizationMapper.medicalReportRequestToMedicalReport(patient, request,
+                        TokenPayloadUtil.getTokenPayload().getLbz(), isDoctorPOV())
+        );
+
+        return hospitalizationMapper.medicalReportToMedicalReportResponse(medicalReport);
+    }
+
+    @Override
+    public MedicalReportListResponse getMedicalReports(UUID lbp, Date from, Date to, Pageable pageable) {
+        log.info("Getting medical reports from date '{}' to date '{}' for patient with lbp '{}'",
+                from, to, lbp);
+        MedicalReportFilter filter = new MedicalReportFilter(lbp, from, to, isDoctorPOV());
+        MedicalReportSpecification specification = new MedicalReportSpecification(filter);
+        Page<MedicalReport> medicalReports = medicalReportRepository.findAll(specification, pageable);
+
+        return new MedicalReportListResponse(
+                medicalReports.map(hospitalizationMapper::medicalReportToMedicalReportResponse)
+                        .stream()
+                        .collect(Collectors.toList()),
+                medicalReports.getTotalElements()
+        );
     }
 
     private List<DoctorResponse> getDoctorsResponse(String token) {
@@ -218,5 +260,11 @@ public class HospitalizationServiceImpl implements HospitalizationService {
             log.error(errMessage);
             throw new BadRequestException(errMessage);
         }
+    }
+
+    private boolean isDoctorPOV() {
+        return TokenPayloadUtil.getTokenPayload()
+                .getPermissions()
+                .contains("ROLE_DR_SPEC_POV");
     }
 }

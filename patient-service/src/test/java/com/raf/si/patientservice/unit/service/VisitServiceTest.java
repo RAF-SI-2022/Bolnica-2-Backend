@@ -7,7 +7,7 @@ import com.raf.si.patientservice.mapper.VisitMapper;
 import com.raf.si.patientservice.model.Patient;
 import com.raf.si.patientservice.model.Visit;
 import com.raf.si.patientservice.repository.VisitRepository;
-import com.raf.si.patientservice.service.PatientService;
+import com.raf.si.patientservice.service.HospitalizationService;
 import com.raf.si.patientservice.service.VisitService;
 import com.raf.si.patientservice.service.impl.VisitServiceImpl;
 import com.raf.si.patientservice.utils.TokenPayload;
@@ -35,16 +35,16 @@ import static org.mockito.Mockito.when;
 public class VisitServiceTest {
 
     private VisitService visitService;
-    private PatientService patientService;
+    private HospitalizationService hospitalizationService;
     private VisitRepository visitRepository;
     private VisitMapper visitMapper;
 
     @BeforeEach
     void setup() {
-        patientService = mock(PatientService.class);
+        hospitalizationService = mock(HospitalizationService.class);
         visitRepository = mock(VisitRepository.class);
         visitMapper = new VisitMapper();
-        visitService = new VisitServiceImpl(visitRepository, visitMapper, patientService);
+        visitService = new VisitServiceImpl(visitRepository, visitMapper, hospitalizationService);
         mockTokenPayloadUtil();
     }
 
@@ -59,7 +59,7 @@ public class VisitServiceTest {
         VisitRequest visitRequest = makeVisitRequest();
         Patient patient = makePatient();
 
-        when(patientService.findPatient(lbp))
+        when(hospitalizationService.getHospitalisedPatientByLbp(lbp))
                 .thenReturn(patient);
 
         Visit visit = visitMapper.visitRequestToModel(makeTokenPayload().getLbz(),

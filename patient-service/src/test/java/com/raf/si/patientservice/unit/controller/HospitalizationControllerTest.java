@@ -2,6 +2,7 @@ package com.raf.si.patientservice.unit.controller;
 
 import com.raf.si.patientservice.controller.HospitalizationController;
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
+import com.raf.si.patientservice.dto.request.MedicalReportRequest;
 import com.raf.si.patientservice.dto.request.PatientConditionRequest;
 import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.service.HospitalizationService;
@@ -101,5 +102,32 @@ public class HospitalizationControllerTest {
         assertEquals(hospitalizationController.getPatientConditions(lbp, null, null, 0, 5).getBody(),
                 patientConditionListResponse
         );
+    }
+
+    @Test
+    void createMedicalReport() {
+        UUID lbp = UUID.randomUUID();
+        MedicalReportRequest request = new MedicalReportRequest();
+        request.setObjectiveResult("objectiveResult");
+        MedicalReportResponse response = new MedicalReportResponse();
+        response.setObjectiveResult(request.getObjectiveResult());
+
+        when(hospitalizationService.createMedicalReport(lbp, request))
+                .thenReturn(response);
+
+        assertEquals(hospitalizationController.createMedicalReport(lbp, request).getBody(),
+                response);
+    }
+
+    @Test
+    void getMedicalReports() {
+        UUID lbp = UUID.randomUUID();
+        MedicalReportListResponse response = new MedicalReportListResponse(new ArrayList<>(), 0L);
+
+        when(hospitalizationService.getMedicalReports(lbp, null, null, PageRequest.of(0, 5)))
+                .thenReturn(response);
+
+        assertEquals(hospitalizationController.getMedicalReports(lbp, null, null, 0, 5).getBody(),
+                response);
     }
 }

@@ -1,24 +1,26 @@
 package com.raf.si.patientservice.unit.service;
 
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
+import com.raf.si.patientservice.dto.request.MedicalReportRequest;
 import com.raf.si.patientservice.dto.request.PatientConditionRequest;
 import com.raf.si.patientservice.dto.response.HospPatientByHospitalListResponse;
 import com.raf.si.patientservice.dto.response.HospitalisedPatientsListResponse;
+import com.raf.si.patientservice.dto.response.MedicalReportListResponse;
 import com.raf.si.patientservice.dto.response.PatientConditionListResponse;
 import com.raf.si.patientservice.dto.response.http.DepartmentResponse;
 import com.raf.si.patientservice.dto.response.http.DoctorResponse;
 import com.raf.si.patientservice.dto.response.http.ReferralResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
+import com.raf.si.patientservice.exception.NotFoundException;
 import com.raf.si.patientservice.mapper.HospitalizationMapper;
-import com.raf.si.patientservice.model.HospitalRoom;
-import com.raf.si.patientservice.model.Hospitalization;
-import com.raf.si.patientservice.model.Patient;
-import com.raf.si.patientservice.model.PatientCondition;
+import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.repository.HospitalRoomRepository;
 import com.raf.si.patientservice.repository.HospitalizationRepository;
+import com.raf.si.patientservice.repository.MedicalReportRepository;
 import com.raf.si.patientservice.repository.PatientConditionRepository;
 import com.raf.si.patientservice.repository.filtering.filter.HospitalisedPatientSearchFilter;
 import com.raf.si.patientservice.repository.filtering.specification.HospitalisedPatientSpecification;
+import com.raf.si.patientservice.repository.filtering.specification.MedicalReportSpecification;
 import com.raf.si.patientservice.repository.filtering.specification.PatientConditionSpecification;
 import com.raf.si.patientservice.service.HospitalizationService;
 import com.raf.si.patientservice.service.PatientService;
@@ -38,9 +40,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.persistence.EntityManager;
-import java.util.Collections;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -57,6 +57,7 @@ public class HospitalizationServiceTest {
     private HospitalizationMapper hospitalizationMapper;
     private HospitalizationService hospitalizationService;
     private EntityManager entityManager;
+    private MedicalReportRepository medicalReportRepository;
 
     @BeforeEach
     void setup() {
@@ -66,13 +67,14 @@ public class HospitalizationServiceTest {
         patientService = mock(PatientService.class);
         hospitalizationMapper = new HospitalizationMapper();
         entityManager = mock(EntityManager.class);
+        medicalReportRepository = mock(MedicalReportRepository.class);
 
         hospitalizationService = new HospitalizationServiceImpl(
                 hospitalizationRepository,
                 hospitalRoomRepository,
                 hospitalizationMapper,
                 patientService,
-                patientConditionRepository);
+                patientConditionRepository, medicalReportRepository);
 
         ReflectionTestUtils.setField(
                 hospitalizationService,
@@ -228,12 +230,23 @@ public class HospitalizationServiceTest {
     }
 
     @Test
+    void createPatientCondition_WhenHospitalisedPatientDoesNotExist_ThrowsNotFoundException() {
+        UUID lbp = UUID.randomUUID();
+        PatientConditionRequest patientConditionRequest = makePatientConditionRequest();
+
+        when(hospitalizationRepository.getHospitalizedPatient(lbp)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class,
+                () -> hospitalizationService.createPatientCondition(lbp, patientConditionRequest));
+    }
+
+    @Test
     void createPatientCondition_Success() {
         UUID lbp = UUID.randomUUID();
         PatientConditionRequest patientConditionRequest = makePatientConditionRequest();
         Patient patient = makePatient();
 
-        when(patientService.findPatient(lbp)).thenReturn(patient);
+        when(hospitalizationRepository.getHospitalizedPatient(lbp)).thenReturn(Optional.of(patient));
 
         PatientCondition patientCondition = hospitalizationMapper.patientConditionRequestToPatientCondition(patient, makeTokenPayload().getLbz(), patientConditionRequest);
 
@@ -245,7 +258,7 @@ public class HospitalizationServiceTest {
     }
 
     @Test
-    void getPatientConditions() {
+    void getPatientConditions_Success() {
         UUID lbp = UUID.randomUUID();
         Pageable pageable = PageRequest.of(0, 5);
 
@@ -254,6 +267,41 @@ public class HospitalizationServiceTest {
 
         assertEquals(hospitalizationService.getPatientConditions(lbp, null, null, pageable),
                 new PatientConditionListResponse(Collections.emptyList(), 0L));
+    }
+
+    @Test
+    void createMedicalReport_Success() {
+        UUID lbp = UUID.randomUUID();
+        Patient patient = makePatient();
+        MedicalReportRequest request = makeMedicalReportRequest();
+
+        when(hospitalizationRepository.getHospitalizedPatient(lbp))
+                .thenReturn(Optional.of(patient));
+
+        MedicalReport medicalReport = hospitalizationMapper.medicalReportRequestToMedicalReport(
+                patient,
+                request,
+                makeTokenPayload().getLbz(),
+                true
+        );
+
+        when(medicalReportRepository.save(any()))
+                .thenReturn(medicalReport);
+
+        assertEquals(hospitalizationService.createMedicalReport(lbp, request),
+                hospitalizationMapper.medicalReportToMedicalReportResponse(medicalReport));
+    }
+
+    @Test
+    void getMedicalReports_Success() {
+        UUID lbp = UUID.randomUUID();
+        Pageable pageable = PageRequest.of(0, 5);
+
+        when(medicalReportRepository.findAll(any(MedicalReportSpecification.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(Collections.emptyList()));
+
+        assertEquals(hospitalizationService.getMedicalReports(lbp, null, null, pageable),
+                new MedicalReportListResponse(Collections.emptyList(), 0L));
     }
 
     @SuppressWarnings("unchecked")
@@ -292,6 +340,17 @@ public class HospitalizationServiceTest {
 
         when(TokenPayloadUtil.getTokenPayload())
                 .thenReturn(tokenPayload);
+    }
+
+    private MedicalReportRequest makeMedicalReportRequest() {
+        MedicalReportRequest request = new MedicalReportRequest();
+        request.setObjectiveResult("objectiveResult");
+        request.setAdvice("advice");
+        request.setDiagnosis("diagnosis");
+        request.setConfidentIndicator(true);
+        request.setProposedTherapy("proposedTherapy");
+
+        return request;
     }
 
     private PatientConditionRequest makePatientConditionRequest() {
@@ -364,6 +423,7 @@ public class HospitalizationServiceTest {
 
         tokenPayload.setPbo(UUID.randomUUID());
         tokenPayload.setLbz(UUID.fromString("8a8ddcb8-f35b-11ed-a05b-0242ac120003"));
+        tokenPayload.setPermissions(List.of("ROLE_DR_SPEC_POV"));
 
         return tokenPayload;
     }

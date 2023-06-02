@@ -1,18 +1,13 @@
 package com.raf.si.patientservice.mapper;
 
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
+import com.raf.si.patientservice.dto.request.MedicalReportRequest;
 import com.raf.si.patientservice.dto.request.PatientConditionRequest;
-import com.raf.si.patientservice.dto.response.HospPatientByHospitalResponse;
-import com.raf.si.patientservice.dto.response.HospitalisedPatientsResponse;
-import com.raf.si.patientservice.dto.response.HospitalizationResponse;
-import com.raf.si.patientservice.dto.response.PatientConditionResponse;
+import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.dto.response.http.DepartmentResponse;
 import com.raf.si.patientservice.dto.response.http.DoctorResponse;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
-import com.raf.si.patientservice.model.HospitalRoom;
-import com.raf.si.patientservice.model.Hospitalization;
-import com.raf.si.patientservice.model.Patient;
-import com.raf.si.patientservice.model.PatientCondition;
+import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.utils.TokenPayload;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -157,6 +152,38 @@ public class HospitalizationMapper {
         response.setCollectedInfoDate(patientCondition.getCollectedInfoDate());
         response.setTemperature(patientCondition.getTemperature());
         response.setRegisterLbz(patientCondition.getRegisterLbz());
+
+        return response;
+    }
+
+    public MedicalReport medicalReportRequestToMedicalReport(Patient patient, MedicalReportRequest request,
+                                                             UUID doctorLbz, boolean isDoctorPOV) {
+        MedicalReport medicalReport = new MedicalReport();
+        medicalReport.setAdvice(request.getAdvice());
+        medicalReport.setDiagnosis(request.getDiagnosis());
+        medicalReport.setDoctorLBZ(doctorLbz);
+        medicalReport.setPatient(patient);
+        medicalReport.setObjectiveResult(request.getObjectiveResult());
+        medicalReport.setProposedTherapy(request.getProposedTherapy());
+
+        if (request.getConfidentIndicator() && isDoctorPOV) {
+            medicalReport.setConfidentIndicator(true);
+        }
+
+        return medicalReport;
+    }
+
+    public MedicalReportResponse medicalReportToMedicalReportResponse(MedicalReport medicalReport) {
+        MedicalReportResponse response = new MedicalReportResponse();
+        response.setAdvice(medicalReport.getAdvice());
+        response.setDate(medicalReport.getDate());
+        response.setObjectiveResult(medicalReport.getObjectiveResult());
+        response.setProposedTherapy(medicalReport.getProposedTherapy());
+        response.setConfidentIndicator(medicalReport.getConfidentIndicator());
+        response.setDiagnosis(medicalReport.getDiagnosis());
+        response.setId(medicalReport.getId());
+        response.setLbp(medicalReport.getPatient().getLbp());
+        response.setDoctorLbz(medicalReport.getDoctorLBZ());
 
         return response;
     }

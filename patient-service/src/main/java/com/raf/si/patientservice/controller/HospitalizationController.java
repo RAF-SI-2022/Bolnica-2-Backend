@@ -1,6 +1,7 @@
 package com.raf.si.patientservice.controller;
 
 import com.raf.si.patientservice.dto.request.HospitalizationRequest;
+import com.raf.si.patientservice.dto.request.MedicalReportRequest;
 import com.raf.si.patientservice.dto.request.PatientConditionRequest;
 import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.service.HospitalizationService;
@@ -91,4 +92,26 @@ public class HospitalizationController {
 
         return ResponseEntity.ok(hospitalizationService.getPatientConditions(lbp, dateFrom, dateTo, PageRequest.of(page, size)));
     }
+
+    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA') or hasRole('ROLE_DR_SPEC') or hasRole('ROLE_DR_SPEC_POV')")
+    @PostMapping("/medical-report/{lbp}")
+    public ResponseEntity<MedicalReportResponse> createMedicalReport(@PathVariable("lbp") UUID lbp,
+                                                                     @Valid @RequestBody MedicalReportRequest request) {
+
+        return ResponseEntity.ok(hospitalizationService.createMedicalReport(lbp, request));
+    }
+
+    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA') or hasRole('ROLE_DR_SPEC') or hasRole('ROLE_DR_SPEC_POV')")
+    @GetMapping("/medical-report/{lbp}")
+    public ResponseEntity<MedicalReportListResponse> getMedicalReports(@PathVariable("lbp") UUID lbp,
+                                                                       @RequestParam(name = "dateFrom", required = false)
+                                                                       @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateFrom,
+                                                                       @RequestParam(name = "dateTo", required = false)
+                                                                           @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateTo,
+                                                                       @RequestParam(defaultValue = "0") int page,
+                                                                       @RequestParam(defaultValue = "5") int size) {
+
+        return ResponseEntity.ok(hospitalizationService.getMedicalReports(lbp, dateFrom, dateTo, PageRequest.of(page, size)));
+    }
+
 }
