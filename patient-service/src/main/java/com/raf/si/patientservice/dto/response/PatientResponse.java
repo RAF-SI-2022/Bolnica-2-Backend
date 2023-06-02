@@ -32,5 +32,6 @@ public class PatientResponse {
     private Education education;
     private String profession;
     private Boolean deleted;
+    private Boolean immunized;
     private Long healthRecordId;
 }

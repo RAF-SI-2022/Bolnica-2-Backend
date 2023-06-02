@@ -50,6 +50,7 @@ public class SchedMedExamMapper {
         schedMedExamResponse.setPatientArrivalStatus(scheduledMedExamination.getPatientArrivalStatus());
         schedMedExamResponse.setNote(scheduledMedExamination.getNote());
         schedMedExamResponse.setLbzNurse(scheduledMedExamination.getLbzNurse());
+        schedMedExamResponse.setCovid(scheduledMedExamination.getCovid());
 
         return schedMedExamResponse;
     }

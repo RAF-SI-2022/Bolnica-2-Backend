@@ -17,5 +17,6 @@ public class SchedMedExamResponse {
     private UUID lbzNurse;
     private ExaminationStatus examinationStatus;
     private PatientArrivalStatus patientArrivalStatus;
+    private Boolean covid;
     private PatientResponse patientResponse;
 }
