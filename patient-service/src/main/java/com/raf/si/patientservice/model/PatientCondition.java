@@ -29,5 +29,8 @@ public class PatientCondition {
     @Column(name = "applied_therapies")
     private String appliedTherapies;
     private String description;
-
+    private Boolean onRespirator = false;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "testing_id", referencedColumnName = "id")
+    private Testing testing;
 }

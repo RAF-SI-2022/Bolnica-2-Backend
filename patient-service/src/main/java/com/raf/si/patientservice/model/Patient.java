@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -98,4 +99,10 @@ public class Patient {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "health_record_id", referencedColumnName = "id")
     private HealthRecord healthRecord;
+
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL)
+    private List<ScheduledTesting> scheduledTestings;
+
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL)
+    private List<Testing> testings;
 }

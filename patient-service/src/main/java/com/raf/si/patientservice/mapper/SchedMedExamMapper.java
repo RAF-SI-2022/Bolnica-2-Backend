@@ -31,7 +31,9 @@ public class SchedMedExamMapper {
         scheduledMedExamination.setLbzDoctor(schedMedExamRequest.getLbzDoctor());
         scheduledMedExamination.setAppointmentDate(schedMedExamRequest.getAppointmentDate());
         scheduledMedExamination.setLbzNurse(schedMedExamRequest.getLbzNurse());
-
+        if (schedMedExamRequest.getCovid() != null) {
+            scheduledMedExamination.setCovid(schedMedExamRequest.getCovid());
+        }
 
         if (schedMedExamRequest.getNote() != null)
             scheduledMedExamination.setNote(schedMedExamRequest.getNote());

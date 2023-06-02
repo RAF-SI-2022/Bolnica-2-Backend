@@ -23,4 +23,5 @@ public class PatientConditionResponse {
     private String pulse;
     private String appliedTherapies;
     private String description;
+    private Boolean onRespirator;
 }

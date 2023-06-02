@@ -139,6 +139,9 @@ public class HospitalizationMapper {
         patientCondition.setCollectedInfoDate(patientConditionRequest.getCollectedInfoDate());
         patientCondition.setPulse(patientConditionRequest.getPulse());
         patientCondition.setTemperature(patientConditionRequest.getTemperature());
+        if (patientConditionRequest.getOnRespirator() != null) {
+            patientCondition.setOnRespirator(patientConditionRequest.getOnRespirator());
+        }
 
         return patientCondition;
     }
@@ -155,6 +158,7 @@ public class HospitalizationMapper {
         response.setCollectedInfoDate(patientCondition.getCollectedInfoDate());
         response.setTemperature(patientCondition.getTemperature());
         response.setRegisterLbz(patientCondition.getRegisterLbz());
+        response.setOnRespirator(patientCondition.getOnRespirator());
 
         return response;
     }

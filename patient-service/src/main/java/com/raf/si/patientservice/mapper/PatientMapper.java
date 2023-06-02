@@ -41,8 +41,11 @@ public class PatientMapper {
             patient.setCustodianName(patientRequest.getCustodianName());
         if(patientRequest.getChildrenNum() != null)
             patient.setChildrenNum(patientRequest.getChildrenNum());
-        if(patient.getProfession() != null)
+        if(patientRequest.getProfession() != null)
             patient.setProfession(patientRequest.getProfession());
+        if (patientRequest.getImmunized() != null) {
+            patient.setImmunized(patientRequest.getImmunized());
+        }
 
         Gender gender = Gender.valueOfNotation(patientRequest.getGender());
         if(gender == null){
