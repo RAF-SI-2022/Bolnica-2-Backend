@@ -62,6 +62,7 @@ public class UtilsHelper {
         claims.put("pbb",UUID.randomUUID());
         claims.put("hospitalName", "NoviBeograd");
         claims.put("permissions",roles);
+        claims.put("covidAccess", false);
         return  jwtUtil.generateToken(claims, "3e1a51ab-a3aa-1add-a3ad-28e043f8b435");
     }
 
@@ -75,6 +76,7 @@ public class UtilsHelper {
         claims.put("pbb",UUID.randomUUID());
         claims.put("hospitalName", "NoviBeograd");
         claims.put("permissions",roles);
+        claims.put("covidAccess", false);
         return  jwtUtil.generateToken(claims, token);
     }
 
@@ -92,6 +94,7 @@ public class UtilsHelper {
         String[] roles = new String[]{"ROLE_ADMIN", "ROLE_DR_SPEC_ODELJENJA", "ROLE_DR_SPEC",
                 "ROLE_DR_SPEC_POV", "ROLE_VISA_MED_SESTRA", "ROLE_MED_SESTRA"};
         claims.put("permissions", roles);
+        claims.put("covidAccess", false);
         return jwtUtil.generateToken(claims, "5a2e71bb-e4ee-43dd-a3ad-28e043f8b435");
     }
 
@@ -108,6 +111,7 @@ public class UtilsHelper {
         String[] roles = new String[]{"ROLE_ADMIN", "ROLE_DR_SPEC_ODELJENJA", "ROLE_DR_SPEC",
                 "ROLE_DR_SPEC_POV", "ROLE_VISA_MED_SESTRA", "ROLE_MED_SESTRA"};
         claims.put("permissions", roles);
+        claims.put("covidAccess", false);
         return jwtUtil.generateToken(claims, String.valueOf(UUID.randomUUID()));
     }
 
@@ -124,6 +128,7 @@ public class UtilsHelper {
         String[] roles = new String[]{"ROLE_ADMIN", "ROLE_DR_SPEC_ODELJENJA", "ROLE_DR_SPEC",
                 "ROLE_DR_SPEC_POV", "ROLE_VISA_MED_SESTRA", "ROLE_MED_SESTRA"};
         claims.put("permissions", roles);
+        claims.put("covidAccess", false);
         return jwtUtil.generateToken(claims, "5a2e71bb-e4ee-43dd-a3ad-28e043f8b435");
     }
 

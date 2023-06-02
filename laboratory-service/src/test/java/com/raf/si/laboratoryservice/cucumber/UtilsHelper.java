@@ -63,6 +63,7 @@ public class UtilsHelper {
         String[] roles = new String[]{"ROLE_ADMIN", "ROLE_DR_SPEC_ODELJENJA", "ROLE_DR_SPEC",
                 "ROLE_DR_SPEC_POV", "ROLE_VISA_MED_SESTRA", "ROLE_MED_SESTRA", "ROLE_VISI_LAB_TEHNICAR", "ROLE_LAB_TEHNICAR"};
         claims.put("permissions", roles);
+        claims.put("covidAccess", false);
         return jwtUtil.generateToken(claims, "5a2e71bb-e4ee-43dd-a3ad-28e043f8b435");
     }
 }

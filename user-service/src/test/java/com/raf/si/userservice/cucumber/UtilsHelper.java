@@ -32,6 +32,7 @@ public class UtilsHelper {
         String[] roles = new String[]{"ROLE_ADMIN", "ROLE_DR_SPEC_ODELJENJA", "ROLE_DR_SPEC",
                 "ROLE_DR_SPEC_POV", "ROLE_VISA_MED_SESTRA", "ROLE_MED_SESTRA"};
         claims.put("permissions", roles);
+        claims.put("covidAccess", user.isCovidAccess());
         return jwtUtil.generateToken(claims, user.getLbz().toString());
     }
 
@@ -47,6 +48,7 @@ public class UtilsHelper {
         claims.put("hospitalName", user.getDepartment().getHospital().getFullName());
         String[] roles = new String[]{"ROLE_VISA_MED_SESTRA", "ROLE_MED_SESTRA"};
         claims.put("permissions", roles);
+        claims.put("covidAccess", user.isCovidAccess());
         return jwtUtil.generateToken(claims, user.getLbz().toString());
     }
 
