@@ -52,6 +52,8 @@ public class User {
     private boolean isDeleted = false;
     @Column(name = "password_token", nullable = false)
     private UUID passwordToken = UUID.randomUUID();
+    @Column(name = "covid_access", nullable = false)
+    private boolean covidAccess = false;
     @ManyToOne
     @JoinColumn(name = "department_id", referencedColumnName = "id")
     private Department department;

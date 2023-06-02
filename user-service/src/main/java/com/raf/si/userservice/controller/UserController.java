@@ -129,5 +129,4 @@ public class UserController {
 
         return (TokenPayload) authentication.getPrincipal();
     }
-
 }
