@@ -2,7 +2,6 @@ package com.raf.si.patientservice.model;
 
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
 import com.raf.si.patientservice.model.enums.examination.PatientArrivalStatus;
-import com.raf.si.patientservice.model.enums.testing.Availability;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,7 +14,7 @@ import java.util.UUID;
 @Setter
 public class ScheduledTesting {
 
-    private static final long testDurationMillis = 20 * 60 * 1000;
+    private static final int testDurationMinutes = 20;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,12 +33,17 @@ public class ScheduledTesting {
     private String note;
 
     @Column(nullable = false)
-    private Availability availability;
-
-    @Column(nullable = false)
     private UUID schedulerLbz;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
     private Patient patient;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "available_term_id", referencedColumnName = "id", nullable = false)
+    private AvailableTerm availableTerm;
+
+    public static int getTestDurationMinutes() {
+        return testDurationMinutes;
+    }
 }

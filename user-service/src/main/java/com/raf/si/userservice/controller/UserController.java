@@ -132,4 +132,9 @@ public class UserController {
     public ResponseEntity<DoctorResponse> getHeadOfDepartment(@PathVariable("pbo") UUID pbo) {
         return ResponseEntity.ok(userService.getHeadOfDepartment(pbo));
     }
+
+    @GetMapping("/covid-nurses-num/{pbo}")
+    public ResponseEntity<Integer> getNumOfCovidNursesByDepartment(@PathVariable("pbo") UUID pbo) {
+        return ResponseEntity.ok(userService.getNumOfCovidNursesByDepartment(pbo));
+    }
 }

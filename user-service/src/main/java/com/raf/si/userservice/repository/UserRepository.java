@@ -47,4 +47,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(value = "select distinct u from users u left join u.permissions p where p.name = :headPermission and u.department = :department")
     Optional<User> getHeadOfDepartment(@PathVariable("department") Department department, @PathVariable("headPermission") String headPermission);
+
+    @Query(value = "select count(distinct u) from users u left join u.permissions p where u.department.pbo=:pbo" +
+            " and u.covidAccess=true and p.name in :permissions")
+    long countCovidNursesByPbo(UUID pbo, List<String> permissions);
 }

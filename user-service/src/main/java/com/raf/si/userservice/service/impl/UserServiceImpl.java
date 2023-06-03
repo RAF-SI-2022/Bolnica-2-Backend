@@ -25,6 +25,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.PersistenceContext;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,6 +40,8 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
     private final DepartmentRepository departmentRepository;
     private final PermissionsRepository permissionsRepository;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public UserServiceImpl(UserRepository userRepository, UserMapper userMapper,
                            EmailService emailService, DepartmentRepository departmentRepository,
@@ -258,6 +263,12 @@ public class UserServiceImpl implements UserService {
                     throw new NotFoundException("Ne postoji nacelnik odeljenja za dato odeljenje");
                 });
         return userMapper.modelToDoctorResponse(user);
+    }
+
+    @Override
+    public Integer getNumOfCovidNursesByDepartment(UUID pbo) {
+        List<String> permissions = Arrays.asList(new String[] {"ROLE_MED_SESTRA", "ROLE_VISA_MED_SESTRA"});
+        return (int) userRepository.countCovidNursesByPbo(pbo, permissions);
     }
 
     private List<Boolean> adjustIncludeDeleteParameter(boolean includeDeleted) {
