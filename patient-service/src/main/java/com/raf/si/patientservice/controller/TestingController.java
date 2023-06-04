@@ -66,11 +66,17 @@ public class TestingController {
     }
 
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
-    @PatchMapping("scheduled/change-status/{scheduled-testing-id}")
+    @PatchMapping("/scheduled/change-status/{scheduled-testing-id}")
     public ResponseEntity<ScheduledTestingResponse> changeTestingStatus(@PathVariable("scheduled-testing-id") Long scheduledTestingId,
                                                                         @RequestParam(required = false) String testStatus,
                                                                         @RequestParam(required = false) String patientArrivalStatus) {
 
         return ResponseEntity.ok(testingService.changeScheduledTestingStatus(scheduledTestingId, testStatus, patientArrivalStatus));
+    }
+
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @DeleteMapping("/scheduled/delete/{id}")
+    public ResponseEntity<ScheduledTestingResponse> deleteScheduledTesting(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(testingService.deleteScheduledTesting(id));
     }
 }

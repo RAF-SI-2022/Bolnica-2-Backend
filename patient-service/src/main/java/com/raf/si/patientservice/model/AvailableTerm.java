@@ -57,4 +57,8 @@ public class AvailableTerm {
     public void addScheduledTesting(ScheduledTesting scheduledTesting) {
         scheduledTestings.add(scheduledTesting);
     }
+
+    public void removeScheduledTesting(ScheduledTesting scheduledTesting) {
+        scheduledTestings.remove(scheduledTesting);
+    }
 }

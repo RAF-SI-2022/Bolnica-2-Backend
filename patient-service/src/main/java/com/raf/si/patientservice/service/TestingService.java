@@ -22,4 +22,6 @@ public interface TestingService {
     TestingResponse createTesting(UUID lbp, TestingRequest request);
 
     ScheduledTestingResponse changeScheduledTestingStatus(Long scheduledTestingId, String testingStatusString, String patientArrivalStatusString);
+
+    ScheduledTestingResponse deleteScheduledTesting(Long id);
 }

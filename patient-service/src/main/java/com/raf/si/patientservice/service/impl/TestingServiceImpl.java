@@ -244,6 +244,21 @@ public class TestingServiceImpl implements TestingService {
         return testingMapper.scheduledTestingToResponse(scheduledTesting);
     }
 
+    @Override
+    public ScheduledTestingResponse deleteScheduledTesting(Long id) {
+        ScheduledTesting scheduledTesting = findScheduledTesting(id);
+        AvailableTerm availableTerm = scheduledTesting.getAvailableTerm();
+
+        availableTerm.removeScheduledTesting(scheduledTesting);
+        availableTerm.decrementScheduledTermsNum();
+
+        scheduledTestingRepository.delete(scheduledTesting);
+        availableTermRepository.save(availableTerm);
+
+        log.info(String.format("Zakazano testiranje sa id-jem %s je obrisano", id));
+        return testingMapper.scheduledTestingToResponse(scheduledTesting);
+    }
+
     private void checkDateInFuture(LocalDateTime date){
         LocalDateTime currDate = LocalDateTime.now();
         if (currDate.isAfter(date)) {
