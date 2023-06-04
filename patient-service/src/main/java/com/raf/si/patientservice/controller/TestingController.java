@@ -1,9 +1,11 @@
 package com.raf.si.patientservice.controller;
 
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
+import com.raf.si.patientservice.dto.request.TestingRequest;
 import com.raf.si.patientservice.dto.response.AvailableTermResponse;
 import com.raf.si.patientservice.dto.response.ScheduledTestingListResponse;
 import com.raf.si.patientservice.dto.response.ScheduledTestingResponse;
+import com.raf.si.patientservice.dto.response.TestingResponse;
 import com.raf.si.patientservice.service.TestingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -15,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.UUID;
 
 @Slf4j
@@ -54,5 +55,13 @@ public class TestingController {
                                                                              @RequestParam(defaultValue = "5") int size) {
 
         return ResponseEntity.ok(testingService.getScheduledtestings(lbp, date, PageRequest.of(page, size)));
+    }
+
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @PostMapping("/create/{lbp}")
+    public ResponseEntity<TestingResponse> createTesting(@PathVariable("lbp") UUID lbp,
+                                                         @RequestBody @Valid TestingRequest request) {
+
+        return ResponseEntity.ok(testingService.createTesting(lbp, request));
     }
 }

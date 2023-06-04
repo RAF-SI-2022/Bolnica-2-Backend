@@ -1,18 +1,20 @@
 package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
+import com.raf.si.patientservice.dto.request.TestingRequest;
 import com.raf.si.patientservice.dto.response.AvailableTermResponse;
 import com.raf.si.patientservice.dto.response.ScheduledTestingListResponse;
 import com.raf.si.patientservice.dto.response.ScheduledTestingResponse;
+import com.raf.si.patientservice.dto.response.TestingResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.mapper.TestingMapper;
-import com.raf.si.patientservice.model.AvailableTerm;
-import com.raf.si.patientservice.model.Patient;
-import com.raf.si.patientservice.model.ScheduledTesting;
+import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.model.enums.testing.Availability;
 import com.raf.si.patientservice.repository.AvailableTermRepository;
+import com.raf.si.patientservice.repository.PatientConditionRepository;
 import com.raf.si.patientservice.repository.ScheduledTestingRepository;
+import com.raf.si.patientservice.repository.TestingRepository;
 import com.raf.si.patientservice.repository.filtering.filter.ScheduledTestingFilter;
 import com.raf.si.patientservice.repository.filtering.specification.ScheduledTestingSpecification;
 import com.raf.si.patientservice.service.PatientService;
@@ -24,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.integration.support.locks.LockRegistry;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -39,19 +40,25 @@ import java.util.concurrent.locks.Lock;
 public class TestingServiceImpl implements TestingService {
 
     private final ScheduledTestingRepository scheduledTestingRepository;
+    private final TestingRepository testingRepository;
     private final AvailableTermRepository availableTermRepository;
+    private final PatientConditionRepository patientConditionRepository;
     private final PatientService patientService;
     private final TestingMapper testingMapper;
     private final LockRegistry lockRegistry;
 
     public TestingServiceImpl(ScheduledTestingRepository scheduledTestingRepository,
+                              TestingRepository testingRepository,
                               AvailableTermRepository availableTermRepository,
+                              PatientConditionRepository patientConditionRepository,
                               PatientService patientService,
                               TestingMapper testingMapper,
                               LockRegistry lockRegistry) {
 
         this.scheduledTestingRepository = scheduledTestingRepository;
+        this.testingRepository = testingRepository;
         this.availableTermRepository = availableTermRepository;
+        this.patientConditionRepository = patientConditionRepository;
         this.patientService = patientService;
         this.testingMapper = testingMapper;
         this.lockRegistry = lockRegistry;
@@ -101,7 +108,7 @@ public class TestingServiceImpl implements TestingService {
         TokenPayload tokenPayload = TokenPayloadUtil.getTokenPayload();
         AvailableTerm availableTerm;
 
-        checkDate(request.getDateAndTime());
+        checkDateInFuture(request.getDateAndTime());
         checkPatientTestingsForDay(patient, request.getDateAndTime());
 
         LocalDateTime endDateAndTime = request.getDateAndTime().plusMinutes(ScheduledTesting.getTestDurationMinutes());
@@ -121,11 +128,15 @@ public class TestingServiceImpl implements TestingService {
         if (availableTerm.getScheduledTermsNum() == availableTerm.getAvailableNursesNum()) {
             availableTerm.setAvailability(Availability.POTPUNO_POPUNJEN_TERMIN);
         }
-        availableTermRepository.save(availableTerm);
+        availableTerm = availableTermRepository.save(availableTerm);
 
         scheduledTesting.setAvailableTerm(availableTerm);
-        scheduledTestingRepository.save(scheduledTesting);
+        scheduledTesting = scheduledTestingRepository.save(scheduledTesting);
 
+        log.info(String.format("Kreirano novo zakazano testiranje za pacijenta sa lbp-om %s, broj slobodnih termina za termin %s je %d",
+                patient.getLbp(),
+                availableTerm.getDateAndTime().toString(),
+                (availableTerm.getAvailableNursesNum() - availableTerm.getScheduledTermsNum())));
         return testingMapper.scheduledTestingToResponse(scheduledTesting);
     }
 
@@ -157,10 +168,38 @@ public class TestingServiceImpl implements TestingService {
         return testingMapper.scheduledTestingPageToResponse(scheduledTestingPage);
     }
 
-    private void checkDate(LocalDateTime date){
+    @Override
+    public TestingResponse createTesting(UUID lbp, TestingRequest request) {
+        Patient patient = patientService.findPatient(lbp);
+        Testing testing = testingMapper.testingRequestToTesting(patient, request);
+        PatientCondition patientCondition = testingMapper.testingRequestToPatientCondition(patient, request);
+
+        checkDateInPast(request.getCollectedInfoDate());
+
+        patientCondition = patientConditionRepository.save(patientCondition);
+
+        testing.setPatientCondition(patientCondition);
+        testing = testingRepository.save(testing);
+
+        log.info(String.format("Kreirano testiranje u terminu %s za pacijenta sa lbp-om %s",
+                testing.getDateAndTime().toString(),
+                patient.getLbp()));
+        return testingMapper.testingToResponse(testing, patientCondition);
+    }
+
+    private void checkDateInFuture(LocalDateTime date){
         LocalDateTime currDate = LocalDateTime.now();
         if (currDate.isAfter(date)) {
             String errMessage = String.format("Datum %s je u proslosti", date);
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+    }
+
+    private void checkDateInPast(Date date) {
+        Date currDate = new Date();
+        if (currDate.before(date)) {
+            String errMessage = String.format("Datum %s je u buducnosti", date);
             log.error(errMessage);
             throw new BadRequestException(errMessage);
         }

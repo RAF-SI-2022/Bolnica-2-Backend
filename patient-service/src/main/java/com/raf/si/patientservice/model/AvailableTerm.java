@@ -23,6 +23,7 @@ public class AvailableTerm {
     private LocalDateTime dateAndTime;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Availability availability = Availability.MOGUCE_ZAKAZATI_U_OVOM_TERMINU;
 
     @Column(nullable = false)

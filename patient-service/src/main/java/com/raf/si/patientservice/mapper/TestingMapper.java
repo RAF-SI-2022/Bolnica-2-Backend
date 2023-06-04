@@ -1,12 +1,9 @@
 package com.raf.si.patientservice.mapper;
 
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
-import com.raf.si.patientservice.dto.response.AvailableTermResponse;
-import com.raf.si.patientservice.dto.response.ScheduledTestingListResponse;
-import com.raf.si.patientservice.dto.response.ScheduledTestingResponse;
-import com.raf.si.patientservice.model.AvailableTerm;
-import com.raf.si.patientservice.model.Patient;
-import com.raf.si.patientservice.model.ScheduledTesting;
+import com.raf.si.patientservice.dto.request.TestingRequest;
+import com.raf.si.patientservice.dto.response.*;
+import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.utils.TokenPayload;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -23,9 +20,11 @@ import java.util.stream.Collectors;
 public class TestingMapper {
 
     private final PatientMapper patientMapper;
+    private final HospitalizationMapper hospitalizationMapper;
 
-    public TestingMapper(PatientMapper patientMapper) {
+    public TestingMapper(PatientMapper patientMapper, HospitalizationMapper hospitalizationMapper) {
         this.patientMapper = patientMapper;
+        this.hospitalizationMapper = hospitalizationMapper;
     }
 
     public ScheduledTesting scheduledTestingRequestToModel(Patient patient, ScheduledTestingRequest request) {
@@ -69,6 +68,7 @@ public class TestingMapper {
     public AvailableTermResponse availableTermToResponse(AvailableTerm availableTerm) {
         AvailableTermResponse response = new AvailableTermResponse();
 
+        response.setId(availableTerm.getId());
         response.setAvailability(availableTerm.getAvailability());
         response.setPbo(availableTerm.getPbo());
         response.setAvailableNursesNum(availableTerm.getAvailableNursesNum());
@@ -85,5 +85,49 @@ public class TestingMapper {
                 .collect(Collectors.toList());
 
         return new ScheduledTestingListResponse(schedTestings, scheduledTestingPage.getTotalElements());
+    }
+
+    public Testing testingRequestToTesting(Patient patient, TestingRequest request) {
+        Testing testing = new Testing();
+
+        testing.setPatient(patient);
+        testing.setReason(request.getReason());
+
+        return testing;
+    }
+
+    public PatientCondition testingRequestToPatientCondition(Patient patient, TestingRequest request) {
+        PatientCondition patientCondition = new PatientCondition();
+        TokenPayload tokenPayload = TokenPayloadUtil.getTokenPayload();
+
+        patientCondition.setPatient(patient);
+        patientCondition.setOnRespirator(false);
+        patientCondition.setDescription(request.getDescription());
+        patientCondition.setPulse(request.getPulse());
+        patientCondition.setBloodPressure(request.getBloodPressure());
+        patientCondition.setTemperature(request.getTemperature());
+        patientCondition.setAppliedTherapies(request.getAppliedTherapies());
+        patientCondition.setCollectedInfoDate(request.getCollectedInfoDate());
+        patientCondition.setRegisterLbz(tokenPayload.getLbz());
+
+        return patientCondition;
+    }
+
+    public TestingResponse testingToResponse(Testing testing) {
+        return testingToResponse(testing, testing.getPatientCondition());
+    }
+
+    public TestingResponse testingToResponse(Testing testing, PatientCondition patientCondition) {
+        TestingResponse response = new TestingResponse();
+        PatientConditionResponse patientConditionResponse = hospitalizationMapper.patientConditionToPatientConditionResponse(patientCondition);
+
+        response.setId(testing.getId());
+        response.setReason(testing.getReason());
+        response.setTestResult(testing.getTestResult());
+        response.setDeleted(testing.getDeleted());
+        response.setDateAndTimeOfTesting(testing.getDateAndTime());
+        response.setPatientCondition(patientConditionResponse);
+
+        return response;
     }
 }

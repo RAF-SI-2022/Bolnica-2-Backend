@@ -5,8 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.Date;
-import java.util.UUID;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -18,21 +17,23 @@ public class Testing {
     private Long id;
 
     @Column(nullable = false)
-    private Date date = new Date();
-
-    @Column
-    private Boolean deleted = false;
+    private LocalDateTime dateAndTime = LocalDateTime.now();
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private TestResult testResult = TestResult.NEOBRADJEN;
 
     @Column(nullable = false)
-    private UUID nurseLbz;
+    private String reason;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @Column(nullable = false)
+    private Boolean deleted = false;
+
+    @ManyToOne
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
     private Patient patient;
 
-    @OneToOne(mappedBy = "testing")
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "patient_condition_id", referencedColumnName = "id")
     private PatientCondition patientCondition;
 }

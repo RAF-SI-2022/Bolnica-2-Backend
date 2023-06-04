@@ -7,7 +7,6 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -24,10 +23,12 @@ public class ScheduledTesting {
     @Column(nullable = false)
     private LocalDateTime dateAndTime;
 
-    @Column
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private ExaminationStatus testStatus = ExaminationStatus.ZAKAZANO;
 
-    @Column
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private PatientArrivalStatus patientArrivalStatus = PatientArrivalStatus.NIJE_DOSAO;
 
     @Column

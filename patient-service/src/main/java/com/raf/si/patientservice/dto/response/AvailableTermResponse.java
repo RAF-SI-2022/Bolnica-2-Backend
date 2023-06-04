@@ -12,6 +12,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AvailableTermResponse {
+    private Long id;
     private LocalDateTime dateAndTime;
     private UUID pbo;
     private Availability availability;
