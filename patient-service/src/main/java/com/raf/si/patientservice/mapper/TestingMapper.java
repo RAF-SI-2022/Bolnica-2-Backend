@@ -1,6 +1,7 @@
 package com.raf.si.patientservice.mapper;
 
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
+import com.raf.si.patientservice.dto.response.AvailableTermResponse;
 import com.raf.si.patientservice.dto.response.ScheduledTestingResponse;
 import com.raf.si.patientservice.model.AvailableTerm;
 import com.raf.si.patientservice.model.Patient;
@@ -57,6 +58,18 @@ public class TestingMapper {
         response.setPatientArrivalStatus(scheduledTesting.getPatientArrivalStatus());
         response.setId(scheduledTesting.getId());
         response.setPatientResponse(patientMapper.patientToPatientResponse(scheduledTesting.getPatient()));
+
+        return response;
+    }
+
+    public AvailableTermResponse availableTermToRespons(AvailableTerm availableTerm) {
+        AvailableTermResponse response = new AvailableTermResponse();
+
+        response.setAvailability(availableTerm.getAvailability());
+        response.setPbo(availableTerm.getPbo());
+        response.setAvailableNursesNum(availableTerm.getAvailableNursesNum());
+        response.setScheduledTermsNum(availableTerm.getScheduledTermsNum());
+        response.setDateAndTime(availableTerm.getDateAndTime());
 
         return response;
     }

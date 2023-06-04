@@ -1,7 +1,7 @@
 package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
-import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
+import com.raf.si.patientservice.dto.response.AvailableTermResponse;
 import com.raf.si.patientservice.dto.response.ScheduledTestingResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
@@ -84,17 +84,23 @@ public class TestingServiceImpl implements TestingService {
     private ScheduledTestingResponse scheduleTestingLocked(UUID lbp,
                                                            ScheduledTestingRequest request,
                                                            String token) {
+
+        Date requestDate = DateUtils.truncate(request.getDateAndTime(), Calendar.SECOND);
+        request.setDateAndTime(requestDate);
+
         Patient patient = patientService.findPatient(lbp);
         ScheduledTesting scheduledTesting = testingMapper.scheduledTestingRequestToModel(patient, request);
+        TokenPayload tokenPayload = TokenPayloadUtil.getTokenPayload();
         AvailableTerm availableTerm;
 
         checkDate(request.getDateAndTime());
         checkPatientTestingsForDay(patient, request.getDateAndTime());
 
         Date endDateAndTime = DateUtils.addMinutes(request.getDateAndTime(), ScheduledTesting.getTestDurationMinutes());
-        List<AvailableTerm> availableTerms = availableTermRepository.findByDateAndTimeBetween(
+        List<AvailableTerm> availableTerms = availableTermRepository.findByDateAndTimeBetweenAndPbo(
                 request.getDateAndTime(),
-                endDateAndTime
+                endDateAndTime,
+                tokenPayload.getPbo()
         );
 
         if (availableTerms != null && availableTerms.size() > 0) {
@@ -113,6 +119,22 @@ public class TestingServiceImpl implements TestingService {
         scheduledTestingRepository.save(scheduledTesting);
 
         return testingMapper.scheduledTestingToResponse(scheduledTesting);
+    }
+
+    @Override
+    public AvailableTermResponse getAvailableTerm(Date dateAndTime, String token) {
+        dateAndTime = DateUtils.truncate(dateAndTime, Calendar.SECOND);
+        TokenPayload tokenPayload = TokenPayloadUtil.getTokenPayload();
+        Optional<AvailableTerm> availableTermOptional = availableTermRepository.findByDateAndTimeAndPbo(dateAndTime, tokenPayload.getPbo());
+        AvailableTerm availableTerm;
+
+        if (availableTermOptional.isEmpty()) {
+            availableTerm = makeAvailableTerm(dateAndTime, token);
+        } else {
+            availableTerm = availableTermOptional.get();
+        }
+
+        return testingMapper.availableTermToRespons(availableTerm);
     }
 
     private void checkDate(Date date){
@@ -155,22 +177,26 @@ public class TestingServiceImpl implements TestingService {
 
     private AvailableTerm makeAvailableTerm(Date dateAndTime, String token) {
         TokenPayload tokenPayload = TokenPayloadUtil.getTokenPayload();
+        int availableNurses = getAvailableNurses(tokenPayload.getPbo(), token);
+        return testingMapper.makeAvailableTerm(dateAndTime,
+                tokenPayload.getPbo(),
+                availableNurses);
+    }
+
+    private int getAvailableNurses(UUID pbo, String token) {
         int availableNurses;
         try {
-            availableNurses = HttpUtils.getNumOfCovidNursesForDepartment(tokenPayload.getPbo(), token);
+            availableNurses = HttpUtils.getNumOfCovidNursesForDepartment(pbo, token);
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new InternalServerErrorException(e.getMessage());
         }
 
         if (availableNurses < 1) {
-            String errMessage = String.format("Nema dostupnih sestara za departman sa pbo-om %s", tokenPayload.getPbo());
+            String errMessage = String.format("Nema dostupnih sestara za departman sa pbo-om %s", pbo);
             log.error(errMessage);
             throw new BadRequestException(errMessage);
         }
-
-        return testingMapper.makeAvailableTerm(dateAndTime,
-                tokenPayload.getPbo(),
-                availableNurses);
+        return availableNurses;
     }
 }
