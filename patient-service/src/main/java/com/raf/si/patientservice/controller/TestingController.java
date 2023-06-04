@@ -64,4 +64,13 @@ public class TestingController {
 
         return ResponseEntity.ok(testingService.createTesting(lbp, request));
     }
+
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @PatchMapping("scheduled/change-status/{scheduled-testing-id}")
+    public ResponseEntity<ScheduledTestingResponse> changeTestingStatus(@PathVariable("scheduled-testing-id") Long scheduledTestingId,
+                                                                        @RequestParam(required = false) String testStatus,
+                                                                        @RequestParam(required = false) String patientArrivalStatus) {
+
+        return ResponseEntity.ok(testingService.changeScheduledTestingStatus(scheduledTestingId, testStatus, patientArrivalStatus));
+    }
 }

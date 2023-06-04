@@ -19,11 +19,9 @@ import java.util.stream.Collectors;
 @Component
 public class TestingMapper {
 
-    private final PatientMapper patientMapper;
     private final HospitalizationMapper hospitalizationMapper;
 
-    public TestingMapper(PatientMapper patientMapper, HospitalizationMapper hospitalizationMapper) {
-        this.patientMapper = patientMapper;
+    public TestingMapper(HospitalizationMapper hospitalizationMapper) {
         this.hospitalizationMapper = hospitalizationMapper;
     }
 
@@ -60,7 +58,7 @@ public class TestingMapper {
         response.setTestStatus(scheduledTesting.getTestStatus());
         response.setPatientArrivalStatus(scheduledTesting.getPatientArrivalStatus());
         response.setId(scheduledTesting.getId());
-        response.setPatientResponse(patientMapper.patientToPatientResponse(scheduledTesting.getPatient()));
+        response.setLbp(scheduledTesting.getPatient().getLbp());
 
         return response;
     }

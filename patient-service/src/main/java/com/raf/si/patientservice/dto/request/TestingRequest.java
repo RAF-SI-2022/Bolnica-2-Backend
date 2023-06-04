@@ -8,6 +8,7 @@ import java.util.Date;
 
 @Data
 public class TestingRequest {
+    private Long scheduledTestingId;
     @NotNull(message = "Razlog ne sme biti prazan")
     private String reason;
     @NotNull(message = "Temperatura ne sme biti prazna")

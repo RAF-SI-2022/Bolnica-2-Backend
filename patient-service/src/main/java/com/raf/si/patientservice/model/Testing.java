@@ -36,4 +36,7 @@ public class Testing {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "patient_condition_id", referencedColumnName = "id")
     private PatientCondition patientCondition;
+
+    @OneToOne(mappedBy = "testing", fetch = FetchType.EAGER)
+    private ScheduledTesting scheduledTesting;
 }

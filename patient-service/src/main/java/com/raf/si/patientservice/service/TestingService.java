@@ -20,4 +20,6 @@ public interface TestingService {
     ScheduledTestingListResponse getScheduledtestings(UUID lbp, LocalDate date, Pageable pageable);
 
     TestingResponse createTesting(UUID lbp, TestingRequest request);
+
+    ScheduledTestingResponse changeScheduledTestingStatus(Long scheduledTestingId, String testingStatusString, String patientArrivalStatusString);
 }
