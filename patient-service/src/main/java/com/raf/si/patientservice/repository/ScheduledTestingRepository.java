@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -15,5 +16,5 @@ public interface ScheduledTestingRepository extends JpaRepository<ScheduledTesti
 
     @Query(value = "select s from ScheduledTesting s where s.patient=:patient" +
             " and s.dateAndTime between :startDate and :endDate")
-    List<ScheduledTesting> findByPatientAndDateAndTimeBetween(Patient patient, Date startDate, Date endDate);
+    List<ScheduledTesting> findByPatientAndDateAndTimeBetween(Patient patient, LocalDateTime startDate, LocalDateTime endDate);
 }

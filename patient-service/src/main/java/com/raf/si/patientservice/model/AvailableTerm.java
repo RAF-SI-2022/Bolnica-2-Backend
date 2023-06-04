@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -19,7 +20,7 @@ public class AvailableTerm {
     private Long id;
 
     @Column(nullable = false)
-    private Date dateAndTime;
+    private LocalDateTime dateAndTime;
 
     @Column(nullable = false)
     private Availability availability = Availability.MOGUCE_ZAKAZATI_U_OVOM_TERMINU;

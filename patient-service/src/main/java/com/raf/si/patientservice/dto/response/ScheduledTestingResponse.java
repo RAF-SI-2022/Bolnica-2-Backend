@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -14,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class ScheduledTestingResponse {
     private Long id;
-    private Date dateAndTime;
+    private LocalDateTime dateAndTime;
     private ExaminationStatus testStatus;
     private PatientArrivalStatus patientArrivalStatus;
     private String note;

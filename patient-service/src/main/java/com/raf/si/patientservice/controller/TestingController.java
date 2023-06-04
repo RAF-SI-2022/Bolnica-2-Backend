@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -37,7 +38,7 @@ public class TestingController {
 
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA') or hasRole('ROLE_RECEPCIONER')")
     @GetMapping("/available-terms")
-    public ResponseEntity<AvailableTermResponse> getAvailableTerm(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date dateAndTime,
+    public ResponseEntity<AvailableTermResponse> getAvailableTerm(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime dateAndTime,
                                                                   @RequestHeader("Authorization") String authorizationHeader) {
         return ResponseEntity.ok(testingService.getAvailableTerm(dateAndTime, authorizationHeader));
     }

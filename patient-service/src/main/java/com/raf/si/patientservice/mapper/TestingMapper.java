@@ -11,7 +11,7 @@ import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Slf4j
@@ -38,7 +38,7 @@ public class TestingMapper {
         return scheduledTesting;
     }
 
-    public AvailableTerm makeAvailableTerm(Date dateAndTime, UUID pbo, int availableNurses) {
+    public AvailableTerm makeAvailableTerm(LocalDateTime dateAndTime, UUID pbo, int availableNurses) {
         AvailableTerm availableTerm = new AvailableTerm();
 
         availableTerm.setAvailableNursesNum(availableNurses);
@@ -62,7 +62,7 @@ public class TestingMapper {
         return response;
     }
 
-    public AvailableTermResponse availableTermToRespons(AvailableTerm availableTerm) {
+    public AvailableTermResponse availableTermToResponse(AvailableTerm availableTerm) {
         AvailableTermResponse response = new AvailableTermResponse();
 
         response.setAvailability(availableTerm.getAvailability());

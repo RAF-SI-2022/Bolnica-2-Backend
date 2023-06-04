@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -21,7 +22,7 @@ public class ScheduledTesting {
     private Long id;
 
     @Column(nullable = false)
-    private Date dateAndTime;
+    private LocalDateTime dateAndTime;
 
     @Column
     private ExaminationStatus testStatus = ExaminationStatus.ZAKAZANO;

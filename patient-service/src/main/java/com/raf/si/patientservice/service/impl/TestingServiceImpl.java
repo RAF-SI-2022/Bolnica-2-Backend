@@ -18,10 +18,11 @@ import com.raf.si.patientservice.utils.HttpUtils;
 import com.raf.si.patientservice.utils.TokenPayload;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -51,7 +52,7 @@ public class TestingServiceImpl implements TestingService {
 
     @Override
     public ScheduledTestingResponse scheduleTesting(UUID lbp, ScheduledTestingRequest request, String token) {
-        Date day = DateUtils.truncate(request.getDateAndTime(), Calendar.DAY_OF_MONTH);
+        LocalDateTime day =request.getDateAndTime().truncatedTo(ChronoUnit.DAYS);
         Lock dayLock = lockRegistry.obtain(day.toString());
         Lock patientLock = lockRegistry.obtain(String.valueOf(lbp));
         try{
@@ -85,7 +86,7 @@ public class TestingServiceImpl implements TestingService {
                                                            ScheduledTestingRequest request,
                                                            String token) {
 
-        Date requestDate = DateUtils.truncate(request.getDateAndTime(), Calendar.SECOND);
+        LocalDateTime requestDate = request.getDateAndTime().truncatedTo(ChronoUnit.SECONDS);
         request.setDateAndTime(requestDate);
 
         Patient patient = patientService.findPatient(lbp);
@@ -96,7 +97,7 @@ public class TestingServiceImpl implements TestingService {
         checkDate(request.getDateAndTime());
         checkPatientTestingsForDay(patient, request.getDateAndTime());
 
-        Date endDateAndTime = DateUtils.addMinutes(request.getDateAndTime(), ScheduledTesting.getTestDurationMinutes());
+        LocalDateTime endDateAndTime = request.getDateAndTime().plusMinutes(ScheduledTesting.getTestDurationMinutes());
         List<AvailableTerm> availableTerms = availableTermRepository.findByDateAndTimeBetweenAndPbo(
                 request.getDateAndTime(),
                 endDateAndTime,
@@ -122,8 +123,8 @@ public class TestingServiceImpl implements TestingService {
     }
 
     @Override
-    public AvailableTermResponse getAvailableTerm(Date dateAndTime, String token) {
-        dateAndTime = DateUtils.truncate(dateAndTime, Calendar.SECOND);
+    public AvailableTermResponse getAvailableTerm(LocalDateTime dateAndTime, String token) {
+        dateAndTime = dateAndTime.truncatedTo(ChronoUnit.SECONDS);
         TokenPayload tokenPayload = TokenPayloadUtil.getTokenPayload();
         Optional<AvailableTerm> availableTermOptional = availableTermRepository.findByDateAndTimeAndPbo(dateAndTime, tokenPayload.getPbo());
         AvailableTerm availableTerm;
@@ -134,21 +135,21 @@ public class TestingServiceImpl implements TestingService {
             availableTerm = availableTermOptional.get();
         }
 
-        return testingMapper.availableTermToRespons(availableTerm);
+        return testingMapper.availableTermToResponse(availableTerm);
     }
 
-    private void checkDate(Date date){
-        Date currDate = new Date();
-        if (currDate.after(date)) {
-            String errMessage = String.format("Datum %s je u proslosti", date.toString());
+    private void checkDate(LocalDateTime date){
+        LocalDateTime currDate = LocalDateTime.now();
+        if (currDate.isAfter(date)) {
+            String errMessage = String.format("Datum %s je u proslosti", date);
             log.error(errMessage);
             throw new BadRequestException(errMessage);
         }
     }
 
-    private void checkPatientTestingsForDay(Patient patient, Date dateAndTime) {
-        Date startDate = DateUtils.truncate(dateAndTime, Calendar.DAY_OF_MONTH);
-        Date endDate = DateUtils.addDays(startDate, 1);
+    private void checkPatientTestingsForDay(Patient patient, LocalDateTime dateAndTime) {
+        LocalDateTime startDate = dateAndTime.truncatedTo(ChronoUnit.DAYS);
+        LocalDateTime endDate = startDate.plusDays(1);
 
         List<ScheduledTesting> tests = scheduledTestingRepository.findByPatientAndDateAndTimeBetween(patient, startDate, endDate);
         if (tests != null && tests.size() > 0) {
@@ -175,7 +176,7 @@ public class TestingServiceImpl implements TestingService {
         return term;
     }
 
-    private AvailableTerm makeAvailableTerm(Date dateAndTime, String token) {
+    private AvailableTerm makeAvailableTerm(LocalDateTime dateAndTime, String token) {
         TokenPayload tokenPayload = TokenPayloadUtil.getTokenPayload();
         int availableNurses = getAvailableNurses(tokenPayload.getPbo(), token);
         return testingMapper.makeAvailableTerm(dateAndTime,
