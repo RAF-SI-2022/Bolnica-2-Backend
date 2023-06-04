@@ -2,6 +2,7 @@ package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
 import com.raf.si.patientservice.dto.response.AvailableTermResponse;
+import com.raf.si.patientservice.dto.response.ScheduledTestingListResponse;
 import com.raf.si.patientservice.dto.response.ScheduledTestingResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
@@ -12,15 +13,21 @@ import com.raf.si.patientservice.model.ScheduledTesting;
 import com.raf.si.patientservice.model.enums.testing.Availability;
 import com.raf.si.patientservice.repository.AvailableTermRepository;
 import com.raf.si.patientservice.repository.ScheduledTestingRepository;
+import com.raf.si.patientservice.repository.filtering.filter.ScheduledTestingFilter;
+import com.raf.si.patientservice.repository.filtering.specification.ScheduledTestingSpecification;
 import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.TestingService;
 import com.raf.si.patientservice.utils.HttpUtils;
 import com.raf.si.patientservice.utils.TokenPayload;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.integration.support.locks.LockRegistry;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -136,6 +143,18 @@ public class TestingServiceImpl implements TestingService {
         }
 
         return testingMapper.availableTermToResponse(availableTerm);
+    }
+
+    @Override
+    public ScheduledTestingListResponse getScheduledtestings(UUID lbp, LocalDate date, Pageable pageable) {
+        Patient patient = lbp == null? null: patientService.findPatient(lbp);
+        LocalDateTime dateTime = date.atStartOfDay();
+
+        ScheduledTestingFilter filter = new ScheduledTestingFilter(patient, dateTime);
+        ScheduledTestingSpecification spec = new ScheduledTestingSpecification(filter);
+
+        Page<ScheduledTesting> scheduledTestingPage = scheduledTestingRepository.findAll(spec, pageable);
+        return testingMapper.scheduledTestingPageToResponse(scheduledTestingPage);
     }
 
     private void checkDate(LocalDateTime date){

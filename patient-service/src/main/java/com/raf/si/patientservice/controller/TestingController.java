@@ -2,15 +2,18 @@ package com.raf.si.patientservice.controller;
 
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
 import com.raf.si.patientservice.dto.response.AvailableTermResponse;
+import com.raf.si.patientservice.dto.response.ScheduledTestingListResponse;
 import com.raf.si.patientservice.dto.response.ScheduledTestingResponse;
 import com.raf.si.patientservice.service.TestingService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
@@ -41,5 +44,15 @@ public class TestingController {
     public ResponseEntity<AvailableTermResponse> getAvailableTerm(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime dateAndTime,
                                                                   @RequestHeader("Authorization") String authorizationHeader) {
         return ResponseEntity.ok(testingService.getAvailableTerm(dateAndTime, authorizationHeader));
+    }
+
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @GetMapping("/scheduled")
+    public ResponseEntity<ScheduledTestingListResponse> getScheduledTestings(@RequestParam(required = false) UUID lbp,
+                                                                             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
+                                                                             @RequestParam(defaultValue = "0") int page,
+                                                                             @RequestParam(defaultValue = "5") int size) {
+
+        return ResponseEntity.ok(testingService.getScheduledtestings(lbp, date, PageRequest.of(page, size)));
     }
 }

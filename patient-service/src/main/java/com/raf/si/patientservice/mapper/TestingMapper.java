@@ -2,6 +2,7 @@ package com.raf.si.patientservice.mapper;
 
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
 import com.raf.si.patientservice.dto.response.AvailableTermResponse;
+import com.raf.si.patientservice.dto.response.ScheduledTestingListResponse;
 import com.raf.si.patientservice.dto.response.ScheduledTestingResponse;
 import com.raf.si.patientservice.model.AvailableTerm;
 import com.raf.si.patientservice.model.Patient;
@@ -9,10 +10,13 @@ import com.raf.si.patientservice.model.ScheduledTesting;
 import com.raf.si.patientservice.utils.TokenPayload;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -72,5 +76,14 @@ public class TestingMapper {
         response.setDateAndTime(availableTerm.getDateAndTime());
 
         return response;
+    }
+
+    public ScheduledTestingListResponse scheduledTestingPageToResponse(Page<ScheduledTesting> scheduledTestingPage) {
+        List<ScheduledTestingResponse> schedTestings = scheduledTestingPage.toList()
+                .stream()
+                .map(this::scheduledTestingToResponse)
+                .collect(Collectors.toList());
+
+        return new ScheduledTestingListResponse(schedTestings, scheduledTestingPage.getTotalElements());
     }
 }
