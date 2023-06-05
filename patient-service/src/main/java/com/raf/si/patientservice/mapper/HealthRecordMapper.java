@@ -281,6 +281,9 @@ public class HealthRecordMapper {
         if(diagnosis != null){
             medicalExamination.setDiagnosis(diagnosis);
         }
+        if (createExaminationReportRequest.getCovid() != null) {
+            medicalExamination.setCovid(createExaminationReportRequest.getCovid());
+        }
 
         return medicalExamination;
     }

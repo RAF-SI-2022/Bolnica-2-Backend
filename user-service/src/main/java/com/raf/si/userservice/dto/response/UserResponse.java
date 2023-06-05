@@ -35,4 +35,5 @@ public class UserResponse {
     private boolean isDeleted;
     private Department department;
     private List<String> permissions;
+    private boolean covidAccess;
 }

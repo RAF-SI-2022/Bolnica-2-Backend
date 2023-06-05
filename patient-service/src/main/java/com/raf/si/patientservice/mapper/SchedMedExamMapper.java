@@ -31,7 +31,9 @@ public class SchedMedExamMapper {
         scheduledMedExamination.setLbzDoctor(schedMedExamRequest.getLbzDoctor());
         scheduledMedExamination.setAppointmentDate(schedMedExamRequest.getAppointmentDate());
         scheduledMedExamination.setLbzNurse(schedMedExamRequest.getLbzNurse());
-
+        if (schedMedExamRequest.getCovid() != null) {
+            scheduledMedExamination.setCovid(schedMedExamRequest.getCovid());
+        }
 
         if (schedMedExamRequest.getNote() != null)
             scheduledMedExamination.setNote(schedMedExamRequest.getNote());
@@ -50,6 +52,7 @@ public class SchedMedExamMapper {
         schedMedExamResponse.setPatientArrivalStatus(scheduledMedExamination.getPatientArrivalStatus());
         schedMedExamResponse.setNote(scheduledMedExamination.getNote());
         schedMedExamResponse.setLbzNurse(scheduledMedExamination.getLbzNurse());
+        schedMedExamResponse.setCovid(scheduledMedExamination.getCovid());
 
         return schedMedExamResponse;
     }
