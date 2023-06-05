@@ -11,14 +11,14 @@ services:
       - "6379:6379"
 
   mongo-db:
-    image: mongo
+    image: harbor.k8s.elab.rs/bolnica-2/mongo:latest
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
     ports:
       - 27017:27017
   mongo-express:
-    image: mongo-express
+    image: harbor.k8s.elab.rs/bolnica-2/mongo-express:latest
     restart: always
     ports:
       - 8090:8081
