@@ -68,7 +68,7 @@ async def world_stats() -> list[WorldStatsResponse]:
                 stat[key] = "unknown"
 
         to_return.append(WorldStatsResponse.parse_obj(stat))
-        print(stat)
+        # print(stat)
 
     return to_return
 
@@ -126,7 +126,7 @@ async def covid_hospitalized(name : str) -> list[HospitalizedResponse]:
                 stat[key] = "unknown"
 
         to_return.append(HospitalizedResponse.parse_obj(stat))
-        print(stat)
+        # print(stat)
 
     return to_return
 

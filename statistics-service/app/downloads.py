@@ -187,9 +187,10 @@ def download_covid_hospitalized(db_covid):
     if metadata in [None, []]:
         stats_metadata.insert_one({"first_load": True})
         ## koristi 
-        print("prvi load")
+        print("prvi load hospital...")
         stats = db_covid.hospitalized_stats
         stats.insert_many(json_data)
+        print("prvi load hospital done!")
         return
 
     for record in tqdm(json_data):
