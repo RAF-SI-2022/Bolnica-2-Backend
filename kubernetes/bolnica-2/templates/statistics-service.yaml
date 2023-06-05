@@ -27,7 +27,7 @@ spec:
           value: "raf"
         - name: MONGO_PASSWORD
           value: "12345678"
-        - name: PREFIX
+        - name: API_PREFIX
           value: ""
         ports:
           - containerPort: 8000
