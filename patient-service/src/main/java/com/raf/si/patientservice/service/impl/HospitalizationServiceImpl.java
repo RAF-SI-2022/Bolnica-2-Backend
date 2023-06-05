@@ -151,6 +151,12 @@ public class HospitalizationServiceImpl implements HospitalizationService {
 
         Patient patient = getHospitalisedPatientByLbp(lbp);
 
+        if (patientConditionRequest.getCollectedInfoDate() == null) {
+            patientConditionRequest.setCollectedInfoDate(new Date());
+        } else {
+            checkDateInPast(patientConditionRequest.getCollectedInfoDate());
+        }
+
         log.info("Kreiranje stanja pacijenta...");
         PatientCondition patientCondition = patientConditionRepository.save(
                 hospitalizationMapper.patientConditionRequestToPatientCondition(
@@ -327,5 +333,14 @@ public class HospitalizationServiceImpl implements HospitalizationService {
         return TokenPayloadUtil.getTokenPayload()
                 .getPermissions()
                 .contains("ROLE_DR_SPEC_POV");
+    }
+
+    private void checkDateInPast(Date date) {
+        Date currDate = new Date();
+        if (date.after(currDate)) {
+            String errMessage = String.format("Datum '%s' je u buducnosti", date);
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
     }
 }
