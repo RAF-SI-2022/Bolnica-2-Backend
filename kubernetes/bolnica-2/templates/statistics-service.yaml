@@ -1,0 +1,55 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: statistics-service
+  labels:
+    app: statistics-service
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: statistics-service
+  template:
+    metadata:
+      labels:
+        app: statistics-service
+    spec:
+      containers:
+      - name: statistics-service
+        image: "{{ .Values.image.repository_url }}/{{ .Values.image.repository_name }}/statistics-service:{{ .Values.git_version }}"
+        imagePullPolicy: Always
+        env:
+        - name: MONGO_ADDRESS
+          value: "mongodb-mongodb-sharded"
+        - name: MONGO_USERNAME
+          value: "raf"
+        - name: MONGO_PASSWORD
+          value: "12345678"
+        - name: API_PREFIX
+          value: ""
+        ports:
+          - containerPort: 8000
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: statistics-service
+  name: statistics-service
+  namespace: {{ .Values.namespace }}
+spec:
+  # Portove promeniti po potrebi u zavisnosti koje portove koristi vas mikroservis.
+  ports:
+    - port: 8000
+      protocol: TCP
+      targetPort: 8000
+  # Selector je skup labela po kojima ce Kubernetes da nadje Podove koji treba
+  # da budu obuhvaceni ovim servisom. Ove labele treba da budu iste kao labele
+  # definisane u Deploymentu (.spec.template.metadata.labels).
+  selector:
+    app: statistics-service
+  type: ClusterIP

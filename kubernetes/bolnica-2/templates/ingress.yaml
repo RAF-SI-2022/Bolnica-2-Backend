@@ -65,3 +65,10 @@ spec:
               name: laboratory-service
               port:
                 number: 8083
+        - pathType: Prefix
+          path: "/api/stats(/|$)(.*)"
+          backend:
+            service:
+              name: statistics-service
+              port:
+                number: 8000
