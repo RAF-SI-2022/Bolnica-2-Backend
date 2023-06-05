@@ -38,7 +38,7 @@ mongo_password = os.environ.get('MONGO_PASSWORD', 'example')
 mongodb_uri = f'mongodb://{mongo_username}:{mongo_password}@{mongo_address}/?retryWrites=true&w=majority'
 # port = 8000 
 mongo_client = MongoClient(mongodb_uri)
-db_covid = mongo_client['covid']
+db_covid = mongo_client['raf']
 
 covid_data_path = 'https://covid.ourworldindata.org/data/owid-covid-data.csv'
 reload_time = 60*60*6  # 6 hour
