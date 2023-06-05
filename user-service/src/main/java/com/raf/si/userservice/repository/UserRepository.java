@@ -27,11 +27,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean userExists(@PathVariable("lbz") UUID lbz, @PathVariable("isDeleted") boolean isDeleted);
 
     @Query(value = "select u from users u where lower(u.firstName) like %:firstName% and lower(u.lastName) like %:lastName% " +
-            "and u.isDeleted in :includeDeleted " +
+            "and u.isDeleted in :includeDeleted and u.covidAccess in :hasCovidAccess " +
             "and lower(u.department.name) like %:departmentName% and lower(u.department.hospital.fullName) like %:hospitalName%")
     Page<User> listAllUsers(@PathVariable("firstName") String firstName, @PathVariable("lastName") String lastName,
                             @PathVariable("departmentName") String departmentName, @PathVariable("hospitalName") String hospitalName,
-                            @PathVariable("includeDeleted") List<Boolean> includeDeleted, Pageable pageable);
+                            @PathVariable("includeDeleted") List<Boolean> includeDeleted,
+                            @PathVariable("hasCovidAccess") List<Boolean> hasCovidAccess, Pageable pageable);
 
     Optional<User> findByPasswordToken(UUID passwordToken);
 
@@ -46,4 +47,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(value = "select distinct u from users u left join u.permissions p where p.name = :headPermission and u.department = :department")
     Optional<User> getHeadOfDepartment(@PathVariable("department") Department department, @PathVariable("headPermission") String headPermission);
+
+    @Query(value = "select count(distinct u) from users u left join u.permissions p where u.department.pbo=:pbo" +
+            " and u.covidAccess=true and p.name in :permissions")
+    long countCovidNursesByPbo(UUID pbo, List<String> permissions);
 }

@@ -1,6 +1,5 @@
 package com.raf.si.patientservice.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -19,4 +18,5 @@ public class SchedMedExamRequest {
     private String note;
     @NotNull(message = "ID zaposlenog koji je zakazao pregled ne sme biti prazan")
     private UUID lbzNurse;
+    private Boolean covid;
 }

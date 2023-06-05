@@ -16,4 +16,5 @@ public class DoctorResponse {
     private UUID lbz;
     private String firstName;
     private String lastName;
+    private boolean covidAccess;
 }

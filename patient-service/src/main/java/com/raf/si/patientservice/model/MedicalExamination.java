@@ -51,6 +51,9 @@ public class MedicalExamination {
     @Column
     private Boolean deleted = false;
 
+    @Column
+    private Boolean covid = false;
+
     //FK
     @Column(nullable = false)
     private UUID lbz;

@@ -40,4 +40,6 @@ public class CreateExaminationReportRequest {
     private String treatmentResult;
 
     private String currentStateDescription;
+
+    private Boolean covid;
 }

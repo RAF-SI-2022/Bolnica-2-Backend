@@ -22,6 +22,8 @@ public class PatientConditionRequest {
     private String appliedTherapies;
     private String description;
 
+    private Boolean onRespirator;
+
     public boolean allNull() {
         return Stream.of(collectedInfoDate, temperature, bloodPressure, pulse, appliedTherapies, description)
                 .allMatch(Objects::isNull);

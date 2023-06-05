@@ -242,12 +242,12 @@ public class UserServiceTest {
         users.add(createUser());
         Page<User> pages = new PageImpl<>(users);
 
-        when(userRepository.listAllUsers(any(), any(), any(), any(), anyList(), any()))
+        when(userRepository.listAllUsers(any(), any(), any(), any(), any(), anyList(), any()))
                 .thenReturn(pages);
 
         UserListAndCountResponse userListAndCountResponse = userMapper.modelToUserListAndCountResponse(pages);
 
-        assertEquals(userService.listUsers(firstName, lastName, departmentName, hospitalName, true, pageable),
+        assertEquals(userService.listUsers(firstName, lastName, departmentName, hospitalName, true, null, pageable),
                 userListAndCountResponse);
     }
 
