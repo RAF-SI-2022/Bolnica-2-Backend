@@ -41,7 +41,7 @@ covid_data_path = 'https://covid.ourworldindata.org/data/owid-covid-data.csv'
 reload_time = 60*60*6  # 6 hour
 
 
-prefix = os.environ.get("prefix", "/stats")
+prefix = os.environ.get("API_PREFIX", "/api/stats")
 
 
 @app.on_event("startup")
