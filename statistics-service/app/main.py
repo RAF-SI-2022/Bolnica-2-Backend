@@ -1,4 +1,5 @@
 from fastapi import FastAPI, BackgroundTasks, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi_utils.tasks import repeat_every
 from time import time, sleep
 import os
@@ -17,6 +18,17 @@ from app.downloads import download_covid_cases, download_covid_world, download_c
     download_covid_hospitalized, download_covid_available_vacciness, download_covid_tests
 
 app = FastAPI()
+
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # MongoDB attributes
 mongo_address = os.environ.get('MONGO_ADDRESS', 'localhost')
