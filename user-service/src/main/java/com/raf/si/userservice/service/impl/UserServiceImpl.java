@@ -7,6 +7,7 @@ import com.raf.si.userservice.exception.ForbiddenException;
 import com.raf.si.userservice.exception.NotFoundException;
 import com.raf.si.userservice.mapper.UserMapper;
 import com.raf.si.userservice.model.Department;
+import com.raf.si.userservice.model.Hospital;
 import com.raf.si.userservice.model.Permission;
 import com.raf.si.userservice.model.User;
 import com.raf.si.userservice.repository.DepartmentRepository;
@@ -14,6 +15,8 @@ import com.raf.si.userservice.repository.PermissionsRepository;
 import com.raf.si.userservice.repository.UserRepository;
 import com.raf.si.userservice.service.EmailService;
 import com.raf.si.userservice.service.UserService;
+import com.raf.si.userservice.utils.TokenPayload;
+import com.raf.si.userservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -22,10 +25,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.PersistenceContext;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -37,6 +40,8 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
     private final DepartmentRepository departmentRepository;
     private final PermissionsRepository permissionsRepository;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public UserServiceImpl(UserRepository userRepository, UserMapper userMapper,
                            EmailService emailService, DepartmentRepository departmentRepository,
@@ -82,6 +87,7 @@ public class UserServiceImpl implements UserService {
             throw new NotFoundException(String.format("Ne postoji korisnik sa lbz-om: %s ", lbz));
         });
     }
+
     @Override
     public UserResponse getUserByLbz(UUID lbz) {
         User user = findUserByLbz(lbz);
@@ -126,6 +132,7 @@ public class UserServiceImpl implements UserService {
     private User updateUser(User user) {
         return userRepository.save(user);
     }
+
     @Transactional
     @Override
     public UserResponse updateUser(UUID lbz, UpdateUserRequest updateUserRequest, boolean isAdmin) {
@@ -152,11 +159,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserListAndCountResponse listUsers(String firstName, String lastName,
                                               String departmentName, String hospitalName,
-                                              boolean includeDeleted, Pageable pageable) {
+                                              boolean includeDeleted, Boolean hasCovidAccess,
+                                              Pageable pageable) {
 
         return userMapper.modelToUserListAndCountResponse(userRepository.listAllUsers(firstName.toLowerCase(), lastName.toLowerCase(),
                 departmentName.toLowerCase(), hospitalName.toLowerCase(),
-                adjustIncludeDeleteParameter(includeDeleted), pageable));
+                adjustIncludeDeleteParameter(includeDeleted),
+                adjustHasCovidAccessParameter(hasCovidAccess), pageable));
     }
 
     @Override
@@ -188,6 +197,21 @@ public class UserServiceImpl implements UserService {
         log.info("Sifra promenjena za korisnika sa email-om '{}'", updatedUser.getEmail());
 
         return new MessageResponse("Sifra je uspesno promenjena");
+    }
+
+    @Override
+    public UserResponse updateCovidAccess(UUID lbz, boolean covidAccess) {
+        User user = findUserByLbz(lbz);
+
+        if (!canUpdateCovidAccess(user)) {
+            String errMessage = String.format("Nemate permisiju da promenite pristup covid-u za korisnika sa lbz-om '%s'", lbz);
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+
+        user.setCovidAccess(covidAccess);
+        user = userRepository.save(user);
+        return userMapper.modelToResponse(user);
     }
 
     @Override
@@ -224,11 +248,69 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public DoctorResponse getHeadOfDepartment(UUID pbo) {
+        Department department = departmentRepository.findDepartmentByPbo(pbo).orElseThrow(() -> {
+            log.error("Odeljenje sa pbo '{}' ne postoji", pbo);
+            throw new NotFoundException("Odeljenje sa datim pbo ne postoji");
+        });
+
+        log.info("Dohvatanje nacelnika odeljenja za pbo '{}'", pbo);
+
+        User user = userRepository.getHeadOfDepartment(department, "ROLE_DR_SPEC_ODELJENJA")
+                .orElseThrow(() -> {
+                    log.error("Ne postoji nacelnik odeljenja za pbo '{}'", pbo);
+                    throw new NotFoundException("Ne postoji nacelnik odeljenja za dato odeljenje");
+                });
+        return userMapper.modelToDoctorResponse(user);
+    }
+
+    @Override
+    public Integer getNumOfCovidNursesByDepartment(UUID pbo) {
+        List<String> permissions = Arrays.asList(new String[] {"ROLE_MED_SESTRA", "ROLE_VISA_MED_SESTRA"});
+        return (int) userRepository.countCovidNursesByPbo(pbo, permissions);
+    }
+
     private List<Boolean> adjustIncludeDeleteParameter(boolean includeDeleted) {
         List<Boolean> list = new ArrayList<>();
         list.add(false);
         if (includeDeleted)
             list.add(true);
         return list;
+    }
+
+    private List<Boolean> adjustHasCovidAccessParameter(Boolean hasCovidAccess) {
+        if (hasCovidAccess == null) {
+            return Arrays.asList(new Boolean[] {true, false});
+        }
+        return Arrays.asList(new Boolean[]{hasCovidAccess});
+    }
+
+    private boolean canUpdateCovidAccess(User userForUpdate) {
+        TokenPayload token = TokenPayloadUtil.getTokenPayload();
+        List<String> loggedInRoles = token.getPermissions();
+        Department department = userForUpdate.getDepartment();
+        Hospital hospital = department.getHospital();
+
+        if (loggedInRoles.contains("ROLE_ADMIN") && hospital.getPbb().equals(token.getPbb())) {
+            return true;
+        }
+
+        if (loggedInRoles.contains("ROLE_DR_SPEC_ODELJENJA") && department.getPbo().equals(token.getPbo())) {
+            return true;
+        }
+
+        if (loggedInRoles.contains("ROLE_VISA_MED_SESTRA") && department.getPbo().equals(token.getPbo())) {
+            List<String> roles = userForUpdate.getPermissions()
+                    .stream()
+                    .map(Permission::getName)
+                    .collect(Collectors.toList());
+
+            if (roles.contains("ROLE_VISA_MED_SESTRA") || roles.contains("ROLE_MED_SESTRA")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

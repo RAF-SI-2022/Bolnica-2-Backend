@@ -41,4 +41,5 @@ public class PatientRequest {
     private Integer childrenNum;
     private String education;
     private String profession;
+    private Boolean immunized;
 }

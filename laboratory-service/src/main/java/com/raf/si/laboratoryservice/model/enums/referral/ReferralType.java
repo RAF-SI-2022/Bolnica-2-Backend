@@ -6,7 +6,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 public enum ReferralType {
     LABORATORIJA("Laboratorija"),
     DIJAGNOSTIKA("Dijagnostika"),
-    STACIONAR("Stacionar");
+    STACIONAR("Stacionar"),
+    COVID_ODSEK("Covid odsek");
 
     String notation;
 

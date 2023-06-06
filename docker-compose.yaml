@@ -10,6 +10,34 @@ services:
     ports:
       - "6379:6379"
 
+  mongo-db:
+    image: harbor.k8s.elab.rs/bolnica-2/mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - 27017:27017
+  mongo-express:
+    image: harbor.k8s.elab.rs/bolnica-2/mongo-express:latest
+    restart: always
+    ports:
+      - 8090:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo-db:27017/
+
+  statistics-service:
+    # image: statistics-service:0.1
+    build: ./statistics-service
+    container_name: statistics-service
+    ports:
+      - 8000:8000
+    depends_on:
+      - mongo-db
+    environment:
+      - MONGO_ADDRESS=mongo-db
+
   user-db:
     image: harbor.k8s.elab.rs/bolnica-2/postgres:latest
     restart: always

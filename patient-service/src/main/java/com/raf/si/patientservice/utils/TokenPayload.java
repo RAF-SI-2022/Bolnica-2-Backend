@@ -24,4 +24,5 @@ public class TokenPayload {
     private UUID pbb;
     private String hospitalName;
     private List<String> permissions;
+    private boolean covidAccess;
 }

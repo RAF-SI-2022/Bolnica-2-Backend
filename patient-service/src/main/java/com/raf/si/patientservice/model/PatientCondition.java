@@ -29,5 +29,5 @@ public class PatientCondition {
     @Column(name = "applied_therapies")
     private String appliedTherapies;
     private String description;
-
+    private Boolean onRespirator = false;
 }

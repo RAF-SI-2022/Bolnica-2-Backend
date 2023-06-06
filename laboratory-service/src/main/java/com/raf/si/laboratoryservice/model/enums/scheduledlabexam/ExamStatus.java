@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 public enum ExamStatus {
     ZAKAZANO("Zakazano"),
     OTKAZANO("Otkazano"),
+    U_TOKU("U toku"),
     ZAVRSENO("Završeno");
 
     String notation;

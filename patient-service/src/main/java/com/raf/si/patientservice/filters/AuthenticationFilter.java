@@ -122,6 +122,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         tokenPayload.setHospitalName((String) claims.get("hospitalName"));
         List<String> permissions = ((List<String>) claims.get("permissions"));
         tokenPayload.setPermissions(permissions);
+        tokenPayload.setCovidAccess((Boolean) claims.get("covidAccess"));
 
         return tokenPayload;
     }

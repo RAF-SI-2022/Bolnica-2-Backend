@@ -137,6 +137,10 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
         ScheduledMedExamination scheduledMedExamination = schedMedExamMapper.schedMedExamRequestToScheduledMedExamination
                 (new ScheduledMedExamination(), schedMedExamRequest, patient);
 
+        if (schedMedExamRequest.getCovid() != null) {
+            scheduledMedExamination.setCovid(schedMedExamRequest.getCovid());
+        }
+
         scheduledMedExamRepository.save(scheduledMedExamination);
 
         log.info("Pregled ušpesno kreiran");

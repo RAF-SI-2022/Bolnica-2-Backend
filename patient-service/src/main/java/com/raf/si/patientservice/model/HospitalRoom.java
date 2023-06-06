@@ -24,9 +24,16 @@ public class HospitalRoom {
     private Integer capacity;
     @Column(nullable = false)
     private Integer occupation;
+    @Column
     private String description;
+    @Column
+    private Boolean covid = false;
 
     public void incrementOccupation() {
         occupation++;
+    }
+
+    public void decrementOccupation() {
+        occupation--;
     }
 }

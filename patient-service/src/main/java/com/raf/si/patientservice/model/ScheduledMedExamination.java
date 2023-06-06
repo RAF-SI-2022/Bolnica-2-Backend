@@ -29,6 +29,8 @@ public class ScheduledMedExamination {
     private PatientArrivalStatus patientArrivalStatus= PatientArrivalStatus.NIJE_DOSAO;
     @Column
     private String note="";
+    @Column
+    private Boolean covid = false;
     //FK
     @Column(nullable = false)
     private UUID lbzNurse;

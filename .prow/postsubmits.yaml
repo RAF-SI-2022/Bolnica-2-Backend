@@ -31,20 +31,24 @@ postsubmits:
               docker build -t harbor.k8s.elab.rs/bolnica-2/user-service:latest ./user-service
               docker build -t harbor.k8s.elab.rs/bolnica-2/patient-service:latest ./patient-service
               docker build -t harbor.k8s.elab.rs/bolnica-2/laboratory-service:latest ./laboratory-service
+              docker build -t harbor.k8s.elab.rs/bolnica-2/statistics-service:latest ./statistics-service
               
               docker build -t harbor.k8s.elab.rs/bolnica-2/user-service:$commit_hash ./user-service
               docker build -t harbor.k8s.elab.rs/bolnica-2/patient-service:$commit_hash ./patient-service
               docker build -t harbor.k8s.elab.rs/bolnica-2/laboratory-service:$commit_hash ./laboratory-service
+              docker build -t harbor.k8s.elab.rs/bolnica-2/statistics-service:$commit_hash ./statistics-service
 
               
               # push images
               docker push harbor.k8s.elab.rs/bolnica-2/user-service:latest
               docker push harbor.k8s.elab.rs/bolnica-2/patient-service:latest
               docker push harbor.k8s.elab.rs/bolnica-2/laboratory-service:latest
+              docker push harbor.k8s.elab.rs/bolnica-2/statistics-service:latest
 
               docker push harbor.k8s.elab.rs/bolnica-2/user-service:$commit_hash
               docker push harbor.k8s.elab.rs/bolnica-2/patient-service:$commit_hash
               docker push harbor.k8s.elab.rs/bolnica-2/laboratory-service:$commit_hash
+              docker push harbor.k8s.elab.rs/bolnica-2/statistics-service:$commit_hash
               
 
               # sed --in-place "s;__COMMIT_HASH__;$commit_hash;g" kubernetes/
@@ -90,20 +94,24 @@ postsubmits:
               docker build -t harbor.k8s.elab.rs/bolnica-2/user-service:develop-latest ./user-service
               docker build -t harbor.k8s.elab.rs/bolnica-2/patient-service:develop-latest ./patient-service
               docker build -t harbor.k8s.elab.rs/bolnica-2/laboratory-service:develop-latest ./laboratory-service
+              docker build -t harbor.k8s.elab.rs/bolnica-2/statistics-service:develop-latest ./statistics-service
               
               docker build -t harbor.k8s.elab.rs/bolnica-2/user-service:$commit_hash ./user-service
               docker build -t harbor.k8s.elab.rs/bolnica-2/patient-service:$commit_hash ./patient-service
               docker build -t harbor.k8s.elab.rs/bolnica-2/laboratory-service:$commit_hash ./laboratory-service
+              docker build -t harbor.k8s.elab.rs/bolnica-2/statistics-service:$commit_hash ./statistics-service
 
               
               # push images
               docker push harbor.k8s.elab.rs/bolnica-2/user-service:develop-latest
               docker push harbor.k8s.elab.rs/bolnica-2/patient-service:develop-latest
               docker push harbor.k8s.elab.rs/bolnica-2/laboratory-service:develop-latest
+              docker push harbor.k8s.elab.rs/bolnica-2/statistics-service:develop-latest
 
               docker push harbor.k8s.elab.rs/bolnica-2/user-service:$commit_hash
               docker push harbor.k8s.elab.rs/bolnica-2/patient-service:$commit_hash
               docker push harbor.k8s.elab.rs/bolnica-2/laboratory-service:$commit_hash
+              docker push harbor.k8s.elab.rs/bolnica-2/statistics-service:$commit_hash
               
 
               # sed --in-place "s;__COMMIT_HASH__;$commit_hash;g" kubernetes/

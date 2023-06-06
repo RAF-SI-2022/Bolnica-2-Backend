@@ -20,11 +20,14 @@ public interface UserService {
     UserResponse updateUser(UUID lbz, UpdateUserRequest updateUserRequest, boolean isAdmin);
 
     UserListAndCountResponse listUsers(String firstName, String lastName, String departmentName,
-                                       String hospitalName, boolean includeDeleted, Pageable pageable);
+                                       String hospitalName, boolean includeDeleted, Boolean hasCovidAccess,
+                                       Pageable pageable);
 
     MessageResponse resetPassword(PasswordResetRequest passwordResetRequest);
 
     MessageResponse updatePassword(UpdatePasswordRequest updatePasswordRequest);
+
+    UserResponse updateCovidAccess(UUID lbz, boolean covidAccess);
 
     List<DoctorResponse> getAllDoctors();
 
@@ -32,4 +35,7 @@ public interface UserService {
 
     List<UserResponse> getUsersByLbzList(UUIDListRequest lbzListRequest);
 
+    DoctorResponse getHeadOfDepartment(UUID pbo);
+
+    Integer getNumOfCovidNursesByDepartment(UUID pbo);
 }

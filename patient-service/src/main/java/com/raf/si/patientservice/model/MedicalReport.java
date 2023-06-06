@@ -21,7 +21,7 @@ public class MedicalReport {
     @Column(name = "doctor_lbz", nullable = false)
     private UUID doctorLBZ;
     @Column(nullable = false)
-    private Date date;
+    private Date date = new Date();
     @Column(name = "confidentiality_indicator", nullable = false)
     private Boolean confidentIndicator = false;
     @Column(name = "objective_result", nullable = false)
