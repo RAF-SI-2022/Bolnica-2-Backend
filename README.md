@@ -5,6 +5,7 @@ init commit
 ```bash
 docker compose up
 ```
+
 ## Pravilo gasenje backenda :
 ```bash
 docker compose down --rmi all
