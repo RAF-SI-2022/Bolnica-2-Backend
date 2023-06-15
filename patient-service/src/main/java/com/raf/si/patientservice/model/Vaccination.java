@@ -26,6 +26,9 @@ public class Vaccination {
     @Column
     private Date vaccinationDate = new Date(System.currentTimeMillis());
 
+    @OneToOne(mappedBy = "vaccination", fetch = FetchType.EAGER)
+    private ScheduledVaccination scheduledVaccination;
+    
     @Column
     private Boolean deleted = false;
 }
