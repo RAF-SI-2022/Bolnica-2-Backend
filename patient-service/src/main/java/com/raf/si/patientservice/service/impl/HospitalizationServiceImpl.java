@@ -26,6 +26,7 @@ import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.utils.HttpUtils;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -337,6 +338,8 @@ public class HospitalizationServiceImpl implements HospitalizationService {
 
     private void checkDateInPast(Date date) {
         Date currDate = new Date();
+        //Zbog vremenskih zona, salje se u UTC
+        date = DateUtils.addHours(date, -2);
         if (date.after(currDate)) {
             String errMessage = String.format("Datum '%s' je u buducnosti", date);
             log.error(errMessage);
