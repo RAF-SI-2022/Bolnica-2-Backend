@@ -12,10 +12,10 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-public class ScheduledVaccination {
+public class ScheduledVaccinationCovid {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
@@ -44,5 +44,5 @@ public class ScheduledVaccination {
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "vaccination_id", referencedColumnName = "id")
-    private Vaccination vaccination;
+    private VaccinationCovid vaccination;
 }
