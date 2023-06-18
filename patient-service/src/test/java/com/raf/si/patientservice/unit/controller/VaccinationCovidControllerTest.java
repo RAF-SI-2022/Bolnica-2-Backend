@@ -2,6 +2,7 @@ package com.raf.si.patientservice.unit.controller;
 
 import com.raf.si.patientservice.controller.VaccinationCovidController;
 import com.raf.si.patientservice.dto.request.ScheduledVaccinationRequest;
+import com.raf.si.patientservice.dto.response.ScheduledVaccinationListResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
 import com.raf.si.patientservice.service.VaccinationCovidService;
 import org.junit.jupiter.api.Test;
@@ -9,8 +10,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -39,8 +42,18 @@ public class VaccinationCovidControllerTest {
                 , ResponseEntity.ok(response));
     }
 
+    @Test
+    void getScheduledTestings_Success(){
+        ScheduledVaccinationListResponse response = new ScheduledVaccinationListResponse();
+        UUID lbp = UUID.randomUUID();
+        LocalDate date = LocalDate.now();
 
+        when(vaccinationCovidService.getScheduledVaccinations(lbp,date, PageRequest.of(0,1)))
+                .thenReturn(response);
 
+        assertEquals(vaccinationCovidController.getScheduledVaccinations(lbp,date, 0,1)
+                , ResponseEntity.ok(response));
+    }
 
     private ScheduledVaccinationRequest makeScheduledTestingRequest(){
         ScheduledVaccinationRequest scheduledVaccinationRequest = new ScheduledVaccinationRequest();

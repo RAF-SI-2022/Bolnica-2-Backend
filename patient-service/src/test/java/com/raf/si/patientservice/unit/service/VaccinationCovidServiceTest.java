@@ -22,6 +22,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
 
 import java.time.LocalDateTime;
@@ -33,7 +37,6 @@ import java.util.concurrent.locks.Lock;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -199,6 +202,18 @@ public class VaccinationCovidServiceTest {
 
         assertEquals(vaccinationMapper.scheduledVaccinationToResponse(vaccCovid)
                 , vaccinationCovidService.scheduleVaccination(lbp, request, token));
+    }
+
+    @Test
+    void getScheduledtestings(){
+        Pageable pageable = Pageable.ofSize(10).withPage(0);
+        Page<ScheduledVaccinationCovid> page= new PageImpl<>(List.of(makeSchedVaccCovid()),pageable, 1);
+
+        when(scheduledVaccinationCovidRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+        assertEquals(vaccinationMapper.scheduledVaccinationPageToResponse(page)
+                , vaccinationCovidService.getScheduledVaccinations(null, null, pageable));
+
     }
 
 

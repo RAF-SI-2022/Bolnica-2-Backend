@@ -1,6 +1,7 @@
 package com.raf.si.patientservice.mapper;
 
 import com.raf.si.patientservice.dto.request.ScheduledVaccinationRequest;
+import com.raf.si.patientservice.dto.response.ScheduledVaccinationListResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
 import com.raf.si.patientservice.model.AvailableTerm;
 import com.raf.si.patientservice.model.Patient;
@@ -8,10 +9,13 @@ import com.raf.si.patientservice.model.ScheduledVaccinationCovid;
 import com.raf.si.patientservice.utils.TokenPayload;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -53,5 +57,14 @@ public class VaccinationMapper {
         response.setLbp(scheduledVaccinationCovid.getPatient().getLbp());
 
         return response;
+    }
+
+    public ScheduledVaccinationListResponse scheduledVaccinationPageToResponse(Page<ScheduledVaccinationCovid> scheduledTestingPage) {
+        List<ScheduledVaccinationResponse> schedVaccinations = scheduledTestingPage.toList()
+                .stream()
+                .map(this::scheduledVaccinationToResponse)
+                .collect(Collectors.toList());
+
+        return new ScheduledVaccinationListResponse(schedVaccinations, scheduledTestingPage.getTotalElements());
     }
 }

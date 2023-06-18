@@ -2,6 +2,7 @@ package com.raf.si.patientservice.service.impl;
 
 
 import com.raf.si.patientservice.dto.request.ScheduledVaccinationRequest;
+import com.raf.si.patientservice.dto.response.ScheduledVaccinationListResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
@@ -14,15 +15,20 @@ import com.raf.si.patientservice.model.enums.testing.Availability;
 import com.raf.si.patientservice.repository.AvailableTermRepository;
 import com.raf.si.patientservice.repository.ScheduledVaccinationCovidRepository;
 import com.raf.si.patientservice.repository.VaccinationCovidRepository;
+import com.raf.si.patientservice.repository.filtering.filter.ScheduledVaccinationCovidFilter;
+import com.raf.si.patientservice.repository.filtering.specification.ScheduledVaccinationCovidSpecification;
 import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.VaccinationCovidService;
 import com.raf.si.patientservice.utils.HttpUtils;
 import com.raf.si.patientservice.utils.TokenPayload;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -129,6 +135,18 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
 
 
         return vaccinationMapper.scheduledVaccinationToResponse(scheduledVaccinationCovid);
+    }
+
+    @Override
+    public ScheduledVaccinationListResponse getScheduledVaccinations(UUID lbp, LocalDate date, Pageable pageable) {
+        Patient patient = lbp == null? null: patientService.findPatient(lbp);
+        LocalDateTime dateTime = date == null? null: date.atStartOfDay();
+
+        ScheduledVaccinationCovidFilter filter = new ScheduledVaccinationCovidFilter(patient, dateTime);
+        ScheduledVaccinationCovidSpecification spec = new ScheduledVaccinationCovidSpecification(filter);
+
+        Page<ScheduledVaccinationCovid> scheduledTestingPage = scheduledVaccinationCovidRepository.findAll(spec, pageable);
+        return vaccinationMapper.scheduledVaccinationPageToResponse(scheduledTestingPage);
     }
 
     private AvailableTerm checkAndGetAvailableTerm(List<AvailableTerm> availableTerms) {
