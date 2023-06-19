@@ -1,8 +1,10 @@
 package com.raf.si.patientservice.controller;
 
 import com.raf.si.patientservice.dto.request.ScheduledVaccinationRequest;
+import com.raf.si.patientservice.dto.request.VaccinationCovidRequest;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationListResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
+import com.raf.si.patientservice.dto.response.VaccinationCovidResposne;
 import com.raf.si.patientservice.service.VaccinationCovidService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -44,5 +46,13 @@ public class VaccinationCovidController {
                                                                                      @RequestParam(defaultValue = "5") int size) {
 
         return ResponseEntity.ok(vaccinationCovidService.getScheduledVaccinations(lbp, date, PageRequest.of(page, size)));
+    }
+
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @PostMapping("/create/{lbp}")
+    public  ResponseEntity<VaccinationCovidResposne> createVaccination(@RequestHeader("Authorization") String authorizationHeader
+                                                                        , @RequestBody @Valid VaccinationCovidRequest request
+                                                                        , @PathVariable("lbp") UUID lbp){
+        return  ResponseEntity.ok(vaccinationCovidService.createVaccination(lbp, request, authorizationHeader));
     }
 }

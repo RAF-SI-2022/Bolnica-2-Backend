@@ -1,11 +1,15 @@
 package com.raf.si.patientservice.mapper;
 
 import com.raf.si.patientservice.dto.request.ScheduledVaccinationRequest;
+import com.raf.si.patientservice.dto.request.VaccinationCovidRequest;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationListResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
+import com.raf.si.patientservice.dto.response.VaccinationCovidResposne;
 import com.raf.si.patientservice.model.AvailableTerm;
 import com.raf.si.patientservice.model.Patient;
 import com.raf.si.patientservice.model.ScheduledVaccinationCovid;
+import com.raf.si.patientservice.model.VaccinationCovid;
+import com.raf.si.patientservice.repository.VaccinationCovidRepository;
 import com.raf.si.patientservice.utils.TokenPayload;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -66,5 +70,23 @@ public class VaccinationMapper {
                 .collect(Collectors.toList());
 
         return new ScheduledVaccinationListResponse(schedVaccinations, scheduledTestingPage.getTotalElements());
+    }
+
+    public VaccinationCovid vaccCovidRequestToModel(VaccinationCovidRequest request) {
+        VaccinationCovid vaccinationCovid= new VaccinationCovid();
+        vaccinationCovid.setDateTime(request.getDateTime());
+        vaccinationCovid.incrementDosage();
+        return vaccinationCovid;
+    }
+
+    public VaccinationCovidResposne vaccinationCovidToResponse(VaccinationCovid  vaccinationCovid) {
+        VaccinationCovidResposne resposne= new VaccinationCovidResposne();
+        resposne.setId(vaccinationCovid.getId());
+        resposne.setVaccine(vaccinationCovid.getVaccine().getName());
+        resposne.setDoseReceived(vaccinationCovid.getDoseReceived());
+        resposne.setLocalDateTime(vaccinationCovid.getDateTime());
+        resposne.setScheduledVaccinationResponse(this.scheduledVaccinationToResponse(vaccinationCovid.getScheduledVaccinationCovid()));
+
+        return  resposne;
     }
 }

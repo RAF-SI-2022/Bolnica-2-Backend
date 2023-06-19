@@ -13,6 +13,7 @@ import com.raf.si.patientservice.model.enums.testing.Availability;
 import com.raf.si.patientservice.repository.AvailableTermRepository;
 import com.raf.si.patientservice.repository.ScheduledVaccinationCovidRepository;
 import com.raf.si.patientservice.repository.VaccinationCovidRepository;
+import com.raf.si.patientservice.repository.VaccineRepository;
 import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.VaccinationCovidService;
 import com.raf.si.patientservice.service.impl.VaccinationCovidServiceImpl;
@@ -46,6 +47,7 @@ public class VaccinationCovidServiceTest {
     private AvailableTermRepository availableTermRepository;
     private PatientService patientService;
     private VaccinationMapper vaccinationMapper;
+    private VaccineRepository vaccineRepository;
     private Lock lock;
     private JdbcLockRegistry lockRegistry;
     private VaccinationCovidService vaccinationCovidService;
@@ -59,6 +61,7 @@ public class VaccinationCovidServiceTest {
         vaccinationMapper = new VaccinationMapper();
         lock = mock(Lock.class);
         lockRegistry = mock(JdbcLockRegistry.class);
+        vaccineRepository = mock(VaccineRepository.class);
 
         vaccinationCovidService= new VaccinationCovidServiceImpl(
                   vaccinationCovidRepository
@@ -66,7 +69,8 @@ public class VaccinationCovidServiceTest {
                 , availableTermRepository
                 , patientService
                 , vaccinationMapper
-                , lockRegistry);
+                , lockRegistry
+                , vaccineRepository);
 
         when(patientService.findPatient((UUID) any()))
                 .thenReturn(makePatient());

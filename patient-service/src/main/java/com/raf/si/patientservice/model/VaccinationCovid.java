@@ -4,7 +4,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -24,13 +26,16 @@ public class VaccinationCovid {
     private HealthRecord healthRecord;
 
     @Column
-    private Date vaccinationDate = new Date(System.currentTimeMillis());
+    private LocalDateTime dateTime;
 
     @OneToOne(mappedBy = "vaccination", fetch = FetchType.EAGER)
     private ScheduledVaccinationCovid scheduledVaccinationCovid;
 
     @Column
     private String doseReceived = "1";
+
+    @Column(nullable = false)
+    private UUID performerLbz;
 
     @Column
     private Boolean deleted = false;
