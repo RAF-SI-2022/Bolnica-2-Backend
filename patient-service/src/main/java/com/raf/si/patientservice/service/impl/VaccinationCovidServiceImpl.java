@@ -3,10 +3,7 @@ package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.ScheduledVaccinationRequest;
 import com.raf.si.patientservice.dto.request.VaccinationCovidRequest;
-import com.raf.si.patientservice.dto.response.DosageReceivedResponse;
-import com.raf.si.patientservice.dto.response.ScheduledVaccinationListResponse;
-import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
-import com.raf.si.patientservice.dto.response.VaccinationCovidResposne;
+import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.exception.NotFoundException;
@@ -236,7 +233,7 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
             throw new BadRequestException(errMessage);
         }
 
-        ScheduledVaccinationCovid scheduledTesting = findScheduledTesting(scheduledVaccinationId);
+        ScheduledVaccinationCovid scheduledTesting = findScheduledVaccination(scheduledVaccinationId);
 
         if (vaccStatusString != null) {
             ExaminationStatus testStatus = findExaminationStatus(vaccStatusString);
@@ -265,6 +262,21 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
         return vaccinationMapper.scheduledVaccinationToResponse(scheduledTesting);
     }
 
+    @Override
+    public ScheduledVaccinationResponse deleteScheduledVaccination(Long id) {
+        ScheduledVaccinationCovid scheduledVaccination = findScheduledVaccination(id);
+        AvailableTerm availableTerm = scheduledVaccination.getAvailableTerm();
+
+        availableTerm.removeScheduledVaccination(scheduledVaccination);
+        availableTerm.decrementScheduledTermsNum();
+
+        scheduledVaccinationCovidRepository.delete(scheduledVaccination);
+        availableTermRepository.save(availableTerm);
+
+        log.info(String.format("Zakazano testiranje sa id-jem %s je obrisano", id));
+        return vaccinationMapper.scheduledVaccinationToResponse(scheduledVaccination);
+    }
+
     private ExaminationStatus findExaminationStatus(String examinationStatusString) {
         ExaminationStatus examinationStatus = ExaminationStatus.valueOfNotation(examinationStatusString);
         if (examinationStatus == null) {
@@ -286,7 +298,7 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
     }
 
 
-    private ScheduledVaccinationCovid findScheduledTesting(Long id) {
+    private ScheduledVaccinationCovid findScheduledVaccination(Long id) {
         return scheduledVaccinationCovidRepository.findById(id).orElseThrow(() -> {
             String errMessage = String.format("Zakazana vakcinacija sa id-jem %s ne postoji", id);
             log.error(errMessage);

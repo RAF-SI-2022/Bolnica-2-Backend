@@ -69,4 +69,10 @@ public class VaccinationCovidController {
         return ResponseEntity.ok(vaccinationCovidService.changeScheduledVaccinationStatus(scheduledVaccinationId, vaccStatus, patientArrivalStatus));
     }
 
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @DeleteMapping("/scheduled/delete/{id}")
+    public ResponseEntity<ScheduledVaccinationResponse> deleteScheduledVaccination(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(vaccinationCovidService.deleteScheduledVaccination(id));
+    }
+
 }

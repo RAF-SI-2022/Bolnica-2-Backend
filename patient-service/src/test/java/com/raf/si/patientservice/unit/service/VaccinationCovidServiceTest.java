@@ -321,7 +321,7 @@ public class VaccinationCovidServiceTest {
     }
 
     @Test
-    void changeScheduledTestingStatus_Success(){
+    void changeScheduledVaccinationStatus_Success(){
         ScheduledVaccinationCovid schedVaccCovid = makeSchedVaccCovid();
 
         when(scheduledVaccinationCovidRepository.findById(any())).thenReturn(Optional.of(schedVaccCovid));
@@ -331,6 +331,17 @@ public class VaccinationCovidServiceTest {
         schedVaccCovid.setPatientArrivalStatus(PatientArrivalStatus.PRIMLJEN);
         assertEquals(vaccinationMapper.scheduledVaccinationToResponse(schedVaccCovid)
                 , vaccinationCovidService.changeScheduledVaccinationStatus(1L, "Zakazano", "Primljen"));
+    }
+
+    @Test
+    void deleteScheduledVaccination_Success(){
+        ScheduledVaccinationCovid schedVaccCovid = makeSchedVaccCovid();
+        schedVaccCovid.getAvailableTerm().addScheduledVaccination(schedVaccCovid);
+
+        when(scheduledVaccinationCovidRepository.findById(any())).thenReturn(Optional.of(schedVaccCovid));
+
+        assertEquals(vaccinationMapper.scheduledVaccinationToResponse(schedVaccCovid)
+                , vaccinationCovidService.deleteScheduledVaccination(1L));
     }
 
 
@@ -405,6 +416,7 @@ public class VaccinationCovidServiceTest {
         availableTerm.setScheduledTermsNum(2);
         availableTerm.setDateAndTime(LocalDateTime.now().plusDays(1));
         availableTerm.setScheduledTestings(new ArrayList<>());
+        availableTerm.setScheduledVaccinationCovids(new ArrayList<>());
         return availableTerm;
     }
 

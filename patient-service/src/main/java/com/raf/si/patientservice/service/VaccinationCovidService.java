@@ -22,4 +22,6 @@ public interface VaccinationCovidService {
     DosageReceivedResponse getPatientDosageReceived(UUID lbp);
 
     ScheduledVaccinationResponse changeScheduledVaccinationStatus(Long scheduledVaccinationId, String vaccStatus, String patientArrivalStatus);
+
+    ScheduledVaccinationResponse deleteScheduledVaccination(Long id);
 }

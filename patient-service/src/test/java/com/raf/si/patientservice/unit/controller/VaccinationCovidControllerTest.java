@@ -3,10 +3,7 @@ package com.raf.si.patientservice.unit.controller;
 import com.raf.si.patientservice.controller.VaccinationCovidController;
 import com.raf.si.patientservice.dto.request.ScheduledVaccinationRequest;
 import com.raf.si.patientservice.dto.request.VaccinationCovidRequest;
-import com.raf.si.patientservice.dto.response.DosageReceivedResponse;
-import com.raf.si.patientservice.dto.response.ScheduledVaccinationListResponse;
-import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
-import com.raf.si.patientservice.dto.response.VaccinationCovidResposne;
+import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.service.VaccinationCovidService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -92,6 +89,17 @@ public class VaccinationCovidControllerTest {
                 .thenReturn(response);
 
         assertEquals(vaccinationCovidController.changeVaccinationStatus(1L,"", "")
+                , ResponseEntity.ok(response));
+    }
+
+    @Test
+    void deleteScheduledVaccination_Success(){
+        ScheduledVaccinationResponse response = new ScheduledVaccinationResponse();
+
+        when(vaccinationCovidService.deleteScheduledVaccination(1L))
+                .thenReturn(response);
+
+        assertEquals(vaccinationCovidController.deleteScheduledVaccination(1L)
                 , ResponseEntity.ok(response));
     }
 
