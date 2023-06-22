@@ -278,8 +278,7 @@ public class VaccinationCovidServiceTest {
         request.setHealthRecordId(0L);
         VaccinationCovid vaccinationCovid = makeVaccinationCovid();
         ScheduledVaccinationCovid scheduledVaccinationCovid = makeSchedVaccCovid();
-
-        scheduledVaccinationCovid.setVaccination(vaccinationCovid);
+        
         vaccinationCovid.setScheduledVaccinationCovid(scheduledVaccinationCovid);
 
         when(vaccineRepository.findByName(request.getVaccineName()))
