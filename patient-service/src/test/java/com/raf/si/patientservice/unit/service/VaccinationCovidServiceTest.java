@@ -321,7 +321,7 @@ public class VaccinationCovidServiceTest {
     }
 
     @Test
-    void changeScheduledTestingStatus_Success(){
+    void changeScheduledVaccinationStatus_Success(){
         ScheduledVaccinationCovid schedVaccCovid = makeSchedVaccCovid();
 
         when(scheduledVaccinationCovidRepository.findById(any())).thenReturn(Optional.of(schedVaccCovid));
