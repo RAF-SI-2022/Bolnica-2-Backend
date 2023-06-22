@@ -20,4 +20,6 @@ public interface VaccinationCovidService {
     VaccinationCovidResposne createVaccination(UUID lbp, VaccinationCovidRequest request, String token);
 
     DosageReceivedResponse getPatientDosageReceived(UUID lbp);
+
+    ScheduledVaccinationResponse changeScheduledVaccinationStatus(Long scheduledVaccinationId, String vaccStatus, String patientArrivalStatus);
 }

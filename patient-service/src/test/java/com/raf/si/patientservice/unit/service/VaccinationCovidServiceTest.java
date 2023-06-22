@@ -314,6 +314,25 @@ public class VaccinationCovidServiceTest {
                 , vaccinationCovidService.getPatientDosageReceived(lbp));
     }
 
+    @Test
+    void changeScheduledVaccinationStatus_GivenAllNull_ThrowBadRequestException(){
+        assertThrows(BadRequestException.class,
+                () -> vaccinationCovidService.changeScheduledVaccinationStatus(1L, null, null));
+    }
+
+    @Test
+    void changeScheduledTestingStatus_Success(){
+        ScheduledVaccinationCovid schedVaccCovid = makeSchedVaccCovid();
+
+        when(scheduledVaccinationCovidRepository.findById(any())).thenReturn(Optional.of(schedVaccCovid));
+        when(scheduledVaccinationCovidRepository.save(schedVaccCovid)).thenReturn(schedVaccCovid);
+
+        schedVaccCovid.setTestStatus(ExaminationStatus.ZAKAZANO);
+        schedVaccCovid.setPatientArrivalStatus(PatientArrivalStatus.PRIMLJEN);
+        assertEquals(vaccinationMapper.scheduledVaccinationToResponse(schedVaccCovid)
+                , vaccinationCovidService.changeScheduledVaccinationStatus(1L, "Zakazano", "Primljen"));
+    }
+
 
     private VaccinationCovid makeVaccinationCovid() {
         VaccinationCovid vaccinationCovid = new VaccinationCovid();

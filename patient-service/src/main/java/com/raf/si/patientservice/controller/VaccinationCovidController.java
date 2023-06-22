@@ -2,10 +2,7 @@ package com.raf.si.patientservice.controller;
 
 import com.raf.si.patientservice.dto.request.ScheduledVaccinationRequest;
 import com.raf.si.patientservice.dto.request.VaccinationCovidRequest;
-import com.raf.si.patientservice.dto.response.DosageReceivedResponse;
-import com.raf.si.patientservice.dto.response.ScheduledVaccinationListResponse;
-import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
-import com.raf.si.patientservice.dto.response.VaccinationCovidResposne;
+import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.service.VaccinationCovidService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -61,6 +58,15 @@ public class VaccinationCovidController {
     @GetMapping("/received-dosage/{lbp}")
     public ResponseEntity<DosageReceivedResponse> getPatientDosageReceived(@PathVariable("lbp") UUID lbp){
         return ResponseEntity.ok(vaccinationCovidService.getPatientDosageReceived(lbp));
+    }
+
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @PatchMapping("/scheduled/change-status/{scheduled-vaccination-id}")
+    public ResponseEntity<ScheduledVaccinationResponse> changeVaccinationStatus(@PathVariable("scheduled-testing-id") Long scheduledVaccinationId,
+                                                                        @RequestParam(required = false) String vaccStatus,
+                                                                        @RequestParam(required = false) String patientArrivalStatus) {
+
+        return ResponseEntity.ok(vaccinationCovidService.changeScheduledVaccinationStatus(scheduledVaccinationId, vaccStatus, patientArrivalStatus));
     }
 
 }

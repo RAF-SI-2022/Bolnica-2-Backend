@@ -9,8 +9,11 @@ import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
 import com.raf.si.patientservice.dto.response.VaccinationCovidResposne;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
+import com.raf.si.patientservice.exception.NotFoundException;
 import com.raf.si.patientservice.mapper.VaccinationMapper;
 import com.raf.si.patientservice.model.*;
+import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
+import com.raf.si.patientservice.model.enums.examination.PatientArrivalStatus;
 import com.raf.si.patientservice.model.enums.testing.Availability;
 import com.raf.si.patientservice.repository.AvailableTermRepository;
 import com.raf.si.patientservice.repository.ScheduledVaccinationCovidRepository;
@@ -37,6 +40,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+
+import static com.raf.si.patientservice.model.enums.examination.ExaminationStatus.OTKAZANO;
+import static com.raf.si.patientservice.model.enums.examination.PatientArrivalStatus.*;
 
 @Slf4j
 @Service
@@ -220,6 +226,72 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
             return vaccinationMapper.vaccinationCovidToDosageReceived(vaccinationCovid.get().getDoseReceived());
         }
         return vaccinationMapper.vaccinationCovidToDosageReceived("0");
+    }
+
+    @Override
+    public ScheduledVaccinationResponse changeScheduledVaccinationStatus(Long scheduledVaccinationId, String vaccStatusString, String patientArrivalStatusString) {
+        if (vaccStatusString == null && patientArrivalStatusString == null) {
+            String errMessage = "Mora da se prosledi bar jedan novi status (status vakcinacije ili status o prispeću pacijenta)";
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+
+        ScheduledVaccinationCovid scheduledTesting = findScheduledTesting(scheduledVaccinationId);
+
+        if (vaccStatusString != null) {
+            ExaminationStatus testStatus = findExaminationStatus(vaccStatusString);
+            scheduledTesting.setTestStatus(testStatus);
+
+            switch (testStatus) {
+                case U_TOKU:
+                    scheduledTesting.setPatientArrivalStatus(PRIMLJEN);
+                    break;
+                case ZAVRSENO:
+                    scheduledTesting.setPatientArrivalStatus(ZAVRSIO);
+                    break;
+            }
+        }
+
+        if (patientArrivalStatusString != null) {
+            PatientArrivalStatus patientArrivalStatus = findPatientArrivalStatus(patientArrivalStatusString);
+            scheduledTesting.setPatientArrivalStatus(patientArrivalStatus);
+
+            if (patientArrivalStatus == OTKAZAO) {
+                scheduledTesting.setTestStatus(OTKAZANO);
+            }
+        }
+
+        scheduledTesting = scheduledVaccinationCovidRepository.save(scheduledTesting);
+        return vaccinationMapper.scheduledVaccinationToResponse(scheduledTesting);
+    }
+
+    private ExaminationStatus findExaminationStatus(String examinationStatusString) {
+        ExaminationStatus examinationStatus = ExaminationStatus.valueOfNotation(examinationStatusString);
+        if (examinationStatus == null) {
+            String errMessage = String.format("Status pregleda '%s' ne postoji", examinationStatusString);
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+        return examinationStatus;
+    }
+
+    private PatientArrivalStatus findPatientArrivalStatus(String patientArrivalStatusString) {
+        PatientArrivalStatus patientArrivalStatus = PatientArrivalStatus.valueOfNotation(patientArrivalStatusString);
+        if (patientArrivalStatus == null) {
+            String errMessage = String.format("Status o prispeću pacijenta '%s' ne postoji", patientArrivalStatusString);
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+        return patientArrivalStatus;
+    }
+
+
+    private ScheduledVaccinationCovid findScheduledTesting(Long id) {
+        return scheduledVaccinationCovidRepository.findById(id).orElseThrow(() -> {
+            String errMessage = String.format("Zakazana vakcinacija sa id-jem %s ne postoji", id);
+            log.error(errMessage);
+            throw new NotFoundException(errMessage);
+        });
     }
 
     private AvailableTerm checkAndGetAvailableTerm(List<AvailableTerm> availableTerms) {

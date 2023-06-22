@@ -84,6 +84,17 @@ public class VaccinationCovidControllerTest {
                 , ResponseEntity.ok(response));
     }
 
+    @Test
+    void changeVaccinationStatus_Success(){
+        ScheduledVaccinationResponse response = new ScheduledVaccinationResponse();
+
+        when(vaccinationCovidService.changeScheduledVaccinationStatus(1L,"", ""))
+                .thenReturn(response);
+
+        assertEquals(vaccinationCovidController.changeVaccinationStatus(1L,"", "")
+                , ResponseEntity.ok(response));
+    }
+
     private VaccinationCovidRequest makeVaccinationCovidRequest() {
         VaccinationCovidRequest request = new VaccinationCovidRequest();
         request.setVaccinationId(1L);
