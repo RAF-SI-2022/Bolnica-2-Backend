@@ -32,7 +32,7 @@ public class VaccinationCovid {
     private ScheduledVaccinationCovid scheduledVaccinationCovid;
 
     @Column
-    private String doseReceived = "1";
+    private String doseReceived = "0";
 
     @Column(nullable = false)
     private UUID performerLbz;
@@ -40,9 +40,13 @@ public class VaccinationCovid {
     @Column
     private Boolean deleted = false;
 
-    public void incrementDosage(){
-        int doseInc= Integer.parseInt(doseReceived) + 1;
+    public void incrementDosage(String dosage){
+        int doseInc= Integer.parseInt(dosage) + 1;
         doseReceived = String.valueOf(doseInc);
+    }
+
+    public Long getDosageAsLong(){
+        return Long.parseLong(doseReceived);
     }
 
     public void decrementDosage(){

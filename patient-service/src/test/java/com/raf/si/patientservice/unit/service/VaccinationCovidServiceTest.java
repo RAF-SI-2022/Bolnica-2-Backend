@@ -1,14 +1,16 @@
 package com.raf.si.patientservice.unit.service;
 
 import com.raf.si.patientservice.dto.request.ScheduledVaccinationRequest;
+import com.raf.si.patientservice.dto.request.VaccinationCovidRequest;
+import com.raf.si.patientservice.dto.response.DosageReceivedResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.mapper.VaccinationMapper;
-import com.raf.si.patientservice.model.AvailableTerm;
-import com.raf.si.patientservice.model.Patient;
-import com.raf.si.patientservice.model.ScheduledVaccinationCovid;
+import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
 import com.raf.si.patientservice.model.enums.examination.PatientArrivalStatus;
+import com.raf.si.patientservice.model.enums.healthrecord.BloodType;
+import com.raf.si.patientservice.model.enums.healthrecord.RHFactor;
 import com.raf.si.patientservice.model.enums.testing.Availability;
 import com.raf.si.patientservice.repository.AvailableTermRepository;
 import com.raf.si.patientservice.repository.ScheduledVaccinationCovidRepository;
@@ -209,7 +211,7 @@ public class VaccinationCovidServiceTest {
     }
 
     @Test
-    void getScheduledtestings(){
+    void getScheduledVaccination(){
         Pageable pageable = Pageable.ofSize(10).withPage(0);
         Page<ScheduledVaccinationCovid> page= new PageImpl<>(List.of(makeSchedVaccCovid()),pageable, 1);
 
@@ -220,6 +222,134 @@ public class VaccinationCovidServiceTest {
 
     }
 
+    @Test
+    void createVaccination_GivenVaccineNotFound_ThrowBadRequestException(){
+        UUID lbp = UUID.randomUUID();
+        VaccinationCovidRequest request = makeVaccinationCovidRequest();
+        String token = "bopewqimqpoqeww";
+
+        assertThrows(BadRequestException.class,
+                () -> vaccinationCovidService.createVaccination(UUID.randomUUID(), request, token));
+    }
+
+    @Test
+    void createVaccination_GivenHealthRecordDoesNotMatchWithPatientsRecord_ThrowBadRequestException(){
+        VaccinationCovidRequest request = makeVaccinationCovidRequest();
+        String token = "bopewqimqpoqeww";
+
+        when(vaccineRepository.findByName(request.getVaccineName()))
+                .thenReturn(Optional.of(makeVaccine()));
+
+        assertThrows(BadRequestException.class,
+                () -> vaccinationCovidService.createVaccination(UUID.randomUUID(), request, token));
+    }
+
+    @Test
+    void createVaccination_DateIsInFuture_ThrowBadRequestException(){
+        VaccinationCovidRequest request = makeVaccinationCovidRequest();
+        String token = "bopewqimqpoqeww";
+        request.setHealthRecordId(0L);
+        request.setDateTime(LocalDateTime.now().plusDays(1));
+
+        when(vaccineRepository.findByName(request.getVaccineName()))
+                .thenReturn(Optional.of(makeVaccine()));
+
+        assertThrows(BadRequestException.class,
+                () -> vaccinationCovidService.createVaccination(UUID.randomUUID(), request, token));
+    }
+
+    @Test
+    void createVaccination_GivenSVCIdDoesNotExits_ThrowBadRequestException(){
+        VaccinationCovidRequest request = makeVaccinationCovidRequest();
+        String token = "bopewqimqpoqeww";
+        request.setHealthRecordId(0L);
+
+        when(vaccineRepository.findByName(request.getVaccineName()))
+                .thenReturn(Optional.of(makeVaccine()));
+
+        assertThrows(BadRequestException.class,
+                () -> vaccinationCovidService.createVaccination(UUID.randomUUID(), request, token));
+    }
+
+    @Test
+    void createVaccination_Success(){
+        VaccinationCovidRequest request = makeVaccinationCovidRequest();
+        String token = "bopewqimqpoqeww";
+        request.setHealthRecordId(0L);
+        VaccinationCovid vaccinationCovid = makeVaccinationCovid();
+        ScheduledVaccinationCovid scheduledVaccinationCovid = makeSchedVaccCovid();
+
+        scheduledVaccinationCovid.setVaccination(vaccinationCovid);
+        vaccinationCovid.setScheduledVaccinationCovid(scheduledVaccinationCovid);
+
+        when(vaccineRepository.findByName(request.getVaccineName()))
+                .thenReturn(Optional.of(makeVaccine()));
+        when(scheduledVaccinationCovidRepository.findById(request.getVaccinationId()))
+                .thenReturn(Optional.of(scheduledVaccinationCovid));
+
+        when(vaccinationCovidRepository.save(any())).thenReturn(vaccinationCovid);
+        when(scheduledVaccinationCovidRepository.save(any())).thenReturn(makeSchedVaccCovid());
+
+        assertEquals(vaccinationMapper.vaccinationCovidToResponse(vaccinationCovid)
+                , vaccinationCovidService.createVaccination(UUID.randomUUID(), request, token));
+    }
+
+    @Test
+    void getPatientDosageReceived_VaccineRecordDoesNotExits_Success(){
+        UUID lbp = UUID.randomUUID();
+        DosageReceivedResponse response = new DosageReceivedResponse("0");
+
+        assertEquals(response
+                , vaccinationCovidService.getPatientDosageReceived(lbp));
+    }
+
+    @Test
+    void getPatientDosageReceived_Success(){
+        UUID lbp = UUID.randomUUID();
+        DosageReceivedResponse response = new DosageReceivedResponse("1");
+
+        when(vaccinationCovidRepository.findByHealthRecord_Patient(any()))
+                .thenReturn(List.of(makeVaccinationCovid()));
+
+        assertEquals(response
+                , vaccinationCovidService.getPatientDosageReceived(lbp));
+    }
+
+
+    private VaccinationCovid makeVaccinationCovid() {
+        VaccinationCovid vaccinationCovid = new VaccinationCovid();
+        vaccinationCovid.setVaccine(makeVaccine());
+        vaccinationCovid.setScheduledVaccinationCovid(makeSchedVaccCovid());
+        vaccinationCovid.setPerformerLbz(UUID.randomUUID());
+        vaccinationCovid.setHealthRecord(makeHealthRecord());
+        vaccinationCovid.getHealthRecord().setId(0L);
+        vaccinationCovid.setDateTime(LocalDateTime.now().minusDays(1));
+        vaccinationCovid.setDoseReceived("1");
+
+        return  vaccinationCovid;
+    }
+
+
+    private Vaccine makeVaccine(){
+        Vaccine vaccine = new Vaccine();
+        vaccine.setName("PRIORIX");
+        vaccine.setId(1L);
+        vaccine.setProducer("GlaxoSmithKline Biologicals S.A.");
+        vaccine.setType("Virusne vakcine");
+        vaccine.setDescription("Vakcina protiv morbila");
+        return vaccine;
+    }
+
+    private VaccinationCovidRequest makeVaccinationCovidRequest(){
+        VaccinationCovidRequest request = new VaccinationCovidRequest();
+        request.setVaccinationId(8L);
+        request.setVaccineName("SARS");
+        request.setHealthRecordId(8L);
+        request.setDateTime(LocalDateTime.now());
+        request.setDoseReceived("1");
+
+        return request;
+    }
 
     private void lokin(){
         when(lockRegistry.obtain(any())).thenReturn(lock);
@@ -289,7 +419,64 @@ public class VaccinationCovidServiceTest {
         patient.setLastName("Prezime");
         patient.setJmbg("512312311231");
         patient.setBirthDate(new Date());
-
+        patient.setHealthRecord(makeHealthRecord());
         return patient;
+    }
+
+    private HealthRecord makeHealthRecord(){
+        HealthRecord healthRecord = new HealthRecord();
+        healthRecord.setId(0L);
+
+        healthRecord.setBloodType(BloodType.A);
+        healthRecord.setRhFactor(RHFactor.PLUS);
+        healthRecord.setRegistrationDate(new Date());
+
+        Allergy allergy = new Allergy();
+        Operation operation = new Operation();
+
+
+
+        //createExaminationReportRequest.setDiagnosis("I35.0");
+        //createExaminationReportRequest.setExistingDiagnosis(Boolean.FALSE);
+        //createExaminationReportRequest.setTreatmentResult("U toku");
+        //createExaminationReportRequest.setCurrentStateDescription("mora da ima ovo polje");
+
+        MedicalExamination examination = new MedicalExamination();
+        Diagnosis diagnosis = new Diagnosis();
+        diagnosis.setCode("I35.0");
+        diagnosis.setLatinDescription("latino dasa");
+        diagnosis.setDescription("ujed latino komarca");
+
+        examination.setObjectiveFinding("objektivan nalaz");
+        examination.setHealthRecord(healthRecord);
+        examination.setMainSymptoms("nema simptoma");
+        examination.setCurrentIllness("nema boljki");
+        examination.setDiagnosis(diagnosis);
+
+        MedicalHistory medicalHistory = new MedicalHistory();
+        medicalHistory.setDiagnosis(diagnosis);
+        medicalHistory.setValidFrom(new Date());
+        medicalHistory.setHealthRecord(healthRecord);
+        medicalHistory.setIllnessStart(new Date());
+
+        Vaccination vaccination = new Vaccination();
+
+        List<Allergy> allergies = new ArrayList<>();
+        allergies.add(allergy);
+        List<Operation> operations = Arrays.asList(new Operation[] {operation});
+        List<MedicalHistory> medicalHistoryList = new ArrayList<>();
+        medicalHistoryList.add(medicalHistory);
+        List<MedicalExamination> examinations = new ArrayList<>();
+        examinations.add(examination);
+        List<Vaccination> vaccinations = new ArrayList<>();
+        vaccinations.add(vaccination);
+
+        healthRecord.setAllergies(allergies);
+        healthRecord.setOperations(operations);
+        healthRecord.setMedicalExaminations(examinations);
+        healthRecord.setMedicalHistory(medicalHistoryList);
+        healthRecord.setVaccinations(vaccinations);
+
+        return healthRecord;
     }
 }

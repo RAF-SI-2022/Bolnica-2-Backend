@@ -2,6 +2,7 @@ package com.raf.si.patientservice.service;
 
 import com.raf.si.patientservice.dto.request.ScheduledVaccinationRequest;
 import com.raf.si.patientservice.dto.request.VaccinationCovidRequest;
+import com.raf.si.patientservice.dto.response.DosageReceivedResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationListResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
 import com.raf.si.patientservice.dto.response.VaccinationCovidResposne;
@@ -17,4 +18,6 @@ public interface VaccinationCovidService {
     ScheduledVaccinationListResponse getScheduledVaccinations(UUID lbp, LocalDate date, Pageable pageable);
 
     VaccinationCovidResposne createVaccination(UUID lbp, VaccinationCovidRequest request, String token);
+
+    DosageReceivedResponse getPatientDosageReceived(UUID lbp);
 }

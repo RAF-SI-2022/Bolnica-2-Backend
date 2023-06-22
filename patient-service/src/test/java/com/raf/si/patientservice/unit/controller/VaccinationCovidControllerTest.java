@@ -2,8 +2,11 @@ package com.raf.si.patientservice.unit.controller;
 
 import com.raf.si.patientservice.controller.VaccinationCovidController;
 import com.raf.si.patientservice.dto.request.ScheduledVaccinationRequest;
+import com.raf.si.patientservice.dto.request.VaccinationCovidRequest;
+import com.raf.si.patientservice.dto.response.DosageReceivedResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationListResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
+import com.raf.si.patientservice.dto.response.VaccinationCovidResposne;
 import com.raf.si.patientservice.service.VaccinationCovidService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,6 +56,41 @@ public class VaccinationCovidControllerTest {
 
         assertEquals(vaccinationCovidController.getScheduledVaccinations(lbp,date, 0,1)
                 , ResponseEntity.ok(response));
+    }
+
+    @Test
+    void createVaccination_Success(){
+        UUID lbp = UUID.randomUUID();
+        VaccinationCovidRequest request = makeVaccinationCovidRequest();
+        VaccinationCovidResposne response = new VaccinationCovidResposne();
+
+        when(vaccinationCovidService.createVaccination(lbp, request,""))
+                .thenReturn(response);
+
+        assertEquals(vaccinationCovidController.createVaccination("", request, lbp)
+                , ResponseEntity.ok(response));
+
+    }
+
+    @Test
+    void getPatientDosageReceived_Success(){
+        UUID lbp = UUID.randomUUID();
+        DosageReceivedResponse response = new DosageReceivedResponse();
+
+        when(vaccinationCovidService.getPatientDosageReceived(lbp))
+                .thenReturn(response);
+
+        assertEquals(vaccinationCovidController.getPatientDosageReceived(lbp)
+                , ResponseEntity.ok(response));
+    }
+
+    private VaccinationCovidRequest makeVaccinationCovidRequest() {
+        VaccinationCovidRequest request = new VaccinationCovidRequest();
+        request.setVaccinationId(1L);
+        request.setVaccineName("SARS");
+        request.setDateTime(LocalDateTime.now());
+        request.setHealthRecordId(1L);
+        return request;
     }
 
     private ScheduledVaccinationRequest makeScheduledTestingRequest(){

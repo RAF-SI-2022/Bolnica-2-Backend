@@ -3,6 +3,7 @@ package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.ScheduledVaccinationRequest;
 import com.raf.si.patientservice.dto.request.VaccinationCovidRequest;
+import com.raf.si.patientservice.dto.response.DosageReceivedResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationListResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
 import com.raf.si.patientservice.dto.response.VaccinationCovidResposne;
@@ -27,15 +28,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
@@ -156,12 +155,13 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
     }
 
     @Override
+    @Transactional
     public VaccinationCovidResposne createVaccination(UUID lbp, VaccinationCovidRequest request, String token) {
         Patient patient = patientService.findPatient(lbp);
         VaccinationCovid vaccinationCovid = vaccinationMapper.vaccCovidRequestToModel(request);
         Optional<Vaccine> vaccine = vaccineRepository.findByName(request.getVaccineName());
 
-        if (vaccine.isPresent()){
+        if (!vaccine.isPresent()){
             String err = String.format("Vaccine with the name '%s', doesnt exits ", request.getVaccineName());
             log.error(err);
             throw  new BadRequestException(err);
@@ -185,12 +185,41 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
             log.error(err);
             throw  new BadRequestException(err);
         }
+
+        if (scheduledVaccinationCovid.get().getVaccination() != null){
+            String err = String.format("Given scheduled vaccination id '%s' already has vaccination created."
+                    , request.getVaccinationId());
+            log.error(err);
+            throw  new BadRequestException(err);
+        }
+
         vaccinationCovid.setScheduledVaccinationCovid(scheduledVaccinationCovid.get());
         vaccinationCovid.setPerformerLbz(TokenPayloadUtil.getTokenPayload().getLbz());
-
         vaccinationCovid= vaccinationCovidRepository.save(vaccinationCovid);
 
+        ScheduledVaccinationCovid svc = scheduledVaccinationCovid.get();
+        svc.setVaccination(vaccinationCovid);
+        scheduledVaccinationCovidRepository.save(svc);
+
+        log.info(String.format("Kreirana vakcinacija u terminu %s za pacijenta sa lbp-om %s",
+                request.getDateTime().toString(),
+                patient.getLbp()));
         return vaccinationMapper.vaccinationCovidToResponse(vaccinationCovid);
+    }
+
+    @Override
+    public DosageReceivedResponse getPatientDosageReceived(UUID lbp) {
+        Patient patient= patientService.findPatient(lbp);
+
+        List<VaccinationCovid> vaccList = vaccinationCovidRepository.findByHealthRecord_Patient(patient);
+        Optional<VaccinationCovid> vaccinationCovid = vaccList.stream()
+                .max(Comparator.comparingLong(VaccinationCovid::getDosageAsLong));
+
+        if (vaccinationCovid.isPresent()) {
+            log.info(String.format("Patient with lbp '%s' is not present in vaccinationCovid repository return 0 value", lbp));
+            return vaccinationMapper.vaccinationCovidToDosageReceived(vaccinationCovid.get().getDoseReceived());
+        }
+        return vaccinationMapper.vaccinationCovidToDosageReceived("0");
     }
 
     private AvailableTerm checkAndGetAvailableTerm(List<AvailableTerm> availableTerms) {

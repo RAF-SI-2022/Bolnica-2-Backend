@@ -2,6 +2,7 @@ package com.raf.si.patientservice.controller;
 
 import com.raf.si.patientservice.dto.request.ScheduledVaccinationRequest;
 import com.raf.si.patientservice.dto.request.VaccinationCovidRequest;
+import com.raf.si.patientservice.dto.response.DosageReceivedResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationListResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
 import com.raf.si.patientservice.dto.response.VaccinationCovidResposne;
@@ -55,4 +56,11 @@ public class VaccinationCovidController {
                                                                         , @PathVariable("lbp") UUID lbp){
         return  ResponseEntity.ok(vaccinationCovidService.createVaccination(lbp, request, authorizationHeader));
     }
+
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @GetMapping("/received-dosage/{lbp}")
+    public ResponseEntity<DosageReceivedResponse> getPatientDosageReceived(@PathVariable("lbp") UUID lbp){
+        return ResponseEntity.ok(vaccinationCovidService.getPatientDosageReceived(lbp));
+    }
+
 }
