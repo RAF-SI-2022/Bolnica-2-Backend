@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 public class UserShiftResponse {
-    UserResponse userResponse;
+    UserResponse user;
     List<Shift> shifts;
     Long shiftCount;
 }

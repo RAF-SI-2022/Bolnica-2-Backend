@@ -94,6 +94,7 @@ public class UserMapper {
         userResponse.setCovidAccess(user.isCovidAccess());
         userResponse.setDaysOff(user.getDaysOff());
         userResponse.setUsedDaysOff(user.getUsedDaysOff());
+        userResponse.setRemainingDaysOff(user.getDaysOff() - user.getUsedDaysOff());
 
         return userResponse;
     }
@@ -221,7 +222,7 @@ public class UserMapper {
     public UserShiftResponse modelToUserShiftResponse(User user) {
         UserShiftResponse response = new UserShiftResponse();
 
-        response.setUserResponse(modelToResponse(user));
+        response.setUser(modelToResponse(user));
 
         List<Shift> shifts = user.getShifts();
         Collections.sort(shifts);
@@ -247,6 +248,7 @@ public class UserMapper {
         userListResponse.setCovidAccess(user.isCovidAccess());
         userListResponse.setDaysOff(user.getDaysOff());
         userListResponse.setUsedDaysOff(user.getUsedDaysOff());
+        userListResponse.setRemainingDaysOff(user.getDaysOff() - user.getUsedDaysOff());
 
         return userListResponse;
     }
