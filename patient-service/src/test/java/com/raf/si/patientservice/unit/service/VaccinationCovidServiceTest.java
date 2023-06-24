@@ -233,22 +233,9 @@ public class VaccinationCovidServiceTest {
     }
 
     @Test
-    void createVaccination_GivenHealthRecordDoesNotMatchWithPatientsRecord_ThrowBadRequestException(){
-        VaccinationCovidRequest request = makeVaccinationCovidRequest();
-        String token = "bopewqimqpoqeww";
-
-        when(vaccineRepository.findByName(request.getVaccineName()))
-                .thenReturn(Optional.of(makeVaccine()));
-
-        assertThrows(BadRequestException.class,
-                () -> vaccinationCovidService.createVaccination(UUID.randomUUID(), request, token));
-    }
-
-    @Test
     void createVaccination_DateIsInFuture_ThrowBadRequestException(){
         VaccinationCovidRequest request = makeVaccinationCovidRequest();
         String token = "bopewqimqpoqeww";
-        request.setHealthRecordId(0L);
         request.setDateTime(LocalDateTime.now().plusDays(1));
 
         when(vaccineRepository.findByName(request.getVaccineName()))
@@ -262,7 +249,6 @@ public class VaccinationCovidServiceTest {
     void createVaccination_GivenSVCIdDoesNotExits_ThrowBadRequestException(){
         VaccinationCovidRequest request = makeVaccinationCovidRequest();
         String token = "bopewqimqpoqeww";
-        request.setHealthRecordId(0L);
 
         when(vaccineRepository.findByName(request.getVaccineName()))
                 .thenReturn(Optional.of(makeVaccine()));
@@ -275,7 +261,6 @@ public class VaccinationCovidServiceTest {
     void createVaccination_Success(){
         VaccinationCovidRequest request = makeVaccinationCovidRequest();
         String token = "bopewqimqpoqeww";
-        request.setHealthRecordId(0L);
         VaccinationCovid vaccinationCovid = makeVaccinationCovid();
         ScheduledVaccinationCovid scheduledVaccinationCovid = makeSchedVaccCovid();
         
@@ -296,7 +281,7 @@ public class VaccinationCovidServiceTest {
     @Test
     void getPatientDosageReceived_VaccineRecordDoesNotExits_Success(){
         UUID lbp = UUID.randomUUID();
-        DosageReceivedResponse response = new DosageReceivedResponse("0");
+        DosageReceivedResponse response = new DosageReceivedResponse(0L);
 
         assertEquals(response
                 , vaccinationCovidService.getPatientDosageReceived(lbp));
@@ -305,7 +290,7 @@ public class VaccinationCovidServiceTest {
     @Test
     void getPatientDosageReceived_Success(){
         UUID lbp = UUID.randomUUID();
-        DosageReceivedResponse response = new DosageReceivedResponse("1");
+        DosageReceivedResponse response = new DosageReceivedResponse(1L);
 
         when(vaccinationCovidRepository.findByHealthRecord_Patient(any()))
                 .thenReturn(List.of(makeVaccinationCovid()));
@@ -323,7 +308,7 @@ public class VaccinationCovidServiceTest {
         vaccinationCovid.setHealthRecord(makeHealthRecord());
         vaccinationCovid.getHealthRecord().setId(0L);
         vaccinationCovid.setDateTime(LocalDateTime.now().minusDays(1));
-        vaccinationCovid.setDoseReceived("1");
+        vaccinationCovid.setDoseReceived(1L);
 
         return  vaccinationCovid;
     }
@@ -343,9 +328,8 @@ public class VaccinationCovidServiceTest {
         VaccinationCovidRequest request = new VaccinationCovidRequest();
         request.setVaccinationId(8L);
         request.setVaccineName("SARS");
-        request.setHealthRecordId(8L);
         request.setDateTime(LocalDateTime.now());
-        request.setDoseReceived("1");
+        request.setDoseReceived(1L);
 
         return request;
     }

@@ -6,7 +6,7 @@ import com.raf.si.patientservice.dto.request.VaccinationCovidRequest;
 import com.raf.si.patientservice.dto.response.DosageReceivedResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationListResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
-import com.raf.si.patientservice.dto.response.VaccinationCovidResposne;
+import com.raf.si.patientservice.dto.response.VaccinationCovidResponse;
 import com.raf.si.patientservice.service.VaccinationCovidService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,7 +62,7 @@ public class VaccinationCovidControllerTest {
     void createVaccination_Success(){
         UUID lbp = UUID.randomUUID();
         VaccinationCovidRequest request = makeVaccinationCovidRequest();
-        VaccinationCovidResposne response = new VaccinationCovidResposne();
+        VaccinationCovidResponse response = new VaccinationCovidResponse();
 
         when(vaccinationCovidService.createVaccination(lbp, request,""))
                 .thenReturn(response);
@@ -89,7 +89,6 @@ public class VaccinationCovidControllerTest {
         request.setVaccinationId(1L);
         request.setVaccineName("SARS");
         request.setDateTime(LocalDateTime.now());
-        request.setHealthRecordId(1L);
         return request;
     }
 
