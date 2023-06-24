@@ -5,7 +5,6 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.UUID;
 
 @Getter
@@ -18,11 +17,11 @@ public class VaccinationCovid {
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "vaccine_id", nullable = false)
+    @JoinColumn(name = "vaccine_id", referencedColumnName = "id", nullable = false)
     private Vaccine vaccine;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "health_record_id", nullable = false)
+    @JoinColumn(name = "health_record_id", referencedColumnName = "id", nullable = false)
     private HealthRecord healthRecord;
 
     @Column
@@ -31,26 +30,25 @@ public class VaccinationCovid {
     @OneToOne(mappedBy = "vaccination", fetch = FetchType.EAGER)
     private ScheduledVaccinationCovid scheduledVaccinationCovid;
 
-    @Column
-    private String doseReceived = "0";
-
     @Column(nullable = false)
     private UUID performerLbz;
 
     @Column
+    private Long doseReceived = Long.valueOf(0);
+
+    @Column
     private Boolean deleted = false;
 
-    public void incrementDosage(String dosage){
-        int doseInc= Integer.parseInt(dosage) + 1;
-        doseReceived = String.valueOf(doseInc);
+    public void incrementDosage(Long dosage){
+        doseReceived = doseReceived + 1;
     }
 
     public Long getDosageAsLong(){
-        return Long.parseLong(doseReceived);
+        return doseReceived;
     }
 
     public void decrementDosage(){
-        int doseInc= Integer.parseInt(doseReceived) - 1;
-        doseReceived = doseInc < 0 ? "0" : String.valueOf(doseInc);
+        long doseInc= doseReceived - 1;
+        doseReceived = doseInc < 0 ? Long.valueOf(0) : Long.valueOf(doseInc);
     }
 }

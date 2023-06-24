@@ -3,7 +3,10 @@ package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.ScheduledVaccinationRequest;
 import com.raf.si.patientservice.dto.request.VaccinationCovidRequest;
-import com.raf.si.patientservice.dto.response.*;
+import com.raf.si.patientservice.dto.response.DosageReceivedResponse;
+import com.raf.si.patientservice.dto.response.ScheduledVaccinationListResponse;
+import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
+import com.raf.si.patientservice.dto.response.VaccinationCovidResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.exception.NotFoundException;
@@ -159,7 +162,7 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
 
     @Override
     @Transactional
-    public VaccinationCovidResposne createVaccination(UUID lbp, VaccinationCovidRequest request, String token) {
+    public VaccinationCovidResponse createVaccination(UUID lbp, VaccinationCovidRequest request, String token) {
         Patient patient = patientService.findPatient(lbp);
         VaccinationCovid vaccinationCovid = vaccinationMapper.vaccCovidRequestToModel(request);
         Optional<Vaccine> vaccine = vaccineRepository.findByName(request.getVaccineName());
@@ -171,12 +174,6 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
         }
         vaccinationCovid.setVaccine(vaccine.get());
 
-        if (!patient.getHealthRecord().getId().equals(request.getHealthRecordId())){
-            String err = String.format("Given Health record '%s' doesnt match  with patient health record '%s' "
-                    , request.getHealthRecordId(), patient.getHealthRecord().getId());
-            log.error(err);
-            throw  new BadRequestException(err);
-        }
         vaccinationCovid.setHealthRecord(patient.getHealthRecord());
 
         checkDateInPast(Date.from(request.getDateTime().atZone(ZoneId.systemDefault()).toInstant()));
@@ -218,11 +215,11 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
         Optional<VaccinationCovid> vaccinationCovid = vaccList.stream()
                 .max(Comparator.comparingLong(VaccinationCovid::getDosageAsLong));
 
-        if (vaccinationCovid.isPresent()) {
-            log.info(String.format("Patient with lbp '%s' is not present in vaccinationCovid repository return 0 value", lbp));
+        if (vaccinationCovid.isPresent())
             return vaccinationMapper.vaccinationCovidToDosageReceived(vaccinationCovid.get().getDoseReceived());
-        }
-        return vaccinationMapper.vaccinationCovidToDosageReceived("0");
+
+        log.info(String.format("Patient with lbp '%s' is not present in vaccinationCovid repository return 0 value", lbp));
+        return vaccinationMapper.vaccinationCovidToDosageReceived(0L);
     }
 
     @Override

@@ -5,7 +5,7 @@ import com.raf.si.patientservice.dto.request.VaccinationCovidRequest;
 import com.raf.si.patientservice.dto.response.DosageReceivedResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationListResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
-import com.raf.si.patientservice.dto.response.VaccinationCovidResposne;
+import com.raf.si.patientservice.dto.response.VaccinationCovidResponse;
 import org.springframework.data.domain.Pageable;
 
 
@@ -17,7 +17,7 @@ public interface VaccinationCovidService {
 
     ScheduledVaccinationListResponse getScheduledVaccinations(UUID lbp, LocalDate date, Pageable pageable);
 
-    VaccinationCovidResposne createVaccination(UUID lbp, VaccinationCovidRequest request, String token);
+    VaccinationCovidResponse createVaccination(UUID lbp, VaccinationCovidRequest request, String token);
 
     DosageReceivedResponse getPatientDosageReceived(UUID lbp);
 

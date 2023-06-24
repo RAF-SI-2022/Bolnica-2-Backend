@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DosageReceivedResponse {
-    private String dosageReceived;
+    private Long dosageReceived;
 }
