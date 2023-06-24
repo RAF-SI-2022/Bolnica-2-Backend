@@ -38,4 +38,5 @@ public class UserResponse {
     private boolean covidAccess;
     private int daysOff;
     private int usedDaysOff;
+    private int remainingDaysOff;
 }
