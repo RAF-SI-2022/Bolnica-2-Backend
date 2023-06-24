@@ -106,8 +106,6 @@ public class TestingControllerTest {
                 , ResponseEntity.ok(response));
     }
 
-
-
     private TestingRequest makeCreateTesting(){
         TestingRequest testingRequest = new TestingRequest();
         testingRequest.setScheduledTestingId(1L);
