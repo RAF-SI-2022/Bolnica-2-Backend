@@ -249,14 +249,12 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
             log.error(e.getMessage());
             throw new InternalServerErrorException(e.getMessage());
         }
-        /*
+
         if (availableNurses < 1) {
             String errMessage = String.format("Nema dostupnih sestara za departman sa pbo-om %s", pbo);
             log.error(errMessage);
             throw new BadRequestException(errMessage);
         }
-
-         */
 
         return availableNurses;
     }
