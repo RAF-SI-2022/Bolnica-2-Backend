@@ -58,6 +58,8 @@ public class User {
     private Integer daysOff;
     @Column(name = "used_days_off", nullable = false)
     private Integer usedDaysOff = 0;
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Shift> shifts;
     @ManyToOne
     @JoinColumn(name = "department_id", referencedColumnName = "id")
     private Department department;

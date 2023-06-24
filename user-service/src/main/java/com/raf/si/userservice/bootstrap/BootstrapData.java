@@ -1,15 +1,10 @@
 package com.raf.si.userservice.bootstrap;
 
-import com.raf.si.userservice.model.Department;
-import com.raf.si.userservice.model.Hospital;
-import com.raf.si.userservice.model.Permission;
-import com.raf.si.userservice.model.User;
+import com.raf.si.userservice.model.*;
 import com.raf.si.userservice.model.enums.Profession;
+import com.raf.si.userservice.model.enums.ShiftType;
 import com.raf.si.userservice.model.enums.Title;
-import com.raf.si.userservice.repository.DepartmentRepository;
-import com.raf.si.userservice.repository.HospitalRepository;
-import com.raf.si.userservice.repository.PermissionsRepository;
-import com.raf.si.userservice.repository.UserRepository;
+import com.raf.si.userservice.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -21,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,15 +27,17 @@ public class  BootstrapData implements CommandLineRunner {
     private final PermissionsRepository permissionsRepository;
     private final DepartmentRepository departmentRepository;
     private final HospitalRepository hospitalRepository;
+    private final ShiftTimeRepository shiftTimeRepository;
     private final PasswordEncoder passwordEncoder;
 
     public BootstrapData(UserRepository userRepository, PermissionsRepository permissionsRepository,
                          DepartmentRepository departmentRepository, HospitalRepository hospitalRepository,
-                         PasswordEncoder passwordEncoder) {
+                         ShiftTimeRepository shiftTimeRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.permissionsRepository = permissionsRepository;
         this.departmentRepository = departmentRepository;
         this.hospitalRepository = hospitalRepository;
+        this.shiftTimeRepository = shiftTimeRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -184,6 +182,8 @@ public class  BootstrapData implements CommandLineRunner {
         userRepository.save(user);
         userRepository.save(medSestra);
 
+        addShiftTimes();
+
         addOtherUsers();
     }
 
@@ -222,6 +222,23 @@ public class  BootstrapData implements CommandLineRunner {
         return permission;
     }
 
+    private void addShiftTimes() {
+        addShiftTime(ShiftType.PRVA_SMENA, LocalTime.of(6, 0), LocalTime.of(14, 0));
+        addShiftTime(ShiftType.DRUGA_SMENA, LocalTime.of(14, 0), LocalTime.of(22, 0));
+        addShiftTime(ShiftType.TRECA_SMENA, LocalTime.of(22, 0), LocalTime.of(6, 0));
+        addShiftTime(ShiftType.MEDJUSMENA, null, null);
+        addShiftTime(ShiftType.SLOBODAN_DAN, null, null);
+    }
+
+    private void addShiftTime(ShiftType shiftType, LocalTime startTime, LocalTime endTime) {
+        ShiftTime shiftTime = new ShiftTime();
+
+        shiftTime.setShiftType(shiftType);
+        shiftTime.setStartTime(startTime);
+        shiftTime.setEndTime(endTime);
+
+        shiftTimeRepository.save(shiftTime);
+    }
 
     private void addOtherUsers() throws IOException, ParseException {
         Resource resource = new ClassPathResource("bootstrap-data/employees.txt");
