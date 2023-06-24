@@ -57,7 +57,7 @@ public class User {
     @Column(name = "days_off", nullable = false)
     private Integer daysOff;
     @Column(name = "used_days_off", nullable = false)
-    private Integer usedDaysOff = 5;
+    private Integer usedDaysOff = 0;
     @ManyToOne
     @JoinColumn(name = "department_id", referencedColumnName = "id")
     private Department department;
