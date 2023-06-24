@@ -22,11 +22,11 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -312,5 +312,12 @@ public class UserServiceImpl implements UserService {
         }
 
         return false;
+    }
+
+    @Scheduled(cron = "@yearly")
+    @Transactional
+    void clearUsersUsedDaysOff() {
+        userRepository.clearUserUsedDaysOff();
+        log.info("Iskorisceni dani za sve zaposlene su resetovani");
     }
 }

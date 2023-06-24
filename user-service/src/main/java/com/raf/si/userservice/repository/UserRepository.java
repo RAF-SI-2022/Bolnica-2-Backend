@@ -5,8 +5,10 @@ import com.raf.si.userservice.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
@@ -51,4 +53,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query(value = "select count(distinct u) from users u left join u.permissions p where u.department.pbo=:pbo" +
             " and u.covidAccess=true and p.name in :permissions")
     long countCovidNursesByPbo(UUID pbo, List<String> permissions);
+
+    @Modifying
+    @Transactional
+    @Query(value = "update users u set u.usedDaysOff=0")
+    Integer clearUserUsedDaysOff();
 }

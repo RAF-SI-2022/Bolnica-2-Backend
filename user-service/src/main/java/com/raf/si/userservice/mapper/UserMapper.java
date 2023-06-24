@@ -17,7 +17,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -48,6 +50,7 @@ public class UserMapper {
         user.setPlaceOfLiving(createUserRequest.getPlaceOfLiving());
         user.setResidentialAddress(createUserRequest.getResidentialAddress());
         user.setPermissions(permissions);
+        user = findUserDaysOff(user, permissions);
 
         Profession profession = Profession.valueOfNotation(createUserRequest.getProfession());
 
@@ -91,6 +94,8 @@ public class UserMapper {
         userResponse.setDepartment(user.getDepartment());
         userResponse.setPermissions(user.getPermissions().stream().map(Permission::getName).collect(Collectors.toList()));
         userResponse.setCovidAccess(user.isCovidAccess());
+        userResponse.setDaysOff(user.getDaysOff());
+        userResponse.setUsedDaysOff(user.getUsedDaysOff());
 
         return userResponse;
     }
@@ -199,5 +204,18 @@ public class UserMapper {
         return fullString.substring(0, fullString.indexOf('@'));
     }
 
+    private User findUserDaysOff(User user, List<Permission> permissions) {
+        Permission maxDaysOffPerm = permissions.stream()
+                .max(Comparator.comparing(Permission::getDaysOff))
+                .get();
 
+        if (maxDaysOffPerm == null) {
+            String errMessage = "Korisnik nema permisije";
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+
+        user.setDaysOff(maxDaysOffPerm.getDaysOff());
+        return user;
+    }
 }

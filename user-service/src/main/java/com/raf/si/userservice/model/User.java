@@ -54,6 +54,10 @@ public class User {
     private UUID passwordToken = UUID.randomUUID();
     @Column(name = "covid_access", nullable = false)
     private boolean covidAccess = false;
+    @Column(name = "days_off", nullable = false)
+    private Integer daysOff;
+    @Column(name = "used_days_off", nullable = false)
+    private Integer usedDaysOff = 5;
     @ManyToOne
     @JoinColumn(name = "department_id", referencedColumnName = "id")
     private Department department;
