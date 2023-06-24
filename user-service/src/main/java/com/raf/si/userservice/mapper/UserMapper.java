@@ -1,26 +1,24 @@
 package com.raf.si.userservice.mapper;
 
+import com.raf.si.userservice.dto.request.AddShiftRequest;
 import com.raf.si.userservice.dto.request.CreateUserRequest;
 import com.raf.si.userservice.dto.request.UpdateUserRequest;
-import com.raf.si.userservice.dto.response.DoctorResponse;
-import com.raf.si.userservice.dto.response.UserListAndCountResponse;
-import com.raf.si.userservice.dto.response.UserListResponse;
-import com.raf.si.userservice.dto.response.UserResponse;
+import com.raf.si.userservice.dto.response.*;
 import com.raf.si.userservice.exception.BadRequestException;
-import com.raf.si.userservice.model.Department;
-import com.raf.si.userservice.model.Permission;
-import com.raf.si.userservice.model.User;
+import com.raf.si.userservice.exception.NotFoundException;
+import com.raf.si.userservice.model.*;
 import com.raf.si.userservice.model.enums.Profession;
+import com.raf.si.userservice.model.enums.ShiftType;
 import com.raf.si.userservice.model.enums.Title;
+import com.raf.si.userservice.repository.ShiftTimeRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -180,6 +178,57 @@ public class UserMapper {
         doctorResponse.setCovidAccess(user.isCovidAccess());
 
         return doctorResponse;
+    }
+
+    public Shift addShiftRequestToModel(User user, AddShiftRequest request, ShiftTime shiftTime) {
+        Shift shift = new Shift();
+
+        shift.setUser(user);
+
+        ShiftType shiftType = shiftTime.getShiftType();
+        shift.setShiftType(shiftType);
+
+        LocalDateTime startTime, endTime;
+        if (shiftType.equals(ShiftType.SLOBODAN_DAN)) {
+            startTime = request.getDate().atStartOfDay();
+            endTime = startTime.plusDays(1);
+        } else if (shiftType.equals(ShiftType.MEDJUSMENA)) {
+            if (request.getStartTime() == null || request.getEndTime() == null) {
+                String errMessage = "Početno i krajnje vreme ne smeju da budu prazni";
+                log.error(errMessage);
+                throw new BadRequestException(errMessage);
+            }
+
+            startTime = LocalDateTime.of(request.getDate(), request.getStartTime().truncatedTo(ChronoUnit.MINUTES));
+            endTime = LocalDateTime.of(request.getDate(), request.getEndTime().truncatedTo(ChronoUnit.MINUTES));
+            if (endTime.isBefore(startTime)) {
+                endTime = endTime.plusDays(1);
+            }
+        } else {
+            startTime = LocalDateTime.of(request.getDate(), shiftTime.getStartTime());
+            endTime = LocalDateTime.of(request.getDate(), shiftTime.getEndTime());
+            if (endTime.isBefore(startTime)) {
+                endTime = endTime.plusDays(1);
+            }
+        }
+
+        shift.setStartTime(startTime);
+        shift.setEndTime(endTime);
+
+        return shift;
+    }
+
+    public UserShiftResponse modelToUserShiftResponse(User user) {
+        UserShiftResponse response = new UserShiftResponse();
+
+        response.setUserResponse(modelToResponse(user));
+
+        List<Shift> shifts = user.getShifts();
+        Collections.sort(shifts);
+        response.setShifts(shifts);
+        response.setShiftCount((long) shifts.size());
+
+        return response;
     }
 
     private UserListResponse userListResponseToModel(User user) {

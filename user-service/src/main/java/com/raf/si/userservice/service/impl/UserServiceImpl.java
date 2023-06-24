@@ -4,12 +4,10 @@ import com.raf.si.userservice.dto.request.*;
 import com.raf.si.userservice.dto.response.*;
 import com.raf.si.userservice.exception.BadRequestException;
 import com.raf.si.userservice.exception.ForbiddenException;
+import com.raf.si.userservice.exception.InternalServerErrorException;
 import com.raf.si.userservice.exception.NotFoundException;
 import com.raf.si.userservice.mapper.UserMapper;
-import com.raf.si.userservice.model.Department;
-import com.raf.si.userservice.model.Hospital;
-import com.raf.si.userservice.model.Permission;
-import com.raf.si.userservice.model.User;
+import com.raf.si.userservice.model.*;
 import com.raf.si.userservice.model.enums.ShiftType;
 import com.raf.si.userservice.repository.*;
 import com.raf.si.userservice.service.EmailService;
@@ -27,12 +25,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.time.temporal.TemporalAdjusters.firstDayOfYear;
 
 @Slf4j
 @Service
@@ -310,10 +311,115 @@ public class UserServiceImpl implements UserService {
         if (subordinates == null || subordinates.isEmpty()) {
             String errMessage = "Nemate podređenih";
             log.error(errMessage);
-            throw new BadRequestException(errMessage);
+            throw new NotFoundException(errMessage);
         }
 
         return userMapper.modelToUserListAndCountResponse(subordinates);
+    }
+
+    @Transactional
+    @Override
+    public UserShiftResponse addShift(UUID lbz, AddShiftRequest request) {
+        User user = findUserByLbz(lbz);
+        entityManager.lock(user, LockModeType.PESSIMISTIC_WRITE);
+
+        checkShiftDateValid(request.getDate());
+
+        ShiftType shiftType = ShiftType.valueOfNotation(request.getShiftType());
+        if (shiftType == null) {
+            String errMessage = String.format("Tip smene '%s' ne postoj", request.getShiftType());
+            log.error(errMessage);
+            throw new NotFoundException(errMessage);
+        }
+        ShiftTime shiftTime = shiftTimeRepository.findByShiftType(shiftType);
+
+        Shift shift = userMapper.addShiftRequestToModel(user, request, shiftTime);
+        Shift existingShift = findExistingShift(user, shift);
+
+        if (existingShift == null) {
+            addNewShift(user, shift);
+        } else {
+            updateExistingShift(user, shift, existingShift);
+        }
+
+        return userMapper.modelToUserShiftResponse(user);
+    }
+
+    private void checkShiftDateValid(LocalDate date) {
+        LocalDate now = LocalDate.now();
+        LocalDate oneYearFromNow = now.plusYears(1);
+        if (date.isBefore(now)) {
+            String errMessage = String.format("Datum '%s' je u prošlosti", date);
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+        if (date.isAfter(oneYearFromNow)) {
+            String errMessage = String.format("Datum '%s' je više od godinu dana u budućnosti", date);
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+    }
+
+    private void addNewShift(User user, Shift shift) {
+        if (shift.getShiftType().equals(ShiftType.SLOBODAN_DAN)) {
+            if (canAddDayOff(user, shift)) {
+                if (shiftThisYear(shift)) {
+                    user.incrementUsedDaysOff();
+                }
+            } else {
+                String errMessage = "Svi slobodni dani za tu godinu su iskorišćeni";
+                log.error(errMessage);
+                throw new BadRequestException(errMessage);
+            }
+        }
+
+        shiftRepository.save(shift);
+    }
+
+    private void updateExistingShift(User user, Shift shift, Shift existingShift) {
+        if (shift.getShiftType().equals(ShiftType.SLOBODAN_DAN) && !existingShift.getShiftType().equals(ShiftType.SLOBODAN_DAN)) {
+            if (canAddDayOff(user, shift)) {
+                if (shiftThisYear(shift)) {
+                    user.incrementUsedDaysOff();
+                }
+            } else {
+                String errMessage = "Svi slobodni dani za tu godinu su iskorišćeni";
+                log.error(errMessage);
+                throw new BadRequestException(errMessage);
+            }
+        } else if (!shift.getShiftType().equals(ShiftType.SLOBODAN_DAN)
+                && existingShift.getShiftType().equals(ShiftType.SLOBODAN_DAN)
+                && shiftThisYear(shift)) {
+            user.decrementUsedDaysOff();
+        }
+
+        existingShift.setShiftType(shift.getShiftType());
+        existingShift.setStartTime(shift.getStartTime());
+        existingShift.setEndTime(shift.getEndTime());
+
+        shiftRepository.save(existingShift);
+    }
+
+    private boolean canAddDayOff(User user, Shift shift) {
+        if (shiftThisYear(shift)) {
+            return user.getUsedDaysOff() < user.getDaysOff() ? true : false;
+        } else {
+            LocalDateTime startDate = shift.getStartTime().with(firstDayOfYear()).truncatedTo(ChronoUnit.DAYS);
+            LocalDateTime endDate = startDate.plusYears(1);
+            int usedDaysOffForYear = (int) shiftRepository.countShiftsByShiftTypeForUserBetweenDates(
+                    user,
+                    startDate,
+                    endDate,
+                    ShiftType.SLOBODAN_DAN
+            );
+            return usedDaysOffForYear < user.getDaysOff() ? true : false;
+        }
+    }
+
+    private boolean shiftThisYear(Shift shift) {
+        int currentYear = LocalDateTime.now().getYear();
+        int shiftYear = shift.getStartTime().getYear();
+        return shiftYear == currentYear ? true : false;
     }
 
     private List<Boolean> adjustIncludeDeleteParameter(boolean includeDeleted) {
@@ -359,13 +465,29 @@ public class UserServiceImpl implements UserService {
         return false;
     }
 
+    private Shift findExistingShift(User user, Shift shift) {
+        LocalDateTime startTime = shift.getStartTime().truncatedTo(ChronoUnit.DAYS);
+        LocalDateTime endTime = startTime.plusDays(1);
+        List<Shift> existingShifts = shiftRepository.findByUserAndStartTimeBetween(user, startTime, endTime);
+        if (existingShifts == null || existingShifts.isEmpty()) {
+            return null;
+        } else if (existingShifts.size() > 1) {
+            String errMessage = "Pronađene 2 smene za isti dan kako šta";
+            log.error(errMessage);
+            throw new InternalServerErrorException(errMessage);
+        } else {
+            return existingShifts.get(0);
+        }
+    }
+
     @Scheduled(cron = "@yearly")
     @Transactional
     void updateUsersDaysOffAtYearEnd() {
         List<User> users = userRepository.findAll();
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        LocalDateTime endOfYear = now.plusYears(1);
         for (User user : users) {
-            long freeDays = shiftRepository.countShiftsByShiftTypeForUserAfterDate(user, now, ShiftType.SLOBODAN_DAN);
+            long freeDays = shiftRepository.countShiftsByShiftTypeForUserBetweenDates(user, now, endOfYear, ShiftType.SLOBODAN_DAN);
             user.setUsedDaysOff((int) freeDays);
         }
         userRepository.saveAll(users);

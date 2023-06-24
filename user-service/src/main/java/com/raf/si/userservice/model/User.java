@@ -70,4 +70,11 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "permission_id"))
     private List<Permission> permissions;
 
+    public void incrementUsedDaysOff() {
+        this.usedDaysOff++;
+    }
+
+    public void decrementUsedDaysOff() {
+        this.usedDaysOff--;
+    }
 }

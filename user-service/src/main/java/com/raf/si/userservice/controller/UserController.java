@@ -133,10 +133,18 @@ public class UserController {
         return ResponseEntity.ok(userService.getHeadOfDepartment(pbo));
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_DR_SPEC_ODELJENJA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @GetMapping("/subordinates")
     public ResponseEntity<UserListAndCountResponse> getSubordinates(@RequestParam(defaultValue = "0") int page,
                                                                     @RequestParam(defaultValue = "5") int size) {
         return ResponseEntity.ok(userService.getSubordinates(PageRequest.of(page, size)));
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_DR_SPEC_ODELJENJA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @PostMapping("/add-shift/{lbz}")
+    public ResponseEntity<UserShiftResponse> addShift(@PathVariable("lbz") UUID lbz,
+                                                      @RequestBody AddShiftRequest request) {
+        return ResponseEntity.ok(userService.addShift(lbz, request));
     }
 
     @GetMapping("/covid-nurses-num/{pbo}")
