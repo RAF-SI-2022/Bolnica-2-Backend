@@ -342,7 +342,89 @@ public class UserServiceImpl implements UserService {
             updateExistingShift(user, shift, existingShift);
         }
 
+        log.info(String.format("Sacuvana smena '%s' za korisnika za lbz-om %s", shift, lbz));
         return userMapper.modelToUserShiftResponse(user);
+    }
+
+    @Override
+    public UserResponse updateDaysOff(UUID lbz, int daysOff) {
+        User user = findUserByLbz(lbz);
+
+        if (daysOff > 50) {
+            String errMessage = "Ne može se dati više od 50 slobodnih dana";
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+        if (daysOff < 0) {
+            String errMessage = "Broj slobodnih dana ne sme biti negativan broj";
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+
+        checkCanUpdateDaysOff(user, daysOff);
+
+        user.setDaysOff(daysOff);
+        user = userRepository.save(user);
+        log.info(String.format("Korisniku sa lbz-om %s je promenjen broj slobodnih dana na %d", lbz,  daysOff));
+        return userMapper.modelToResponse(user);
+    }
+
+    private List<Boolean> adjustIncludeDeleteParameter(boolean includeDeleted) {
+        List<Boolean> list = new ArrayList<>();
+        list.add(false);
+        if (includeDeleted)
+            list.add(true);
+        return list;
+    }
+
+    private List<Boolean> adjustHasCovidAccessParameter(Boolean hasCovidAccess) {
+        if (hasCovidAccess == null) {
+            return Arrays.asList(new Boolean[] {true, false});
+        }
+        return Arrays.asList(new Boolean[]{hasCovidAccess});
+    }
+
+    private boolean canUpdateCovidAccess(User userForUpdate) {
+        TokenPayload token = TokenPayloadUtil.getTokenPayload();
+        List<String> loggedInRoles = token.getPermissions();
+        Department department = userForUpdate.getDepartment();
+        Hospital hospital = department.getHospital();
+
+        if (loggedInRoles.contains("ROLE_ADMIN") && hospital.getPbb().equals(token.getPbb())) {
+            return true;
+        }
+
+        if (loggedInRoles.contains("ROLE_DR_SPEC_ODELJENJA") && department.getPbo().equals(token.getPbo())) {
+            return true;
+        }
+
+        if (loggedInRoles.contains("ROLE_VISA_MED_SESTRA") && department.getPbo().equals(token.getPbo())) {
+            List<String> roles = userForUpdate.getPermissions()
+                    .stream()
+                    .map(Permission::getName)
+                    .collect(Collectors.toList());
+
+            if (roles.contains("ROLE_VISA_MED_SESTRA") || roles.contains("ROLE_MED_SESTRA")) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private Shift findExistingShift(User user, Shift shift) {
+        LocalDateTime startTime = shift.getStartTime().truncatedTo(ChronoUnit.DAYS);
+        LocalDateTime endTime = startTime.plusDays(1);
+        List<Shift> existingShifts = shiftRepository.findByUserAndStartTimeBetween(user, startTime, endTime);
+        if (existingShifts == null || existingShifts.isEmpty()) {
+            return null;
+        } else if (existingShifts.size() > 1) {
+            String errMessage = "Pronađene 2 smene za isti dan kako šta";
+            log.error(errMessage);
+            throw new InternalServerErrorException(errMessage);
+        } else {
+            return existingShifts.get(0);
+        }
     }
 
     private void checkShiftDateValid(LocalDate date) {
@@ -422,61 +504,29 @@ public class UserServiceImpl implements UserService {
         return shiftYear == currentYear ? true : false;
     }
 
-    private List<Boolean> adjustIncludeDeleteParameter(boolean includeDeleted) {
-        List<Boolean> list = new ArrayList<>();
-        list.add(false);
-        if (includeDeleted)
-            list.add(true);
-        return list;
-    }
-
-    private List<Boolean> adjustHasCovidAccessParameter(Boolean hasCovidAccess) {
-        if (hasCovidAccess == null) {
-            return Arrays.asList(new Boolean[] {true, false});
-        }
-        return Arrays.asList(new Boolean[]{hasCovidAccess});
-    }
-
-    private boolean canUpdateCovidAccess(User userForUpdate) {
-        TokenPayload token = TokenPayloadUtil.getTokenPayload();
-        List<String> loggedInRoles = token.getPermissions();
-        Department department = userForUpdate.getDepartment();
-        Hospital hospital = department.getHospital();
-
-        if (loggedInRoles.contains("ROLE_ADMIN") && hospital.getPbb().equals(token.getPbb())) {
-            return true;
-        }
-
-        if (loggedInRoles.contains("ROLE_DR_SPEC_ODELJENJA") && department.getPbo().equals(token.getPbo())) {
-            return true;
-        }
-
-        if (loggedInRoles.contains("ROLE_VISA_MED_SESTRA") && department.getPbo().equals(token.getPbo())) {
-            List<String> roles = userForUpdate.getPermissions()
-                    .stream()
-                    .map(Permission::getName)
-                    .collect(Collectors.toList());
-
-            if (roles.contains("ROLE_VISA_MED_SESTRA") || roles.contains("ROLE_MED_SESTRA")) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private Shift findExistingShift(User user, Shift shift) {
-        LocalDateTime startTime = shift.getStartTime().truncatedTo(ChronoUnit.DAYS);
-        LocalDateTime endTime = startTime.plusDays(1);
-        List<Shift> existingShifts = shiftRepository.findByUserAndStartTimeBetween(user, startTime, endTime);
-        if (existingShifts == null || existingShifts.isEmpty()) {
-            return null;
-        } else if (existingShifts.size() > 1) {
-            String errMessage = "Pronađene 2 smene za isti dan kako šta";
+    private void checkCanUpdateDaysOff(User user, int daysOff) {
+        if (user.getUsedDaysOff() > daysOff) {
+            String errMessage = String.format("Broj iskorišćenih slobodnih dana u ovoj godini (%d) je veći od novog broja slobodnih dana (%d)", user.getUsedDaysOff(), daysOff);
             log.error(errMessage);
-            throw new InternalServerErrorException(errMessage);
-        } else {
-            return existingShifts.get(0);
+            throw new BadRequestException(errMessage);
+        }
+
+        LocalDateTime nextYearStart = LocalDateTime.now()
+                .with(firstDayOfYear())
+                .truncatedTo(ChronoUnit.DAYS)
+                .plusYears(1);
+        LocalDateTime nextYearEnd = nextYearStart.plusYears(1);
+        int usedFreeDaysNextYear = (int) shiftRepository.countShiftsByShiftTypeForUserBetweenDates(
+                user,
+                nextYearStart,
+                nextYearEnd,
+                ShiftType.SLOBODAN_DAN
+        );
+
+        if (usedFreeDaysNextYear > daysOff) {
+            String errMessage = String.format("Broj iskorišćenih slobodnih dana u sledećoj godini (%d) je veći od novog broja slobodnih dana (%d)", usedFreeDaysNextYear, daysOff);
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
         }
     }
 
@@ -484,7 +534,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     void updateUsersDaysOffAtYearEnd() {
         List<User> users = userRepository.findAll();
-        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        LocalDateTime now = LocalDateTime.now().with(firstDayOfYear()).truncatedTo(ChronoUnit.DAYS);
         LocalDateTime endOfYear = now.plusYears(1);
         for (User user : users) {
             long freeDays = shiftRepository.countShiftsByShiftTypeForUserBetweenDates(user, now, endOfYear, ShiftType.SLOBODAN_DAN);

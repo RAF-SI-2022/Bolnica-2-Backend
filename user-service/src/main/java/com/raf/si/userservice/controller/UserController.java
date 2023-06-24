@@ -147,6 +147,13 @@ public class UserController {
         return ResponseEntity.ok(userService.addShift(lbz, request));
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PutMapping("/update-days-off/{lbz}")
+    public ResponseEntity<UserResponse> updateDaysOff(@PathVariable("lbz") UUID lbz,
+                                                      @RequestParam("daysOff") int daysOff) {
+        return ResponseEntity.ok(userService.updateDaysOff(lbz, daysOff));
+    }
+
     @GetMapping("/covid-nurses-num/{pbo}")
     public ResponseEntity<Integer> getNumOfCovidNursesByDepartment(@PathVariable("pbo") UUID pbo) {
         return ResponseEntity.ok(userService.getNumOfCovidNursesByDepartment(pbo));

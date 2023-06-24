@@ -41,4 +41,9 @@ public class Shift implements Comparable<Shift> {
             return 0;
         }
     }
+
+    @Override
+    public String toString() {
+        return shiftType.getNotation() + ", " + startTime + " - "  + endTime;
+    }
 }

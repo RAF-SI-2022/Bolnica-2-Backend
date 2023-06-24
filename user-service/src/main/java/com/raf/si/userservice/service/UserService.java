@@ -42,4 +42,6 @@ public interface UserService {
     UserListAndCountResponse getSubordinates(Pageable pageable);
 
     UserShiftResponse addShift(UUID lbz, AddShiftRequest request);
+
+    UserResponse updateDaysOff(UUID lbz, int daysOff);
 }
