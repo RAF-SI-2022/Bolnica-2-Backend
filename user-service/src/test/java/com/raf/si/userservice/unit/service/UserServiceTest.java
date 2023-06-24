@@ -430,6 +430,7 @@ public class UserServiceTest {
         Permission permission = new Permission();
         permission.setId(id);
         permission.setName(name);
+        permission.setDaysOff(30);
 
         return permission;
     }
