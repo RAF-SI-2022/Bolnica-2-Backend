@@ -10,9 +10,8 @@ import com.raf.si.userservice.model.Department;
 import com.raf.si.userservice.model.Hospital;
 import com.raf.si.userservice.model.Permission;
 import com.raf.si.userservice.model.User;
-import com.raf.si.userservice.repository.DepartmentRepository;
-import com.raf.si.userservice.repository.PermissionsRepository;
-import com.raf.si.userservice.repository.UserRepository;
+import com.raf.si.userservice.model.enums.ShiftType;
+import com.raf.si.userservice.repository.*;
 import com.raf.si.userservice.service.EmailService;
 import com.raf.si.userservice.service.UserService;
 import com.raf.si.userservice.utils.TokenPayload;
@@ -21,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -28,6 +28,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,17 +43,23 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
     private final DepartmentRepository departmentRepository;
     private final PermissionsRepository permissionsRepository;
+    private final ShiftRepository shiftRepository;
+    private final ShiftTimeRepository shiftTimeRepository;
     @PersistenceContext
     private EntityManager entityManager;
 
     public UserServiceImpl(UserRepository userRepository, UserMapper userMapper,
                            EmailService emailService, DepartmentRepository departmentRepository,
-                           PermissionsRepository permissionsRepository) {
+                           PermissionsRepository permissionsRepository,
+                           ShiftRepository shiftRepository,
+                           ShiftTimeRepository shiftTimeRepository) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.emailService = emailService;
         this.departmentRepository = departmentRepository;
         this.permissionsRepository = permissionsRepository;
+        this.shiftRepository = shiftRepository;
+        this.shiftTimeRepository = shiftTimeRepository;
     }
 
     @Transactional
@@ -271,6 +280,42 @@ public class UserServiceImpl implements UserService {
         return (int) userRepository.countCovidNursesByPbo(pbo, permissions);
     }
 
+    @Override
+    public UserListAndCountResponse getSubordinates(Pageable pageable) {
+        UUID lbz = TokenPayloadUtil.getTokenPayload().getLbz();
+        User user = userRepository.findByLbzAndFetchPermissions(lbz)
+                .orElseThrow( () -> {
+                    log.error("Ne postoji korisnik sa lbz '{}'", lbz);
+                    throw new NotFoundException("Korisnik sa datim lbz-om ne postoji");
+                });
+
+        List<Permission> permissions = user.getPermissions();
+        List<String> permissionNames = permissions.stream()
+                .map(Permission::getName)
+                .collect(Collectors.toList());
+
+        Page<User> subordinates = null;
+        if (permissionNames.contains("ROLE_ADMIN")) {
+            UUID pbb = user.getDepartment().getHospital().getPbb();
+            subordinates = userRepository.findSubordinatesForAdmin(pbb, pageable);
+        } else if (permissionNames.contains("ROLE_DR_SPEC_ODELJENJA")) {
+            UUID pbo = user.getDepartment().getPbo();
+            subordinates = userRepository.findSubordinatesForHeadOfDepartment(pbo, pageable);
+        } else if (permissionNames.contains("ROLE_VISA_MED_SESTRA")) {
+            UUID pbo = user.getDepartment().getPbo();
+            List<String> nursePermissions = Arrays.asList(new String[] {"ROLE_MED_SESTRA"});
+            subordinates = userRepository.findSubordinatesForNurse(pbo, nursePermissions, pageable);
+        }
+
+        if (subordinates == null || subordinates.isEmpty()) {
+            String errMessage = "Nemate podređenih";
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+
+        return userMapper.modelToUserListAndCountResponse(subordinates);
+    }
+
     private List<Boolean> adjustIncludeDeleteParameter(boolean includeDeleted) {
         List<Boolean> list = new ArrayList<>();
         list.add(false);
@@ -316,8 +361,14 @@ public class UserServiceImpl implements UserService {
 
     @Scheduled(cron = "@yearly")
     @Transactional
-    void clearUsersUsedDaysOff() {
-        userRepository.clearUserUsedDaysOff();
-        log.info("Iskorisceni dani za sve zaposlene su resetovani");
+    void updateUsersDaysOffAtYearEnd() {
+        List<User> users = userRepository.findAll();
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        for (User user : users) {
+            long freeDays = shiftRepository.countShiftsByShiftTypeForUserAfterDate(user, now, ShiftType.SLOBODAN_DAN);
+            user.setUsedDaysOff((int) freeDays);
+        }
+        userRepository.saveAll(users);
+        log.info("Iskorisceni dani za sve zaposlene su azurirani");
     }
 }

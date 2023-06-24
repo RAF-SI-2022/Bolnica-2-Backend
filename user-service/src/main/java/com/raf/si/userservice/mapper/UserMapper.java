@@ -196,6 +196,8 @@ public class UserMapper {
         userListResponse.setDepartmentName(user.getDepartment().getName());
         userListResponse.setHospitalName(user.getDepartment().getHospital().getFullName());
         userListResponse.setCovidAccess(user.isCovidAccess());
+        userListResponse.setDaysOff(user.getDaysOff());
+        userListResponse.setUsedDaysOff(user.getUsedDaysOff());
 
         return userListResponse;
     }

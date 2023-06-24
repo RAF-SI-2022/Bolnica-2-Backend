@@ -133,6 +133,12 @@ public class UserController {
         return ResponseEntity.ok(userService.getHeadOfDepartment(pbo));
     }
 
+    @GetMapping("/subordinates")
+    public ResponseEntity<UserListAndCountResponse> getSubordinates(@RequestParam(defaultValue = "0") int page,
+                                                                    @RequestParam(defaultValue = "5") int size) {
+        return ResponseEntity.ok(userService.getSubordinates(PageRequest.of(page, size)));
+    }
+
     @GetMapping("/covid-nurses-num/{pbo}")
     public ResponseEntity<Integer> getNumOfCovidNursesByDepartment(@PathVariable("pbo") UUID pbo) {
         return ResponseEntity.ok(userService.getNumOfCovidNursesByDepartment(pbo));

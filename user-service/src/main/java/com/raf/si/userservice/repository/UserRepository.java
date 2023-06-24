@@ -24,6 +24,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findUserByLbz(UUID lbz);
 
+    @Query("select u from users u join fetch u.permissions p where u.lbz=:lbz")
+    Optional<User> findByLbzAndFetchPermissions(UUID lbz);
+
     @Query(value = "select case when (count(u) > 0)  then true else false end" +
             " from users u where u.lbz = :lbz and u.isDeleted = :isDeleted")
     boolean userExists(@PathVariable("lbz") UUID lbz, @PathVariable("isDeleted") boolean isDeleted);
@@ -54,8 +57,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
             " and u.covidAccess=true and p.name in :permissions")
     long countCovidNursesByPbo(UUID pbo, List<String> permissions);
 
-    @Modifying
-    @Transactional
-    @Query(value = "update users u set u.usedDaysOff=0")
-    Integer clearUserUsedDaysOff();
+    @Query(value = "select u from users u where u.department.pbo=:pbo")
+    Page<User> findSubordinatesForHeadOfDepartment(UUID pbo, Pageable pageable);
+
+    @Query(value = "select u from users u where u.department.hospital.pbb=:pbb")
+    Page<User> findSubordinatesForAdmin(UUID pbb, Pageable pageable);
+
+    @Query(value = "select u from users u left join u.permissions p where u.department.pbo=:pbo" +
+            " and p.name in :permissions")
+    Page<User> findSubordinatesForNurse(UUID pbo, List<String> permissions, Pageable pageable);
 }
