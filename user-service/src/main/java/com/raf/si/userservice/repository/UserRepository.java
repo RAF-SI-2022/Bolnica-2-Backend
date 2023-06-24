@@ -5,8 +5,10 @@ import com.raf.si.userservice.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
@@ -21,6 +23,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findUserByUsername(String username);
 
     Optional<User> findUserByLbz(UUID lbz);
+
+    @Query("select u from users u join fetch u.permissions p where u.lbz=:lbz")
+    Optional<User> findByLbzAndFetchPermissions(UUID lbz);
 
     @Query(value = "select case when (count(u) > 0)  then true else false end" +
             " from users u where u.lbz = :lbz and u.isDeleted = :isDeleted")
@@ -51,4 +56,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query(value = "select count(distinct u) from users u left join u.permissions p where u.department.pbo=:pbo" +
             " and u.covidAccess=true and p.name in :permissions")
     long countCovidNursesByPbo(UUID pbo, List<String> permissions);
+
+    @Query(value = "select u from users u where u.department.pbo=:pbo")
+    Page<User> findSubordinatesForHeadOfDepartment(UUID pbo, Pageable pageable);
+
+    @Query(value = "select u from users u where u.department.hospital.pbb=:pbb")
+    Page<User> findSubordinatesForAdmin(UUID pbb, Pageable pageable);
+
+    @Query(value = "select u from users u left join u.permissions p where u.department.pbo=:pbo" +
+            " and p.name in :permissions")
+    Page<User> findSubordinatesForNurse(UUID pbo, List<String> permissions, Pageable pageable);
 }

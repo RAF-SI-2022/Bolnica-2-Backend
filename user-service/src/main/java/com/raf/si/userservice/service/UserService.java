@@ -38,4 +38,6 @@ public interface UserService {
     DoctorResponse getHeadOfDepartment(UUID pbo);
 
     Integer getNumOfCovidNursesByDepartment(UUID pbo);
+
+    UserListAndCountResponse getSubordinates(Pageable pageable);
 }
