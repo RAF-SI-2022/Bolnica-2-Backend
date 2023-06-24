@@ -59,6 +59,8 @@ public class VaccinationMapper {
         response.setPatientArrivalStatus(scheduledVaccinationCovid.getPatientArrivalStatus());
         response.setId(scheduledVaccinationCovid.getId());
         response.setLbp(scheduledVaccinationCovid.getPatient().getLbp());
+        response.setPatientFirstName(scheduledVaccinationCovid.getPatient().getFirstName());
+        response.setPatientLastName(scheduledVaccinationCovid.getPatient().getLastName());
 
         return response;
     }

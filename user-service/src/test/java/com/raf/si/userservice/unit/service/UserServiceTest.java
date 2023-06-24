@@ -17,9 +17,7 @@ import com.raf.si.userservice.model.Permission;
 import com.raf.si.userservice.model.User;
 import com.raf.si.userservice.model.enums.Profession;
 import com.raf.si.userservice.model.enums.Title;
-import com.raf.si.userservice.repository.DepartmentRepository;
-import com.raf.si.userservice.repository.PermissionsRepository;
-import com.raf.si.userservice.repository.UserRepository;
+import com.raf.si.userservice.repository.*;
 import com.raf.si.userservice.service.EmailService;
 import com.raf.si.userservice.service.UserService;
 import com.raf.si.userservice.service.impl.UserServiceImpl;
@@ -47,6 +45,8 @@ public class UserServiceTest {
     private UserRepository userRepository;
     private DepartmentRepository departmentRepository;
     private PermissionsRepository permissionsRepository;
+    private ShiftRepository shiftRepository;
+    private ShiftTimeRepository shiftTimeRepository;
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach
@@ -54,11 +54,13 @@ public class UserServiceTest {
         userRepository = mock(UserRepository.class);
         departmentRepository = mock(DepartmentRepository.class);
         permissionsRepository = mock(PermissionsRepository.class);
+        shiftRepository = mock(ShiftRepository.class);
+        shiftTimeRepository = mock(ShiftTimeRepository.class);
         EmailService emailService = mock(EmailService.class);
         passwordEncoder = mock(BCryptPasswordEncoder.class);
         userMapper = new UserMapper(passwordEncoder);
         userService = new UserServiceImpl(userRepository, userMapper, emailService,
-                departmentRepository, permissionsRepository);
+                departmentRepository, permissionsRepository, shiftRepository, shiftTimeRepository);
     }
 
     @Test
@@ -428,6 +430,7 @@ public class UserServiceTest {
         Permission permission = new Permission();
         permission.setId(id);
         permission.setName(name);
+        permission.setDaysOff(30);
 
         return permission;
     }

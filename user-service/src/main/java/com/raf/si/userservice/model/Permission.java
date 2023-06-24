@@ -14,4 +14,6 @@ public class Permission {
     private Long id;
     @Column(nullable = false)
     private String name;
+    @Column(name = "days_off", nullable = false)
+    private Integer daysOff;
 }
