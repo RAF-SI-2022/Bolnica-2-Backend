@@ -25,7 +25,7 @@ public class Vaccination {
 
     @Column
     private Date vaccinationDate = new Date(System.currentTimeMillis());
-
+    
     @Column
     private Boolean deleted = false;
 }
