@@ -7,6 +7,7 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class TestResultResponse {
-    List<TestingResponse> responseList;
+public class TestingListResponse {
+    private List<TestingResponse> testings;
+    private long count;
 }

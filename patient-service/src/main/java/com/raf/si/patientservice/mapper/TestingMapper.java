@@ -130,4 +130,12 @@ public class TestingMapper {
 
         return response;
     }
+
+    public TestingListResponse testingPageToResponse(Page<Testing> testingPage) {
+        List<TestingResponse> list = testingPage.toList()
+                .stream()
+                .map(this::testingToResponse)
+                .collect(Collectors.toList());
+        return new TestingListResponse(list, testingPage.getTotalElements());
+    }
 }
