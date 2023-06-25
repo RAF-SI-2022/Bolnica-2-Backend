@@ -79,6 +79,11 @@ public class HospitalizationServiceImpl implements HospitalizationService {
     @Override
     public HospitalizationResponse hospitalize(HospitalizationRequest request, String token) {
         HospitalRoom hospitalRoom = findHospitalRoom(request.getHospitalRoomId());
+        if(request.getDiagnosis().equals("COVID")){
+            if(!hospitalRoom.getCovid()){
+                throw new BadRequestException("Mora da bude COVID soba.");
+            }
+        }
         checkCapacity(hospitalRoom);
         entityManager.lock(hospitalRoom, LockModeType.PESSIMISTIC_READ);
 
@@ -91,7 +96,13 @@ public class HospitalizationServiceImpl implements HospitalizationService {
                 patient
         );
 
-        updateReferralStatus(request.getReferralId(), token);
+        //FIXME Po novoj specifikaciji može bez uputa ako je COVID.
+        if(request.getReferralId() != null){
+            updateReferralStatus(request.getReferralId(), token);
+        }else if(!request.getDiagnosis().equals("COVID")){
+            //FIXME Da li pustiti bez uputa ako nije covid dijagnoza?
+            throw new BadRequestException("Ne može bez uputa ako nije covid.");
+        }
 
         hospitalRoom.incrementOccupation();
         hospitalization = hospitalizationRepository.save(hospitalization);
