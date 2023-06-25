@@ -158,7 +158,7 @@ public class HospitalizationServiceTest {
         Hospitalization hospitalization = makeHospitalization(hospitalRoom, patient);
         Pageable pageable = PageRequest.of(0, 5);
         HospitalisedPatientSearchFilter filter = new HospitalisedPatientSearchFilter(null, hospitalRoom.getPbo(),
-                null, null, null, null, null);
+                null, null, null, null, null, null, null);
         HospitalisedPatientSpecification spec = new HospitalisedPatientSpecification(filter);
         Page<Hospitalization> pages = new PageImpl<>(Collections.singletonList(hospitalization));
 
@@ -172,7 +172,7 @@ public class HospitalizationServiceTest {
                 .thenReturn(pages);
 
         assertEquals(hospitalizationService.getHospitalisedPatients(null, filter.getPbo(), null,
-                null, null, null, null,
+                null, null, null, null, null, null,
                 PageRequest.of(0, 5)),
                 new HospitalisedPatientsListResponse(Collections.singletonList(hospitalizationMapper.
                         hospitalizationToHospitalisedPatient(hospitalization, Collections.singletonList(doctorResponse))),
@@ -187,7 +187,7 @@ public class HospitalizationServiceTest {
         Hospitalization hospitalization = makeHospitalization(hospitalRoom, patient);
         Pageable pageable = PageRequest.of(0, 5);
         HospitalisedPatientSearchFilter filter = new HospitalisedPatientSearchFilter(null, null,
-                null, null, null, null, Collections.singletonList(hospitalRoom.getPbo()));
+                null, null, null, null, null, null, Collections.singletonList(hospitalRoom.getPbo()));
         HospitalisedPatientSpecification spec = new HospitalisedPatientSpecification(filter);
         Page<Hospitalization> pages = new PageImpl<>(Collections.singletonList(hospitalization));
 

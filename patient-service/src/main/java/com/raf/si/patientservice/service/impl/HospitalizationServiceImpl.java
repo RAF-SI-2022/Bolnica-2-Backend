@@ -117,9 +117,11 @@ public class HospitalizationServiceImpl implements HospitalizationService {
 
     @Override
     public HospitalisedPatientsListResponse getHospitalisedPatients(String token, UUID pbo, UUID lbp, String firstName,
-                                                                    String lastName, String jmbg, String covid, Pageable pageable) {
+                                                                    String lastName, String jmbg, String covid,
+                                                                    Boolean onRespirator, Boolean immunized, Pageable pageable) {
         log.info("Dohvatanje hospitalizovanih pacijenata po odeljenju..");
-        HospitalisedPatientSearchFilter filter = new HospitalisedPatientSearchFilter(lbp, pbo, firstName, lastName, jmbg, covid,null);
+        HospitalisedPatientSearchFilter filter = new HospitalisedPatientSearchFilter(lbp, pbo, firstName, lastName,
+                jmbg, covid, onRespirator, immunized,null);
         HospitalisedPatientSpecification spec = new HospitalisedPatientSpecification(filter);
         Page<Hospitalization> hospitalizations = hospitalizationRepository.findAll(spec, pageable);
         List<DoctorResponse> doctorResponseList = getDoctorsResponse(token);
@@ -132,13 +134,13 @@ public class HospitalizationServiceImpl implements HospitalizationService {
 
     @Override
     public HospPatientByHospitalListResponse getHospitalisedPatientsByHospital(String token, UUID pbb, UUID lbp, String firstName,
-                                                                               String lastName, String jmbg, String respirator,
-                                                                               String imunizovan, String covid, Pageable pageable) {
+                                                                               String lastName, String jmbg, Boolean onRespirator,
+                                                                               Boolean immunized, String covid, Pageable pageable) {
         log.info("Dohvatanje hospitalizovanih pacijenata po bolnici..");
         List<DepartmentResponse> departmentResponses = getDepartmentsByHospital(pbb, token);
         List<DoctorResponse> doctorResponseList = getDoctorsResponse(token);
         HospitalisedPatientSearchFilter filter = new HospitalisedPatientSearchFilter(
-                lbp, null, firstName, lastName, jmbg, covid,
+                lbp, null, firstName, lastName, jmbg, covid, onRespirator, immunized,
                 departmentResponses.stream()
                         .map(DepartmentResponse::getPbo)
                         .collect(Collectors.toList())

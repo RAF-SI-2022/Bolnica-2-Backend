@@ -26,6 +26,7 @@ public class HospitalisedPatientSpecification implements Specification<Hospitali
     public Predicate toPredicate(Root<Hospitalization> root, @NonNull CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
         Join<Patient, Hospitalization> patientsJoin = root.join("patient");
         Join<HospitalRoom, Hospitalization> roomJoin = root.join("hospitalRoom");
+        //Join<PatientCondition, Patient> conditionJoin = patientsJoin.join("conditions");
         Path<UUID> lbp = patientsJoin.get("lbp");
         Path<UUID> pbo = roomJoin.get("pbo");
         Path<String> firstName = patientsJoin.get("firstName");
@@ -33,6 +34,8 @@ public class HospitalisedPatientSpecification implements Specification<Hospitali
         Path<String> jmbg = patientsJoin.get("jmbg");
         Path<Date> dischargeDate = root.get("dischargeDate");
         Path<String> diagnosis = root.get("diagnosis");
+        Path<Boolean> isImmunized = patientsJoin.get("immunized");
+        //Path<Boolean> onRespirator = conditionJoin.get("onRespirator");
 
         final List<Predicate> predicates = new ArrayList<>();
         predicates.add(criteriaBuilder.isNull(dischargeDate));
@@ -51,6 +54,10 @@ public class HospitalisedPatientSpecification implements Specification<Hospitali
             predicates.add(pbo.in(filter.getDepartmentIds()));
         if(filter.getDiagnosis() != null)
             predicates.add(criteriaBuilder.like(diagnosis,"%" + filter.getDiagnosis() + "%"));
+        if(filter.getIsImmunized() != null)
+            predicates.add(criteriaBuilder.equal(isImmunized, filter.getIsImmunized()));
+        //if(filter.getOnRespirator() != null)
+        //    predicates.add(criteriaBuilder.equal(onRespirator, filter.getOnRespirator()));
 
         return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
     }

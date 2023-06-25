@@ -16,11 +16,12 @@ public interface HospitalizationService {
 
     HospitalisedPatientsListResponse getHospitalisedPatients(String token, UUID pbo, UUID lbp,
                                                              String firstName, String lastName, String jmbg,
-                                                             String covid, Pageable pageable);
+                                                             String covid, Boolean onRespirator,
+                                                             Boolean immunized, Pageable pageable);
 
     HospPatientByHospitalListResponse getHospitalisedPatientsByHospital(String token, UUID pbb, UUID lbp,
                                                                         String firstName, String lastName, String jmbg,
-                                                                        String respirator, String imunizovan, String covid,
+                                                                        Boolean onRespirator, Boolean immunized, String covid,
                                                                         Pageable pageable);
 
     PatientConditionResponse createPatientCondition(UUID lbp, PatientConditionRequest patientConditionRequest);

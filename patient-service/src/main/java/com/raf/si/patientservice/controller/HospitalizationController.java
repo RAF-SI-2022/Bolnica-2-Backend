@@ -43,12 +43,15 @@ public class HospitalizationController {
                                                                                     @RequestParam(name = "lastName", required = false) String lastName,
                                                                                     @RequestParam(name = "jmbg", required = false) String jmbg,
                                                                                     @RequestParam(name = "covid", required = false) String covid,
+                                                                                    @RequestParam(name = "respirator", required = false) Boolean respirator,
+                                                                                    @RequestParam(name = "immunized", required = false) Boolean immunized,
                                                                                     @RequestParam(defaultValue = "0") int page,
                                                                                     @RequestParam(defaultValue = "5") int size,
                                                                                     @RequestHeader("Authorization") String authorizationHeader) {
         return ResponseEntity.ok(
                 hospitalizationService.getHospitalisedPatients(
-                        authorizationHeader, pbo, lbp, firstName, lastName, jmbg, covid, PageRequest.of(page, size)
+                        authorizationHeader, pbo, lbp, firstName, lastName, jmbg, covid, respirator, immunized,
+                        PageRequest.of(page, size)
                 )
         );
     }
@@ -62,8 +65,8 @@ public class HospitalizationController {
                                                                                                @RequestParam(name = "firstName", required = false) String firstName,
                                                                                                @RequestParam(name = "lastName", required = false) String lastName,
                                                                                                @RequestParam(name = "jmbg", required = false) String jmbg,
-                                                                                               @RequestParam(name = "respirator", required = false) String respirator,
-                                                                                               @RequestParam(name = "imunizovan", required = false) String imunizovan,
+                                                                                               @RequestParam(name = "respirator", required = false) Boolean respirator,
+                                                                                               @RequestParam(name = "immunized", required = false) Boolean immunized,
                                                                                                @RequestParam(name = "covid", required = false) String covid,
                                                                                                @RequestParam(defaultValue = "0") int page,
                                                                                                @RequestParam(defaultValue = "5") int size,
@@ -71,7 +74,7 @@ public class HospitalizationController {
         return ResponseEntity.ok(
                 hospitalizationService.getHospitalisedPatientsByHospital(
                         authorizationHeader, pbb, lbp, firstName,
-                        lastName, jmbg, respirator, imunizovan, covid, PageRequest.of(page, size)
+                        lastName, jmbg, respirator, immunized, covid, PageRequest.of(page, size)
                 )
         );
     }

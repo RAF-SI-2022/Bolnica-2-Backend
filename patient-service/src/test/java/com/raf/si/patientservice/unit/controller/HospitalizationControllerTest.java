@@ -48,13 +48,13 @@ public class HospitalizationControllerTest {
         UUID pbo = UUID.randomUUID();
 
         when(hospitalizationService.getHospitalisedPatients(
-                null, pbo, null, null, null, null, null, PageRequest.of(0, 5))
+                null, pbo, null, null, null, null, null, null, null,PageRequest.of(0, 5))
         ).thenReturn(response);
 
         assertEquals(hospitalizationController.getHospitalisedPatients(pbo, null,
                 null, null,
-                null, null,0,
-                5, null)
+                null, null, null, null,
+                0, 5, null)
                         .getBody(),
                 response);
     }

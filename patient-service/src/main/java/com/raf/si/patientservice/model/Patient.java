@@ -105,4 +105,7 @@ public class Patient {
 
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL)
     private List<Testing> testings;
+
+    @OneToMany(mappedBy = "patinet", cascade = CascadeType.ALL)
+    private List<PatientCondition> conditions;
 }
