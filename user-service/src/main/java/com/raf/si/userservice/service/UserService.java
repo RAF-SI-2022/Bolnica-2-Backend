@@ -40,4 +40,8 @@ public interface UserService {
     Integer getNumOfCovidNursesByDepartment(UUID pbo);
 
     UserListAndCountResponse getSubordinates(Pageable pageable);
+
+    UserShiftResponse addShift(UUID lbz, AddShiftRequest request);
+
+    UserResponse updateDaysOff(UUID lbz, int daysOff);
 }
