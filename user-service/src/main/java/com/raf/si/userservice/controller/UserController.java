@@ -154,6 +154,11 @@ public class UserController {
         return ResponseEntity.ok(userService.updateDaysOff(lbz, daysOff));
     }
 
+    @GetMapping("/{lbz}/shifts")
+    public ResponseEntity<UserShiftResponse> getUserWithShifts(@PathVariable("lbz") UUID lbz) {
+        return ResponseEntity.ok(userService.getUserWithShiftsByLbz(lbz));
+    }
+
     @GetMapping("/covid-nurses-num/{pbo}")
     public ResponseEntity<Integer> getNumOfCovidNursesByDepartment(@PathVariable("pbo") UUID pbo) {
         return ResponseEntity.ok(userService.getNumOfCovidNursesByDepartment(pbo));
@@ -161,7 +166,7 @@ public class UserController {
 
     @PostMapping("/can-schedule-for-doctor/{lbz}")
     public ResponseEntity<Boolean> canScheduleForDoctor(@PathVariable("lbz") UUID lbz,
-                                                        @RequestBody TimeRequest request) {
+                                                        @RequestBody @Valid TimeRequest request) {
         return ResponseEntity.ok(userService.canScheduleForDoctor(lbz, request));
     }
 }
