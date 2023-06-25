@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.ResultHandler;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,6 +52,8 @@ public class SchedMedExamControllerStepsCreate extends CucumberConfig {
     @When("Nurse provides valid information")
     public void nurse_provides_valid_information() throws Exception {
         SchedMedExamRequest schedMedExamRequest= util.createSchedMedExamRequest(1);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        schedMedExamRequest.setAppointmentDate(sdf.parse("01/01/2024 06:00:00"));
         resultAction= mvc.perform(post("/sched-med-exam/create")
                 .header("Authorization", "Bearer " + util.generateNurseTokenValid())
                 .content(gson.toJson(schedMedExamRequest))

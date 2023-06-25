@@ -144,7 +144,7 @@ public class HttpUtils {
         ).getBody();
     }
 
-    public static Boolean checkCanScheduleForDoctor(UUID lbz, boolean covid, TimeRequest request, String token) {
+    public static Boolean checkCanScheduleForDoctor(UUID lbz, Boolean covid, TimeRequest request, String token) {
         String url = USER_SERVICE_BASE_URL + USER_CAN_SCHEDULE_FOR_DOCTOR + "/" + lbz + "?covid=" + covid;
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();

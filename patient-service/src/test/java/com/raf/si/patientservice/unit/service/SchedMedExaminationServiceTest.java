@@ -1,6 +1,7 @@
 package com.raf.si.patientservice.unit.service;
 
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
+import com.raf.si.patientservice.dto.request.TimeRequest;
 import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 import com.raf.si.patientservice.dto.response.http.UserResponse;
@@ -509,6 +510,8 @@ public class SchedMedExaminationServiceTest {
         doReturn(status).when(responseBodyMock).getStatusCode();
 
         when(HttpUtils.findUserByLbz(any(String.class),any(UUID.class))).thenReturn(responseBodyMock);
+
+        when(HttpUtils.checkCanScheduleForDoctor(any(), any(), any(), any())).thenReturn(true);
     }
 
 

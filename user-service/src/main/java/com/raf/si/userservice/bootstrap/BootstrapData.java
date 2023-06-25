@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,16 +29,19 @@ public class  BootstrapData implements CommandLineRunner {
     private final DepartmentRepository departmentRepository;
     private final HospitalRepository hospitalRepository;
     private final ShiftTimeRepository shiftTimeRepository;
+    private final ShiftRepository shiftRepository;
     private final PasswordEncoder passwordEncoder;
 
     public BootstrapData(UserRepository userRepository, PermissionsRepository permissionsRepository,
                          DepartmentRepository departmentRepository, HospitalRepository hospitalRepository,
-                         ShiftTimeRepository shiftTimeRepository, PasswordEncoder passwordEncoder) {
+                         ShiftTimeRepository shiftTimeRepository, ShiftRepository shiftRepository,
+                         PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.permissionsRepository = permissionsRepository;
         this.departmentRepository = departmentRepository;
         this.hospitalRepository = hospitalRepository;
         this.shiftTimeRepository = shiftTimeRepository;
+        this.shiftRepository = shiftRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -183,6 +187,24 @@ public class  BootstrapData implements CommandLineRunner {
         userRepository.save(medSestra);
 
         addShiftTimes();
+
+        LocalDateTime startTime = LocalDateTime.of(2024, 1, 1, 1, 1);
+        LocalDateTime endTime = startTime.plusHours(11);
+
+        Shift shift = new Shift();
+        shift.setShiftType(ShiftType.MEDJUSMENA);
+        shift.setUser(user);
+        shift.setStartTime(startTime);
+        shift.setEndTime(endTime);
+
+        Shift nurseShift = new Shift();
+        nurseShift.setShiftType(ShiftType.MEDJUSMENA);
+        nurseShift.setUser(medSestra);
+        nurseShift.setStartTime(startTime);
+        nurseShift.setEndTime(endTime);
+
+        shiftRepository.save(shift);
+        shiftRepository.save(nurseShift);
 
         addOtherUsers();
     }
