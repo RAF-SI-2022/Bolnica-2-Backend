@@ -2,11 +2,7 @@ package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
 import com.raf.si.patientservice.dto.request.TestingRequest;
-import com.raf.si.patientservice.dto.request.TimeRequest;
-import com.raf.si.patientservice.dto.response.AvailableTermResponse;
-import com.raf.si.patientservice.dto.response.ScheduledTestingListResponse;
-import com.raf.si.patientservice.dto.response.ScheduledTestingResponse;
-import com.raf.si.patientservice.dto.response.TestingResponse;
+import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.exception.NotFoundException;
@@ -15,6 +11,7 @@ import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
 import com.raf.si.patientservice.model.enums.examination.PatientArrivalStatus;
 import com.raf.si.patientservice.model.enums.testing.Availability;
+import com.raf.si.patientservice.model.enums.testing.TestResult;
 import com.raf.si.patientservice.repository.AvailableTermRepository;
 import com.raf.si.patientservice.repository.PatientConditionRepository;
 import com.raf.si.patientservice.repository.ScheduledTestingRepository;
@@ -259,6 +256,36 @@ public class TestingServiceImpl implements TestingService {
 
         log.info(String.format("Zakazano testiranje sa id-jem %s je obrisano", id));
         return testingMapper.scheduledTestingToResponse(scheduledTesting);
+    }
+
+    @Override
+    public TestResultResponse proccessingOfTestResults() {
+        List<TestingResponse> responseList = new ArrayList<>();
+        testingRepository.findTestingByTestResult(TestResult.NEOBRADJEN).forEach(testing -> {
+            responseList.add(testingMapper.testingToResponse(testing));
+        });
+        return new TestResultResponse(responseList);
+    }
+
+    @Override
+    public String updateTestResult(Long id, String testResult) {
+        Optional<Testing> optionalTesting = testingRepository.findById(id);
+        TestResult newTestResult = TestResult.NEOBRADJEN;
+        if(testResult.equalsIgnoreCase("pozitivan")){
+            newTestResult = TestResult.POZITIVAN;
+        }else if(testResult.equalsIgnoreCase("negativan")){
+            newTestResult = TestResult.NEGATIVAN;
+        }
+        if (optionalTesting.isPresent()) {
+            Testing testing = optionalTesting.get();
+            testing.setTestResult(newTestResult);
+            testingRepository.save(testing);
+            log.info(String.format("Promenjen rezultat testiranja sa id-om %s ",
+                    testing.getId().toString()));
+            return "Upsesno promenjen rezultat testiranja";
+        } else {
+            throw new IllegalArgumentException("Nije pronadjen Test sa id-em: " + id);
+        }
     }
 
     private void checkDateInFuture(LocalDateTime date){
