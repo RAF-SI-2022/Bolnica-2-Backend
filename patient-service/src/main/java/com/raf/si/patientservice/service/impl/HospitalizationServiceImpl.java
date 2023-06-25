@@ -132,7 +132,8 @@ public class HospitalizationServiceImpl implements HospitalizationService {
 
     @Override
     public HospPatientByHospitalListResponse getHospitalisedPatientsByHospital(String token, UUID pbb, UUID lbp, String firstName,
-                                                                               String lastName, String jmbg, Pageable pageable) {
+                                                                               String lastName, String jmbg, String respirator,
+                                                                               String imunizovan, Pageable pageable) {
         log.info("Dohvatanje hospitalizovanih pacijenata po bolnici..");
         List<DepartmentResponse> departmentResponses = getDepartmentsByHospital(pbb, token);
         List<DoctorResponse> doctorResponseList = getDoctorsResponse(token);
