@@ -37,7 +37,7 @@ public interface UserService {
 
     DoctorResponse getHeadOfDepartment(UUID pbo);
 
-    Integer getNumOfCovidNursesByDepartment(UUID pbo);
+    Integer getNumOfCovidNursesByDepartmentInTimeSlot(UUID pbo, TimeRequest request);
 
     UserListAndCountResponse getSubordinates(Pageable pageable);
 
@@ -45,7 +45,7 @@ public interface UserService {
 
     UserResponse updateDaysOff(UUID lbz, int daysOff);
 
-    Boolean canScheduleForDoctor(UUID lbz, TimeRequest timeRequest);
+    Boolean canScheduleForDoctor(UUID lbz, boolean covid, TimeRequest timeRequest);
 
     UserShiftResponse getUserWithShiftsByLbz(UUID lbz);
 }

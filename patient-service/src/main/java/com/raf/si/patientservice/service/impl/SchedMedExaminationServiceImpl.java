@@ -273,10 +273,15 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
                 endTime
         );
 
-        boolean canSchedule = HttpUtils.checkCanScheduleForDoctor(schedMedExamRequest.getLbzDoctor(), request, token);
+        boolean canSchedule = HttpUtils.checkCanScheduleForDoctor(
+                schedMedExamRequest.getLbzDoctor(),
+                schedMedExamRequest.getCovid(),
+                request,
+                token
+        );
 
         if (!canSchedule) {
-            String errMessage = String.format("Doktor sa lbz-om '%s' ne radi u tom terminu");
+            String errMessage = String.format("Doktor sa lbz-om '%s' ne radi u tom terminu ili se pristup covid-u ne poklapa", schedMedExamRequest.getLbzDoctor());
             log.error(errMessage);
             throw new BadRequestException(errMessage);
         }

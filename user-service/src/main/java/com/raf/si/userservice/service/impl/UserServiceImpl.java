@@ -276,9 +276,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Integer getNumOfCovidNursesByDepartment(UUID pbo) {
+    public Integer getNumOfCovidNursesByDepartmentInTimeSlot(UUID pbo, TimeRequest request) {
         List<String> permissions = Arrays.asList(new String[] {"ROLE_MED_SESTRA", "ROLE_VISA_MED_SESTRA"});
-        return (int) userRepository.countCovidNursesByPbo(pbo, permissions);
+        return (int) userRepository.countCovidNursesByPboAndShiftInTimeSlot(
+                pbo,
+                permissions,
+                request.getStartTime(),
+                request.getEndTime()
+        );
     }
 
     @Override
@@ -379,8 +384,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Boolean canScheduleForDoctor(UUID lbz, TimeRequest timeRequest) {
-        return shiftRepository.canScheduleForLbz(lbz, timeRequest.getStartTime(), timeRequest.getEndTime());
+    public Boolean canScheduleForDoctor(UUID lbz, boolean covid, TimeRequest timeRequest) {
+        return shiftRepository.canScheduleForLbz(lbz, covid, timeRequest.getStartTime(), timeRequest.getEndTime());
     }
 
     @Override

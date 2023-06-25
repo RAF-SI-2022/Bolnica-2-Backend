@@ -10,8 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -159,14 +157,16 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserWithShiftsByLbz(lbz));
     }
 
-    @GetMapping("/covid-nurses-num/{pbo}")
-    public ResponseEntity<Integer> getNumOfCovidNursesByDepartment(@PathVariable("pbo") UUID pbo) {
-        return ResponseEntity.ok(userService.getNumOfCovidNursesByDepartment(pbo));
+    @PostMapping("/covid-nurses-num/{pbo}")
+    public ResponseEntity<Integer> getNumOfCovidNursesByDepartmentInTimeSlot(@PathVariable("pbo") UUID pbo,
+                                                                             @RequestBody @Valid TimeRequest request) {
+        return ResponseEntity.ok(userService.getNumOfCovidNursesByDepartmentInTimeSlot(pbo, request));
     }
 
     @PostMapping("/can-schedule-for-doctor/{lbz}")
     public ResponseEntity<Boolean> canScheduleForDoctor(@PathVariable("lbz") UUID lbz,
+                                                        @RequestParam("covid") boolean covid,
                                                         @RequestBody @Valid TimeRequest request) {
-        return ResponseEntity.ok(userService.canScheduleForDoctor(lbz, request));
+        return ResponseEntity.ok(userService.canScheduleForDoctor(lbz, covid, request));
     }
 }

@@ -131,21 +131,21 @@ public class HttpUtils {
         );
     }
 
-    public static Integer getNumOfCovidNursesForDepartment(UUID pbo, String token) {
+    public static Integer getNumOfCovidNursesForDepartment(UUID pbo, TimeRequest request, String token) {
         String url = USER_SERVICE_BASE_URL + USER_COVID_NURSES_FOR_DEPARTMENT + "/" + pbo;
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", token);
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        HttpEntity<TimeRequest> entity = new HttpEntity<>(request, headers);
         return restTemplate.exchange(url.trim(),
-                HttpMethod.GET,
+                HttpMethod.POST,
                 entity,
                 Integer.class
         ).getBody();
     }
 
-    public static Boolean checkCanScheduleForDoctor(UUID lbz, TimeRequest request, String token) {
-        String url = USER_SERVICE_BASE_URL + USER_CAN_SCHEDULE_FOR_DOCTOR + "/" + lbz;
+    public static Boolean checkCanScheduleForDoctor(UUID lbz, boolean covid, TimeRequest request, String token) {
+        String url = USER_SERVICE_BASE_URL + USER_CAN_SCHEDULE_FOR_DOCTOR + "/" + lbz + "?covid=" + covid;
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", token);
