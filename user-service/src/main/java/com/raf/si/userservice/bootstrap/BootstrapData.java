@@ -18,6 +18,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -296,8 +297,29 @@ public class  BootstrapData implements CommandLineRunner {
             user.setCovidAccess(true);
             user = findUserDaysOff(user);
             userRepository.save(user);
+
+            addShiftsForUser(user);
         }
 
+    }
+
+    private void addShiftsForUser(User user) {
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS);
+
+        for (int i = 0; i < 10; i++) {
+            Shift shift = new Shift();
+
+            shift.setUser(user);
+            shift.setShiftType(ShiftType.PRVA_SMENA);
+
+            LocalDateTime startTime = now.plusDays(i).plusHours(6);
+            LocalDateTime endTime = startTime.plusHours(8);
+
+            shift.setStartTime(startTime);
+            shift.setEndTime(endTime);
+
+            shiftRepository.save(shift);
+        }
     }
 
     private User findUserDaysOff(User user) {
