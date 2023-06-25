@@ -65,7 +65,7 @@ public class VaccinationCovidController {
 
     @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @PatchMapping("/scheduled/change-status/{scheduled-vaccination-id}")
-    public ResponseEntity<ScheduledVaccinationResponse> changeVaccinationStatus(@PathVariable("scheduled-testing-id") Long scheduledVaccinationId,
+    public ResponseEntity<ScheduledVaccinationResponse> changeVaccinationStatus(@PathVariable("scheduled-vaccination-id") Long scheduledVaccinationId,
                                                                         @RequestParam(required = false) String vaccStatus,
                                                                         @RequestParam(required = false) String patientArrivalStatus) {
 
