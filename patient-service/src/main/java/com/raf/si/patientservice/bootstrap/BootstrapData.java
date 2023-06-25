@@ -225,6 +225,42 @@ public class BootstrapData implements CommandLineRunner {
             }
         }
 
+        Vaccine vaccine = new Vaccine();
+        vaccine.setName("Astrazeneka");
+        vaccine.setType("COVID vakcina");
+        vaccine.setDescription("COVID vakcina");
+        vaccine.setProducer("Astrazeneka");
+        vaccineRepository.save(vaccine);
+
+        Vaccine vaccine1 = new Vaccine();
+        vaccine1.setName("Sinopharm");
+        vaccine1.setType("COVID vakcina");
+        vaccine1.setDescription("COVID vakcina");
+        vaccine1.setProducer("Sinopharm");
+        vaccineRepository.save(vaccine1);
+
+        Vaccine vaccine2 = new Vaccine();
+        vaccine2.setName("Pfizer");
+        vaccine2.setType("COVID vakcina");
+        vaccine2.setDescription("COVID vakcina");
+        vaccine2.setProducer("Pfizer");
+        vaccineRepository.save(vaccine2);
+
+        Vaccine vaccine3 = new Vaccine();
+        vaccine3.setName("Sputnik V");
+        vaccine3.setType("COVID vakcina");
+        vaccine3.setDescription("COVID vakcina");
+        vaccine3.setProducer("Sputnik V");
+        vaccineRepository.save(vaccine3);
+
+        Vaccine vaccine4 = new Vaccine();
+        vaccine4.setName("Moderna");
+        vaccine4.setType("COVID vakcina");
+        vaccine4.setDescription("COVID vakcina");
+        vaccine4.setProducer("Moderna");
+        vaccineRepository.save(vaccine4);
+
+
         //dodaj sve dijagnoze
         String[] mkb10 = {"A15.3", "D50", "I10", "I35.0", "J11", "J12.9", "K35", "K70.3", "K71.0", "N20.0"};
         String[] description =

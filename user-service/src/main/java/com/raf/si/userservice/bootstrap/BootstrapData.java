@@ -101,11 +101,11 @@ public class  BootstrapData implements CommandLineRunner {
         addDepartmentsToHospital(
                 List.of("Interne bolesti", "Neurologija",
                         "Hirurgija", "Ginekologija i akušerstvo",
-                        "Onkologija","Laboratorija", "Dijagnostika", "Stacionar"),
+                        "Onkologija","Laboratorija", "Dijagnostika", "Stacionar", "Covid odsek"),
                 List.of("4349eb95-d671-41c6-8cb1-389a45466cde", "c2de9275-ee7d-4994-85e7-ab433c843529",
                         "4260b200-9abf-42c5-acdf-8050fd55783e", "bf027665-8d73-4ec1-8f05-9e73ca4434a0",
                         "73e69114-7e40-4bd9-a69d-1599ba011baf", "13531c13-ac0b-465c-9b2c-56ecd5bf3474",
-                        "4812d5d8-f43c-432a-a12c-7ff88c28fd4d", "49f62e58-d996-4f7d-bded-965a8719454f"),
+                        "4812d5d8-f43c-432a-a12c-7ff88c28fd4d", "49f62e58-d996-4f7d-bded-965a8719454f", "50869452-02f6-4ef7-8592-24d342cd70d1"),
                 kbcZemun
         );
 
@@ -271,6 +271,7 @@ public class  BootstrapData implements CommandLineRunner {
             user.setTitle(Title.valueOfNotation(split[12]));
             user.setProfession(Profession.valueOfNotation(split[13]));
             user.setLbz(UUID.fromString(split[14]));
+            user.setCovidAccess(true);
             user = findUserDaysOff(user);
             userRepository.save(user);
         }
