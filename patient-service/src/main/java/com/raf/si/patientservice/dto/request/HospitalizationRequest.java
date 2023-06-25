@@ -22,6 +22,6 @@ public class HospitalizationRequest {
 
     private String note;
 
-    @NotNull(message = "Id uputa ne sme biti prazan")
+    //FIXME Po novoj specifikaciji može bez uputa.
     private Long referralId;
 }

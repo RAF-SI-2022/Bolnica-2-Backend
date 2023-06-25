@@ -1,7 +1,5 @@
 package com.raf.si.patientservice.unit.service;
 
-
-
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
 import com.raf.si.patientservice.dto.request.TestingRequest;
 import com.raf.si.patientservice.exception.BadRequestException;
@@ -22,7 +20,6 @@ import com.raf.si.patientservice.service.TestingService;
 import com.raf.si.patientservice.service.impl.TestingServiceImpl;
 import com.raf.si.patientservice.utils.TokenPayload;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
-import io.cucumber.java.bs.A;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +29,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
-import org.springframework.integration.support.locks.LockRegistry;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -50,7 +46,6 @@ import static org.mockito.Mockito.when;
 
 
 public class TestingServiceTest {
-
 
     private  ScheduledTestingRepository scheduledTestingRepository;
     private  TestingRepository testingRepository;
@@ -73,7 +68,6 @@ public class TestingServiceTest {
         lock = mock(Lock.class);
         patientService = mock(PatientService.class);
 
-
         testingService = new TestingServiceImpl(
                   scheduledTestingRepository
                 , testingRepository
@@ -83,10 +77,8 @@ public class TestingServiceTest {
                 , testingMapper
                 , lockRegistry);
 
-
         when(patientService.findPatient((UUID) any()))
                 .thenReturn(makePatient());
-
 
         mockTokenPayloadUtil();
 
@@ -97,7 +89,6 @@ public class TestingServiceTest {
     public void cleanup() {
         Mockito.framework().clearInlineMocks();
     }
-
 
     @Test
     void scheduleTesting_TwoUsersTryToPutTheLockAtTheSameTimeAndOneTimesOut_ThrowBadRequestException(){
@@ -145,7 +136,6 @@ public class TestingServiceTest {
         assertThrows(BadRequestException.class,
                 () -> testingService.scheduleTesting(lbp, request, token));
     }
-
 
     @Test
     void scheduledTesting_PatientHadScheduledTestInThePast2Days_ThrowBadRequestException(){
@@ -392,7 +382,6 @@ public class TestingServiceTest {
         return scheduledTesting;
     }
 
-
     private ScheduledTestingRequest makeScheduledTestingRequest() {
         ScheduledTestingRequest scheduledTestingRequest = new ScheduledTestingRequest();
         scheduledTestingRequest.setDateAndTime(LocalDateTime.now().plusDays(1));
@@ -431,8 +420,4 @@ public class TestingServiceTest {
 
         return patient;
     }
-
-
-
-
 }

@@ -105,7 +105,7 @@ public class TestingServiceImpl implements TestingService {
                                                            ScheduledTestingRequest request,
                                                            String token) {
 
-        LocalDateTime requestDate = request.getDateAndTime().truncatedTo(ChronoUnit.SECONDS);
+        LocalDateTime requestDate = request.getDateAndTime().truncatedTo(ChronoUnit.MINUTES);
         request.setDateAndTime(requestDate);
 
         Patient patient = patientService.findPatient(lbp);
@@ -116,9 +116,10 @@ public class TestingServiceImpl implements TestingService {
         checkDateInFuture(request.getDateAndTime());
         checkPatientTestingsForDay(patient, request.getDateAndTime());
 
+        LocalDateTime startDateAndTime = request.getDateAndTime().minusMinutes(ScheduledTesting.getTestDurationMinutes());
         LocalDateTime endDateAndTime = request.getDateAndTime().plusMinutes(ScheduledTesting.getTestDurationMinutes());
         List<AvailableTerm> availableTerms = availableTermRepository.findByDateAndTimeBetweenAndPbo(
-                request.getDateAndTime(),
+                startDateAndTime,
                 endDateAndTime,
                 tokenPayload.getPbo()
         );
@@ -147,7 +148,7 @@ public class TestingServiceImpl implements TestingService {
 
     @Override
     public AvailableTermResponse getAvailableTerm(LocalDateTime dateAndTime, String token) {
-        dateAndTime = dateAndTime.truncatedTo(ChronoUnit.SECONDS);
+        dateAndTime = dateAndTime.truncatedTo(ChronoUnit.MINUTES);
         TokenPayload tokenPayload = TokenPayloadUtil.getTokenPayload();
         Optional<AvailableTerm> availableTermOptional = availableTermRepository.findByDateAndTimeAndPbo(dateAndTime, tokenPayload.getPbo());
         AvailableTerm availableTerm;
@@ -336,23 +337,27 @@ public class TestingServiceImpl implements TestingService {
 
     private AvailableTerm makeAvailableTerm(LocalDateTime dateAndTime, String token) {
         TokenPayload tokenPayload = TokenPayloadUtil.getTokenPayload();
-        int availableNurses = getAvailableNurses(tokenPayload.getPbo(), token);
+        TimeRequest timeRequest = new TimeRequest(
+                dateAndTime,
+                dateAndTime.plusMinutes(ScheduledTesting.getTestDurationMinutes())
+        );
+        int availableNurses = getAvailableNurses(tokenPayload.getPbo(), timeRequest, token);
         return testingMapper.makeAvailableTerm(dateAndTime,
                 tokenPayload.getPbo(),
                 availableNurses);
     }
 
-    private int getAvailableNurses(UUID pbo, String token) {
+    private int getAvailableNurses(UUID pbo, TimeRequest request, String token) {
         int availableNurses;
         try {
-            availableNurses = HttpUtils.getNumOfCovidNursesForDepartment(pbo, token);
+            availableNurses = HttpUtils.getNumOfCovidNursesForDepartment(pbo, request, token);
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new InternalServerErrorException(e.getMessage());
         }
 
         if (availableNurses < 1) {
-            String errMessage = String.format("Nema dostupnih sestara za departman sa pbo-om %s", pbo);
+            String errMessage = String.format("Nema dostupnih sestara za departman sa pbo-om %s za termin '%s'", pbo, request.getStartTime());
             log.error(errMessage);
             throw new BadRequestException(errMessage);
         }

@@ -59,6 +59,8 @@ public class TestingMapper {
         response.setPatientArrivalStatus(scheduledTesting.getPatientArrivalStatus());
         response.setId(scheduledTesting.getId());
         response.setLbp(scheduledTesting.getPatient().getLbp());
+        response.setPatientFirstName(scheduledTesting.getPatient().getFirstName());
+        response.setPatientLastName(scheduledTesting.getPatient().getLastName());
 
         return response;
     }

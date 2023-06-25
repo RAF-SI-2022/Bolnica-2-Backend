@@ -28,4 +28,7 @@ public class UserListResponse {
     private String departmentName;
     private String hospitalName;
     private boolean covidAccess;
+    private int daysOff;
+    private int usedDaysOff;
+    private int remainingDaysOff;
 }

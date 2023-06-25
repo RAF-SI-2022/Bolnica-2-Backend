@@ -9,10 +9,11 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ScheduledTestingResponse {
+public class ScheduledVaccinationResponse {
     private Long id;
     private LocalDateTime dateAndTime;
     private ExaminationStatus testStatus;
