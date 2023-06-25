@@ -2,6 +2,7 @@ package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
 import com.raf.si.patientservice.dto.request.TestingRequest;
+import com.raf.si.patientservice.dto.request.TimeRequest;
 import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
@@ -259,33 +260,35 @@ public class TestingServiceImpl implements TestingService {
     }
 
     @Override
-    public TestResultResponse proccessingOfTestResults() {
-        List<TestingResponse> responseList = new ArrayList<>();
-        testingRepository.findTestingByTestResult(TestResult.NEOBRADJEN).forEach(testing -> {
-            responseList.add(testingMapper.testingToResponse(testing));
-        });
-        return new TestResultResponse(responseList);
+    public TestingListResponse processingOfTestResults(Pageable pageable) {
+        Page<Testing> testingPage = testingRepository.findTestingByTestResult(TestResult.NEOBRADJEN, pageable);
+        return testingMapper.testingPageToResponse(testingPage);
     }
 
     @Override
-    public String updateTestResult(Long id, String testResult) {
-        Optional<Testing> optionalTesting = testingRepository.findById(id);
-        TestResult newTestResult = TestResult.NEOBRADJEN;
-        if(testResult.equalsIgnoreCase("pozitivan")){
-            newTestResult = TestResult.POZITIVAN;
-        }else if(testResult.equalsIgnoreCase("negativan")){
-            newTestResult = TestResult.NEGATIVAN;
+    public TestingResponse updateTestResult(Long id, String testResultString) {
+        Testing testing = testingRepository.findById(id)
+            .orElseThrow(() -> {
+                String errMessage = String.format("Testiranje sa id-jem '%d' nije pronadjeno", id);
+                log.error(errMessage);
+                throw new NotFoundException(errMessage);
+            });
+
+        TestResult testResult = TestResult.valueOfNotation(testResultString);
+        if (testResult == null) {
+            String errMessage = String.format("Rezultat testiranja '%s' ne postoji", testResultString);
+            log.error(errMessage);
+            throw new NotFoundException(errMessage);
         }
-        if (optionalTesting.isPresent()) {
-            Testing testing = optionalTesting.get();
-            testing.setTestResult(newTestResult);
-            testingRepository.save(testing);
-            log.info(String.format("Promenjen rezultat testiranja sa id-om %s ",
-                    testing.getId().toString()));
-            return "Upsesno promenjen rezultat testiranja";
-        } else {
-            throw new IllegalArgumentException("Nije pronadjen Test sa id-em: " + id);
-        }
+
+        testing.setTestResult(testResult);
+//        if (testResult.equals(TestResult.POZITIVAN) || testResult.equals(TestResult.NEGATIVAN)) {
+//            certificate()
+//        }
+        testingRepository.save(testing);
+
+        log.info(String.format("Rezultat testiranja za testiranje sa id-jem '%d' je promenjeno na '%s'"), id, testResult);
+        return testingMapper.testingToResponse(testing);
     }
 
     private void checkDateInFuture(LocalDateTime date){

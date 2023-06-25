@@ -3,7 +3,6 @@ package com.raf.si.patientservice.controller;
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
 import com.raf.si.patientservice.dto.request.TestingRequest;
 import com.raf.si.patientservice.dto.response.*;
-import com.raf.si.patientservice.model.enums.testing.TestResult;
 import com.raf.si.patientservice.service.TestingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -77,19 +76,20 @@ public class TestingController {
     public ResponseEntity<ScheduledTestingResponse> deleteScheduledTesting(@PathVariable("id") Long id) {
         return ResponseEntity.ok(testingService.deleteScheduledTesting(id));
     }
-    @PreAuthorize("hasRole('ROLE_VISI_LAB_TEHNICAR')" + "or hasRole('ROLE_LAB_TEHNICAR')")
+
+    @PreAuthorize("hasRole('ROLE_VISI_LAB_TEHNICAR') or hasRole('ROLE_LAB_TEHNICAR')" +
+            " or hasRole('ROLE_MED_BIOHEMICAR') or hasRole('ROLE_SPEC_MED_BIOHEMIJE')")
     @GetMapping("/scheduled/in-process")
-    public ResponseEntity<TestResultResponse> proccessingOfTestResults(){
-        return ResponseEntity.ok(testingService.proccessingOfTestResults());
+    public ResponseEntity<TestingListResponse> processingOfTestResults(@RequestParam(defaultValue = "0") int page,
+                                                                       @RequestParam(defaultValue = "5") int size){
+        return ResponseEntity.ok(testingService.processingOfTestResults(PageRequest.of(page, size)));
     }
-    @PreAuthorize("hasRole('ROLE_VISI_LAB_TEHNICAR')" + "or hasRole('ROLE_LAB_TEHNICAR')")
-    @PutMapping("/{id}/testResult")
-    public ResponseEntity<String> updateTestResult(@PathVariable("id") Long id,
-                                                   @RequestBody String newTestResult) {
-        try {
-            return ResponseEntity.ok(testingService.updateTestResult(id,newTestResult));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+
+    @PreAuthorize("hasRole('ROLE_VISI_LAB_TEHNICAR') or hasRole('ROLE_LAB_TEHNICAR')" +
+            " or hasRole('ROLE_MED_BIOHEMICAR') or hasRole('ROLE_SPEC_MED_BIOHEMIJE')")
+    @PatchMapping("/{id}/update-test-result")
+    public ResponseEntity<TestingResponse> updateTestResult(@PathVariable("id") Long id,
+                                                   @RequestParam String newTestResult) {
+        return ResponseEntity.ok(testingService.updateTestResult(id, newTestResult));
     }
 }
