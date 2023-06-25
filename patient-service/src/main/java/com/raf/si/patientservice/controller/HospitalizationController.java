@@ -61,13 +61,15 @@ public class HospitalizationController {
                                                                                                @RequestParam(name = "firstName", required = false) String firstName,
                                                                                                @RequestParam(name = "lastName", required = false) String lastName,
                                                                                                @RequestParam(name = "jmbg", required = false) String jmbg,
+                                                                                               @RequestParam(name = "respirator", required = false) String respirator,
+                                                                                               @RequestParam(name = "imunizovan", required = false) String imunizovan,
                                                                                                @RequestParam(defaultValue = "0") int page,
                                                                                                @RequestParam(defaultValue = "5") int size,
                                                                                                @RequestHeader("Authorization") String authorizationHeader) {
         return ResponseEntity.ok(
                 hospitalizationService.getHospitalisedPatientsByHospital(
                         authorizationHeader, pbb, lbp, firstName,
-                        lastName, jmbg, PageRequest.of(page, size)
+                        lastName, jmbg, respirator, imunizovan, PageRequest.of(page, size)
                 )
         );
     }
