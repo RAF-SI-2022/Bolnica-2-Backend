@@ -17,5 +17,6 @@ public class HospitalisedPatientSearchFilter {
     private final String firstName;
     private final String lastName;
     private final String jmbg;
+    private final String diagnosis;
     private final List<UUID> departmentIds;
 }

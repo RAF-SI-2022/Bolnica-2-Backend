@@ -32,6 +32,7 @@ public class HospitalisedPatientSpecification implements Specification<Hospitali
         Path<String> lastName = patientsJoin.get("lastName");
         Path<String> jmbg = patientsJoin.get("jmbg");
         Path<Date> dischargeDate = root.get("dischargeDate");
+        Path<String> diagnosis = root.get("diagnosis");
 
         final List<Predicate> predicates = new ArrayList<>();
         predicates.add(criteriaBuilder.isNull(dischargeDate));
@@ -48,6 +49,8 @@ public class HospitalisedPatientSpecification implements Specification<Hospitali
             predicates.add(criteriaBuilder.equal(jmbg, filter.getJmbg()));
         if(filter.getDepartmentIds() != null)
             predicates.add(pbo.in(filter.getDepartmentIds()));
+        if(filter.getDiagnosis() != null)
+            predicates.add(criteriaBuilder.like(diagnosis,"%" + filter.getDiagnosis() + "%"));
 
         return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
     }

@@ -16,11 +16,11 @@ public interface HospitalizationService {
 
     HospitalisedPatientsListResponse getHospitalisedPatients(String token, UUID pbo, UUID lbp,
                                                              String firstName, String lastName, String jmbg,
-                                                             Pageable pageable);
+                                                             String covid, Pageable pageable);
 
     HospPatientByHospitalListResponse getHospitalisedPatientsByHospital(String token, UUID pbb, UUID lbp,
                                                                         String firstName, String lastName, String jmbg,
-                                                                        String respirator, String imunizovan,
+                                                                        String respirator, String imunizovan, String covid,
                                                                         Pageable pageable);
 
     PatientConditionResponse createPatientCondition(UUID lbp, PatientConditionRequest patientConditionRequest);
@@ -31,9 +31,9 @@ public interface HospitalizationService {
 
     MedicalReportResponse createMedicalReport(UUID lbp, MedicalReportRequest request);
 
-    MedicalReportListResponse getMedicalReports(UUID lbp, Date from, Date to, Pageable pageable);
+    MedicalReportListResponse getMedicalReports(UUID lbp, Date from, Date to, String covid, Pageable pageable);
 
     DischargeResponse createDischarge(UUID lbp, DischargeRequest request, String token);
 
-    DischargeListResponse getDischarge(UUID lbp, Date dateFrom, Date dateTo, Pageable pageable, String token);
+    DischargeListResponse getDischarge(UUID lbp, Date dateFrom, Date dateTo, String covid, Pageable pageable, String token);
 }

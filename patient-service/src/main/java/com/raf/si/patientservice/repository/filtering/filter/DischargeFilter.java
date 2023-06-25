@@ -13,4 +13,6 @@ public class DischargeFilter {
     private final UUID lbp;
     private final Date dateFrom;
     private final Date dateTo;
+
+    private final String conclusion;
 }

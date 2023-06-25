@@ -42,12 +42,13 @@ public class HospitalizationController {
                                                                                     @RequestParam(name = "firstName", required = false) String firstName,
                                                                                     @RequestParam(name = "lastName", required = false) String lastName,
                                                                                     @RequestParam(name = "jmbg", required = false) String jmbg,
+                                                                                    @RequestParam(name = "covid", required = false) String covid,
                                                                                     @RequestParam(defaultValue = "0") int page,
                                                                                     @RequestParam(defaultValue = "5") int size,
                                                                                     @RequestHeader("Authorization") String authorizationHeader) {
         return ResponseEntity.ok(
                 hospitalizationService.getHospitalisedPatients(
-                        authorizationHeader, pbo, lbp, firstName, lastName, jmbg, PageRequest.of(page, size)
+                        authorizationHeader, pbo, lbp, firstName, lastName, jmbg, covid, PageRequest.of(page, size)
                 )
         );
     }
@@ -63,13 +64,14 @@ public class HospitalizationController {
                                                                                                @RequestParam(name = "jmbg", required = false) String jmbg,
                                                                                                @RequestParam(name = "respirator", required = false) String respirator,
                                                                                                @RequestParam(name = "imunizovan", required = false) String imunizovan,
+                                                                                               @RequestParam(name = "covid", required = false) String covid,
                                                                                                @RequestParam(defaultValue = "0") int page,
                                                                                                @RequestParam(defaultValue = "5") int size,
                                                                                                @RequestHeader("Authorization") String authorizationHeader) {
         return ResponseEntity.ok(
                 hospitalizationService.getHospitalisedPatientsByHospital(
                         authorizationHeader, pbb, lbp, firstName,
-                        lastName, jmbg, respirator, imunizovan, PageRequest.of(page, size)
+                        lastName, jmbg, respirator, imunizovan, covid, PageRequest.of(page, size)
                 )
         );
     }
@@ -111,10 +113,11 @@ public class HospitalizationController {
                                                                        @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateFrom,
                                                                        @RequestParam(name = "dateTo", required = false)
                                                                        @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateTo,
+                                                                       @RequestParam(name = "covid", required = false) String covid,
                                                                        @RequestParam(defaultValue = "0") int page,
                                                                        @RequestParam(defaultValue = "5") int size) {
 
-        return ResponseEntity.ok(hospitalizationService.getMedicalReports(lbp, dateFrom, dateTo, PageRequest.of(page, size)));
+        return ResponseEntity.ok(hospitalizationService.getMedicalReports(lbp, dateFrom, dateTo, covid, PageRequest.of(page, size)));
     }
 
     @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA') or hasRole('ROLE_DR_SPEC') or hasRole('ROLE_DR_SPEC_POV')")
@@ -133,10 +136,11 @@ public class HospitalizationController {
                                                                    @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateFrom,
                                                                    @RequestParam(name = "dateTo", required = false)
                                                                    @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateTo,
+                                                                   @RequestParam(name = "covid", required = false) String covid,
                                                                    @RequestParam(defaultValue = "0") int page,
                                                                    @RequestParam(defaultValue = "5") int size,
                                                                    @RequestHeader("Authorization") String token) {
 
-        return ResponseEntity.ok(hospitalizationService.getDischarge(lbp, dateFrom, dateTo, PageRequest.of(page, size), token));
+        return ResponseEntity.ok(hospitalizationService.getDischarge(lbp, dateFrom, dateTo, covid,PageRequest.of(page, size), token));
     }
 }
