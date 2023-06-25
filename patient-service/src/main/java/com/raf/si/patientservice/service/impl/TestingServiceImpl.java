@@ -267,11 +267,17 @@ public class TestingServiceImpl implements TestingService {
     }
 
     @Override
-    public String updateTestResult(Long id, TestResult testResult) {
+    public String updateTestResult(Long id, String testResult) {
         Optional<Testing> optionalTesting = testingRepository.findById(id);
+        TestResult newTestResult = TestResult.NEOBRADJEN;
+        if(testResult.equalsIgnoreCase("pozitivan")){
+            newTestResult = TestResult.POZITIVAN;
+        }else if(testResult.equalsIgnoreCase("negativan")){
+            newTestResult = TestResult.NEGATIVAN;
+        }
         if (optionalTesting.isPresent()) {
             Testing testing = optionalTesting.get();
-            testing.setTestResult(testResult);
+            testing.setTestResult(newTestResult);
             testingRepository.save(testing);
             log.info(String.format("Promenjen rezultat testiranja sa id-om %s ",
                     testing.getId().toString()));

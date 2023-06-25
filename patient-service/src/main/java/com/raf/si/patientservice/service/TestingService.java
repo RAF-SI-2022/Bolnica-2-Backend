@@ -23,5 +23,5 @@ public interface TestingService {
 
     ScheduledTestingResponse deleteScheduledTesting(Long id);
     TestResultResponse proccessingOfTestResults();
-    String updateTestResult(Long id, TestResult testResult);
+    String updateTestResult(Long id, String testResult);
 }

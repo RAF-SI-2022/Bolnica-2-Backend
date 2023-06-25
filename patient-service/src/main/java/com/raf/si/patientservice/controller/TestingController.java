@@ -85,7 +85,7 @@ public class TestingController {
     @PreAuthorize("hasRole('ROLE_VISI_LAB_TEHNICAR')" + "or hasRole('ROLE_LAB_TEHNICAR')")
     @PutMapping("/{id}/testResult")
     public ResponseEntity<String> updateTestResult(@PathVariable("id") Long id,
-                                                   @RequestBody TestResult newTestResult) {
+                                                   @RequestBody String newTestResult) {
         try {
             return ResponseEntity.ok(testingService.updateTestResult(id,newTestResult));
         } catch (IllegalArgumentException e) {
