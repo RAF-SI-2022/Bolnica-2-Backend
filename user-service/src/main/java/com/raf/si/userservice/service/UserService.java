@@ -44,4 +44,6 @@ public interface UserService {
     UserShiftResponse addShift(UUID lbz, AddShiftRequest request);
 
     UserResponse updateDaysOff(UUID lbz, int daysOff);
+
+    Boolean canScheduleForDoctor(UUID lbz, TimeRequest timeRequest);
 }

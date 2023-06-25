@@ -158,4 +158,10 @@ public class UserController {
     public ResponseEntity<Integer> getNumOfCovidNursesByDepartment(@PathVariable("pbo") UUID pbo) {
         return ResponseEntity.ok(userService.getNumOfCovidNursesByDepartment(pbo));
     }
+
+    @PostMapping("/can-schedule-for-doctor/{lbz}")
+    public ResponseEntity<Boolean> canScheduleForDoctor(@PathVariable("lbz") UUID lbz,
+                                                        @RequestBody TimeRequest request) {
+        return ResponseEntity.ok(userService.canScheduleForDoctor(lbz, request));
+    }
 }

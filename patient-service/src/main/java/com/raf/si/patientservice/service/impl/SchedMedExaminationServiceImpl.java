@@ -1,6 +1,7 @@
 package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
+import com.raf.si.patientservice.dto.request.TimeRequest;
 import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
 import com.raf.si.patientservice.dto.response.SchedMedExamListResponse;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
@@ -29,6 +30,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -129,6 +132,7 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
          */
         isGivenLbzDoctors(schedMedExamRequest.getLbzDoctor(),token);
 
+        checkCanSchedule(schedMedExamRequest, token);
 
         Patient patient=patientService.findPatient(schedMedExamRequest.getLbp());
 
@@ -254,6 +258,27 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
                 throw new NotFoundException(errMessage);
             }
             throw new InternalServerErrorException("Error when calling user service: " + e.getMessage());
+        }
+    }
+
+    private void checkCanSchedule(SchedMedExamRequest schedMedExamRequest, String token) {
+        LocalDateTime startTime = LocalDateTime.ofInstant(
+                schedMedExamRequest.getAppointmentDate().toInstant(),
+                ZoneId.systemDefault()
+        );
+        LocalDateTime endTime = startTime.plusMinutes(DURATION_OF_EXAM);
+
+        TimeRequest request = new TimeRequest(
+                startTime,
+                endTime
+        );
+
+        boolean canSchedule = HttpUtils.checkCanScheduleForDoctor(schedMedExamRequest.getLbzDoctor(), request, token);
+
+        if (!canSchedule) {
+            String errMessage = String.format("Doktor sa lbz-om '%s' ne radi u tom terminu");
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
         }
     }
 

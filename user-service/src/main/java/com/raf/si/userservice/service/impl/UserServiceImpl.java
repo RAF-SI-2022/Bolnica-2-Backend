@@ -369,6 +369,11 @@ public class UserServiceImpl implements UserService {
         return userMapper.modelToResponse(user);
     }
 
+    @Override
+    public Boolean canScheduleForDoctor(UUID lbz, TimeRequest timeRequest) {
+        return shiftRepository.canScheduleForLbz(lbz, timeRequest.getStartTime(), timeRequest.getEndTime());
+    }
+
     private List<Boolean> adjustIncludeDeleteParameter(boolean includeDeleted) {
         List<Boolean> list = new ArrayList<>();
         list.add(false);
