@@ -8,8 +8,8 @@ import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
 import com.raf.si.patientservice.dto.response.VaccinationCovidResponse;
 import org.springframework.data.domain.Pageable;
 
-
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 public interface VaccinationCovidService {
@@ -24,4 +24,6 @@ public interface VaccinationCovidService {
     ScheduledVaccinationResponse changeScheduledVaccinationStatus(Long scheduledVaccinationId, String vaccStatus, String patientArrivalStatus);
 
     ScheduledVaccinationResponse deleteScheduledVaccination(Long id);
+
+    List<VaccinationCovidResponse> getVaccinationCovidHistory(UUID lbp);
 }

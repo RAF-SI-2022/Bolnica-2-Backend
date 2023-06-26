@@ -3,6 +3,7 @@ package com.raf.si.userservice.service.impl;
 import com.raf.si.userservice.exception.InternalServerErrorException;
 import com.raf.si.userservice.service.EmailService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
@@ -15,10 +16,12 @@ import java.util.UUID;
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender emailSender;
-    public final String uri = "http://localhost:4200/forgot-password/";
+    public final String uri;
 
-    public EmailServiceImpl(JavaMailSender emailSender) {
+    public EmailServiceImpl(JavaMailSender emailSender,
+                            @Value("${reset-password.uri}") String uri) {
         this.emailSender = emailSender;
+        this.uri = uri;
     }
 
     @Override

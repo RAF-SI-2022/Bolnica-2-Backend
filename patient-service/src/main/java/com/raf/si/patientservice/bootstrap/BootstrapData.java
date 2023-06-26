@@ -142,7 +142,7 @@ public class BootstrapData implements CommandLineRunner {
         patient.setAddress("Jurija Gagarina 16");
         patient.setPlaceOfLiving("Novi Beograd");
         patient.setPhoneNumber("0601234567");
-        patient.setEmail("nemanja.todorovic@gmail.com");
+        patient.setEmail("mceculovic2819rn@raf.rs");
         patient.setCustodianJmbg("0101987123456");
         patient.setCustodianName("Žarko Todorović");
         patient.setFamilyStatus(FamilyStatus.OBA_RODITELJA);
