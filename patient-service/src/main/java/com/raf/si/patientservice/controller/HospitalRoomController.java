@@ -33,13 +33,13 @@ public class HospitalRoomController {
     @PreAuthorize("hasRole('ROLE_VISA_MED_SESTRA') " +
             "or hasRole('ROLE_MED_SESTRA') " +
             "or hasRole('ROLE_RECEPCIONER') " +
+            "or hasRole('ROLE_DR_SPEC_ODELJENJA')" +
             "or hasRole('ROLE_DR_SPEC') " +
             "or hasRole('ROLE_DR_SPEC_POV') " +
             "or hasRole('ROLE_VISI_LAB_TEHNICAR') " +
             "or hasRole('ROLE_LAB_TEHNICAR') " +
             "or hasRole('ROLE_SPEC_MED_BIOHEMIJE') " +
-            "or hasRole('ROLE_MED_BIOHEMICAR') " +
-            "or hasRole('ROLE_NACELNIK_ODELJENA')")
+            "or hasRole('ROLE_MED_BIOHEMICAR')")
     @GetMapping("/beds")
     public ResponseEntity<HospitalBedAvailabilityResponse> getBedAvailabilityInTheRoom(@Valid @RequestParam UUID pbo) {
         return ResponseEntity.ok(hospitalRoomService.getBedAvailability(pbo));
