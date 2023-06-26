@@ -16,6 +16,7 @@ import com.raf.si.patientservice.repository.AvailableTermRepository;
 import com.raf.si.patientservice.repository.ScheduledVaccinationCovidRepository;
 import com.raf.si.patientservice.repository.VaccinationCovidRepository;
 import com.raf.si.patientservice.repository.VaccineRepository;
+import com.raf.si.patientservice.service.CovidCertificateService;
 import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.VaccinationCovidService;
 import com.raf.si.patientservice.service.impl.VaccinationCovidServiceImpl;
@@ -66,13 +67,14 @@ public class VaccinationCovidServiceTest {
         vaccineRepository = mock(VaccineRepository.class);
 
         vaccinationCovidService= new VaccinationCovidServiceImpl(
-                  vaccinationCovidRepository
-                , scheduledVaccinationCovidRepository
-                , availableTermRepository
-                , patientService
-                , vaccinationMapper
-                , lockRegistry
-                , vaccineRepository);
+                  vaccinationCovidRepository,
+                scheduledVaccinationCovidRepository,
+                availableTermRepository,
+                patientService,
+                vaccinationMapper,
+                lockRegistry,
+                vaccineRepository,
+                mock(CovidCertificateService.class));
 
         when(patientService.findPatient((UUID) any()))
                 .thenReturn(makePatient());

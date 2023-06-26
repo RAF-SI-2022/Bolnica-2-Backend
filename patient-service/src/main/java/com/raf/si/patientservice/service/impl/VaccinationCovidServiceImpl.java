@@ -21,6 +21,7 @@ import com.raf.si.patientservice.repository.VaccinationCovidRepository;
 import com.raf.si.patientservice.repository.VaccineRepository;
 import com.raf.si.patientservice.repository.filtering.filter.ScheduledVaccinationCovidFilter;
 import com.raf.si.patientservice.repository.filtering.specification.ScheduledVaccinationCovidSpecification;
+import com.raf.si.patientservice.service.CovidCertificateService;
 import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.VaccinationCovidService;
 import com.raf.si.patientservice.utils.HttpUtils;
@@ -55,6 +56,7 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
     private final PatientService patientService;
     private final VaccinationMapper vaccinationMapper;
     private final LockRegistry lockRegistry;
+    private final CovidCertificateService covidCertificateService;
 
     public VaccinationCovidServiceImpl(VaccinationCovidRepository vaccinationCovidRepository
             , ScheduledVaccinationCovidRepository scheduledVaccinationCovidRepository
@@ -62,7 +64,7 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
             , PatientService patientService
             , VaccinationMapper vaccinationMapper
             , LockRegistry lockRegistry
-            , VaccineRepository vaccineRepository) {
+            , VaccineRepository vaccineRepository, CovidCertificateService covidCertificateService) {
         this.vaccinationCovidRepository = vaccinationCovidRepository;
         this.scheduledVaccinationCovidRepository = scheduledVaccinationCovidRepository;
         this.availableTermRepository = availableTermRepository;
@@ -70,34 +72,31 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
         this.vaccinationMapper = vaccinationMapper;
         this.lockRegistry = lockRegistry;
         this.vaccineRepository = vaccineRepository;
+        this.covidCertificateService = covidCertificateService;
     }
 
     @Override
     public ScheduledVaccinationResponse scheduleVaccination(UUID lbp, ScheduledVaccinationRequest request, String token) {
 
-        LocalDateTime day =request.getDateAndTime().truncatedTo(ChronoUnit.DAYS);
+        LocalDateTime day = request.getDateAndTime().truncatedTo(ChronoUnit.DAYS);
         Lock dayLock = lockRegistry.obtain(day.toString());
         Lock patientLock = lockRegistry.obtain(String.valueOf(lbp));
-        try{
-            if(!dayLock.tryLock(1, TimeUnit.SECONDS) || !patientLock.tryLock(1, TimeUnit.SECONDS)){
+        try {
+            if (!dayLock.tryLock(1, TimeUnit.SECONDS) || !patientLock.tryLock(1, TimeUnit.SECONDS)) {
                 String errMessage = "Neko već pokušava da ubaci pregled za prosledjeni dan ili za pacijenta";
                 log.info(errMessage);
                 throw new BadRequestException(errMessage);
             }
             log.info(String.format("Locking for patient %s and day %s", lbp, day));
-        } catch (BadRequestException e) {
-            throw e;
-        }catch(InterruptedException e){
+        } catch (InterruptedException e) {
             log.info(e.getMessage());
             throw new InternalServerErrorException("Greška pri zaključavanju baze");
         }
 
         ScheduledVaccinationResponse response;
-        try{
+        try {
             response = scheduleVaccinationLocked(lbp, request, token);
-        }catch(RuntimeException e) {
-            throw e;
-        }finally{
+        } finally {
             dayLock.unlock();
             patientLock.unlock();
             log.info(String.format("Unlocking for patient %s and day %s", lbp, day));
@@ -131,7 +130,7 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
         }
 
         availableTerm.incrementScheduledTermsNum();
-        if (availableTerm.getScheduledTermsNum() == availableTerm.getAvailableNursesNum()) {
+        if (availableTerm.getScheduledTermsNum().equals(availableTerm.getAvailableNursesNum())) {
             availableTerm.setAvailability(Availability.POTPUNO_POPUNJEN_TERMIN);
         }
         availableTerm = availableTermRepository.save(availableTerm);
@@ -150,8 +149,8 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
 
     @Override
     public ScheduledVaccinationListResponse getScheduledVaccinations(UUID lbp, LocalDate date, Pageable pageable) {
-        Patient patient = lbp == null? null: patientService.findPatient(lbp);
-        LocalDateTime dateTime = date == null? null: date.atStartOfDay();
+        Patient patient = lbp == null ? null : patientService.findPatient(lbp);
+        LocalDateTime dateTime = date == null ? null : date.atStartOfDay();
 
         ScheduledVaccinationCovidFilter filter = new ScheduledVaccinationCovidFilter(patient, dateTime);
         ScheduledVaccinationCovidSpecification spec = new ScheduledVaccinationCovidSpecification(filter);
@@ -167,10 +166,10 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
         VaccinationCovid vaccinationCovid = vaccinationMapper.vaccCovidRequestToModel(request);
         Optional<Vaccine> vaccine = vaccineRepository.findByName(request.getVaccineName());
 
-        if (!vaccine.isPresent()){
+        if (vaccine.isEmpty()) {
             String err = String.format("Vaccine with the name '%s', doesnt exits ", request.getVaccineName());
             log.error(err);
-            throw  new BadRequestException(err);
+            throw new BadRequestException(err);
         }
         vaccinationCovid.setVaccine(vaccine.get());
 
@@ -179,27 +178,29 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
         checkDateInPast(Date.from(request.getDateTime().atZone(ZoneId.systemDefault()).toInstant()));
 
         Optional<ScheduledVaccinationCovid> scheduledVaccinationCovid = scheduledVaccinationCovidRepository.findById(request.getVaccinationId());
-        if (!scheduledVaccinationCovid.isPresent()){
+        if (scheduledVaccinationCovid.isEmpty()) {
             String err = String.format("Given scheduled vaccination id '%s' does not exit."
                     , request.getVaccinationId());
             log.error(err);
-            throw  new BadRequestException(err);
+            throw new BadRequestException(err);
         }
 
-        if (scheduledVaccinationCovid.get().getVaccination() != null){
+        if (scheduledVaccinationCovid.get().getVaccination() != null) {
             String err = String.format("Given scheduled vaccination id '%s' already has vaccination created."
                     , request.getVaccinationId());
             log.error(err);
-            throw  new BadRequestException(err);
+            throw new BadRequestException(err);
         }
 
         vaccinationCovid.setScheduledVaccinationCovid(scheduledVaccinationCovid.get());
         vaccinationCovid.setPerformerLbz(TokenPayloadUtil.getTokenPayload().getLbz());
-        vaccinationCovid= vaccinationCovidRepository.save(vaccinationCovid);
+        vaccinationCovid = vaccinationCovidRepository.save(vaccinationCovid);
 
         ScheduledVaccinationCovid svc = scheduledVaccinationCovid.get();
         svc.setVaccination(vaccinationCovid);
         scheduledVaccinationCovidRepository.save(svc);
+
+        covidCertificateService.createCertificate(vaccinationCovid);
 
         log.info(String.format("Kreirana vakcinacija u terminu %s za pacijenta sa lbp-om %s",
                 request.getDateTime().toString(),
@@ -209,7 +210,7 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
 
     @Override
     public DosageReceivedResponse getPatientDosageReceived(UUID lbp) {
-        Patient patient= patientService.findPatient(lbp);
+        Patient patient = patientService.findPatient(lbp);
 
         List<VaccinationCovid> vaccList = vaccinationCovidRepository.findByHealthRecord_Patient(patient);
         Optional<VaccinationCovid> vaccinationCovid = vaccList.stream()
@@ -355,7 +356,8 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
             throw new BadRequestException(errMessage);
         }
     }
-    private void checkDateInFuture(LocalDateTime date){
+
+    private void checkDateInFuture(LocalDateTime date) {
         LocalDateTime currDate = LocalDateTime.now();
         if (currDate.isAfter(date)) {
             String errMessage = String.format("Datum %s je u proslosti", date);

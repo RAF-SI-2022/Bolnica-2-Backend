@@ -3,10 +3,8 @@ package com.raf.si.patientservice.unit.controller;
 import com.raf.si.patientservice.controller.VaccinationCovidController;
 import com.raf.si.patientservice.dto.request.ScheduledVaccinationRequest;
 import com.raf.si.patientservice.dto.request.VaccinationCovidRequest;
-import com.raf.si.patientservice.dto.response.DosageReceivedResponse;
-import com.raf.si.patientservice.dto.response.ScheduledVaccinationListResponse;
-import com.raf.si.patientservice.dto.response.ScheduledVaccinationResponse;
-import com.raf.si.patientservice.dto.response.VaccinationCovidResponse;
+import com.raf.si.patientservice.dto.response.*;
+import com.raf.si.patientservice.service.CovidCertificateService;
 import com.raf.si.patientservice.service.VaccinationCovidService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,53 +16,57 @@ import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class VaccinationCovidControllerTest {
 
     @Mock
     private VaccinationCovidService vaccinationCovidService;
+    @Mock
+    private CovidCertificateService covidCertificateService;
     @InjectMocks
     private VaccinationCovidController vaccinationCovidController;
 
-
     @Test
-    void scheduleVaccination_Success(){
+    void scheduleVaccination_Success() {
         UUID lbp = UUID.randomUUID();
         ScheduledVaccinationRequest request = makeScheduledTestingRequest();
         ScheduledVaccinationResponse response = new ScheduledVaccinationResponse();
 
-        when(vaccinationCovidService.scheduleVaccination(lbp,request,""))
+        when(vaccinationCovidService.scheduleVaccination(lbp, request, ""))
                 .thenReturn(response);
 
-        assertEquals(vaccinationCovidController.scheduleVaccination(lbp,request,"")
+        assertEquals(vaccinationCovidController.scheduleVaccination(lbp, request, "")
                 , ResponseEntity.ok(response));
     }
 
     @Test
-    void getScheduledTestings_Success(){
+    void getScheduledTestings_Success() {
         ScheduledVaccinationListResponse response = new ScheduledVaccinationListResponse();
         UUID lbp = UUID.randomUUID();
         LocalDate date = LocalDate.now();
 
-        when(vaccinationCovidService.getScheduledVaccinations(lbp,date, PageRequest.of(0,1)))
+        when(vaccinationCovidService.getScheduledVaccinations(lbp, date, PageRequest.of(0, 1)))
                 .thenReturn(response);
 
-        assertEquals(vaccinationCovidController.getScheduledVaccinations(lbp,date, 0,1)
+        assertEquals(vaccinationCovidController.getScheduledVaccinations(lbp, date, 0, 1)
                 , ResponseEntity.ok(response));
     }
 
     @Test
-    void createVaccination_Success(){
+    void createVaccination_Success() {
         UUID lbp = UUID.randomUUID();
         VaccinationCovidRequest request = makeVaccinationCovidRequest();
         VaccinationCovidResponse response = new VaccinationCovidResponse();
 
-        when(vaccinationCovidService.createVaccination(lbp, request,""))
+        when(vaccinationCovidService.createVaccination(lbp, request, ""))
                 .thenReturn(response);
 
         assertEquals(vaccinationCovidController.createVaccination("", request, lbp)
@@ -73,7 +75,7 @@ public class VaccinationCovidControllerTest {
     }
 
     @Test
-    void getPatientDosageReceived_Success(){
+    void getPatientDosageReceived_Success() {
         UUID lbp = UUID.randomUUID();
         DosageReceivedResponse response = new DosageReceivedResponse();
 
@@ -85,18 +87,18 @@ public class VaccinationCovidControllerTest {
     }
 
     @Test
-    void changeVaccinationStatus_Success(){
+    void changeVaccinationStatus_Success() {
         ScheduledVaccinationResponse response = new ScheduledVaccinationResponse();
 
-        when(vaccinationCovidService.changeScheduledVaccinationStatus(1L,"", ""))
+        when(vaccinationCovidService.changeScheduledVaccinationStatus(1L, "", ""))
                 .thenReturn(response);
 
-        assertEquals(vaccinationCovidController.changeVaccinationStatus(1L,"", "")
+        assertEquals(vaccinationCovidController.changeVaccinationStatus(1L, "", "")
                 , ResponseEntity.ok(response));
     }
 
     @Test
-    void deleteScheduledVaccination_Success(){
+    void deleteScheduledVaccination_Success() {
         ScheduledVaccinationResponse response = new ScheduledVaccinationResponse();
 
         when(vaccinationCovidService.deleteScheduledVaccination(1L))
@@ -104,6 +106,18 @@ public class VaccinationCovidControllerTest {
 
         assertEquals(vaccinationCovidController.deleteScheduledVaccination(1L)
                 , ResponseEntity.ok(response));
+    }
+
+    @Test
+    void getCovidCertificatesHistory_Success() {
+        CovidCertificateResponse covidCertificateResponse = new CovidCertificateResponse();
+        List<CovidCertificateResponse> covidCertificateResponseList = Collections.singletonList(covidCertificateResponse);
+
+        when(covidCertificateService.getCovidCertificateHistory(any(), any(), any()))
+                .thenReturn(covidCertificateResponseList);
+
+        assertEquals(vaccinationCovidController.getCovidCertificatesHistory(any(), any(), any()).getBody(),
+                covidCertificateResponseList);
     }
 
     private VaccinationCovidRequest makeVaccinationCovidRequest() {
@@ -114,9 +128,9 @@ public class VaccinationCovidControllerTest {
         return request;
     }
 
-    private ScheduledVaccinationRequest makeScheduledTestingRequest(){
+    private ScheduledVaccinationRequest makeScheduledTestingRequest() {
         ScheduledVaccinationRequest scheduledVaccinationRequest = new ScheduledVaccinationRequest();
         scheduledVaccinationRequest.setDateAndTime(LocalDateTime.now());
-        return  scheduledVaccinationRequest;
+        return scheduledVaccinationRequest;
     }
 }
