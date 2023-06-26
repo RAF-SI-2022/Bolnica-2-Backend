@@ -195,8 +195,7 @@
 
 
     <build>
-        <!-- Vezbe 7 -->
-		<!-- Obavezno dodati ovaj parametar u pom.xml za svaki mikroservis kako bi Dockerfile radio -->
+        
         <resources>
             <resource>
                 <directory>src/main/resources</directory>

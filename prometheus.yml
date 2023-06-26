@@ -6,3 +6,12 @@ scrape_configs:
     metrics_path: "api/actuator/prometheus"
     static_configs:
       - targets: ["user-service:8081"]
+  - job_name: "patient-service"
+    metrics_path: "api/actuator/prometheus"
+    static_configs:
+      - targets: ["patient-service:8082"]
+
+  - job_name: "laboratory-service"
+    metrics_path: "api/actuator/prometheus"
+    static_configs:
+      - targets: ["laboratory-service:8083"]

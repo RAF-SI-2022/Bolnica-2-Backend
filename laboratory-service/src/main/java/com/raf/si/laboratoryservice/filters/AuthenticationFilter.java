@@ -94,7 +94,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 || matcher.match("/**/swagger-resources/**", path)
                 || matcher.match("/**/swagger-ui/**", path)
                 || matcher.match("/**/users/reset-password", path)
-                || matcher.match("/**/users/update-password", path);
+                || matcher.match("/**/users/update-password", path)
+                || matcher.match("/**/actuator/**", path);
     }
 
     private List<SimpleGrantedAuthority> setAuthorities(List<String> roles) {
