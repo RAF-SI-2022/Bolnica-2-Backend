@@ -141,8 +141,9 @@ public class UserController {
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_DR_SPEC_ODELJENJA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @PostMapping("/add-shift/{lbz}")
     public ResponseEntity<UserShiftResponse> addShift(@PathVariable("lbz") UUID lbz,
-                                                      @RequestBody AddShiftRequest request) {
-        return ResponseEntity.ok(userService.addShift(lbz, request));
+                                                      @RequestBody AddShiftRequest request,
+                                                      @RequestHeader("Authorization") String authorizationHeader) {
+        return ResponseEntity.ok(userService.addShift(lbz, request, authorizationHeader));
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")

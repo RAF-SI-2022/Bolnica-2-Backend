@@ -1,6 +1,7 @@
 package com.raf.si.patientservice.repository;
 
 import com.raf.si.patientservice.model.AvailableTerm;
+import com.raf.si.patientservice.model.enums.testing.Availability;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -19,4 +20,7 @@ public interface AvailableTermRepository extends JpaRepository<AvailableTerm, Lo
 
     @Query(value = "select a from AvailableTerm a where a.dateAndTime=:dateAndTime and a.pbo=:pbo")
     Optional<AvailableTerm> findByDateAndTimeAndPbo(LocalDateTime dateAndTime, UUID pbo);
+
+    @Query(value = "select a from AvailableTerm a where a.dateAndTime>=:start and a.dateAndTime<=:end")
+    List<AvailableTerm> findByTimeSlot(LocalDateTime start, LocalDateTime end);
 }

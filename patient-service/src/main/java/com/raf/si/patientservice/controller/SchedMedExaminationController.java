@@ -2,7 +2,9 @@ package com.raf.si.patientservice.controller;
 
 
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
+import com.raf.si.patientservice.dto.request.TimeRequest;
 import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
+import com.raf.si.patientservice.dto.request.UpdateTermsNewShiftRequest;
 import com.raf.si.patientservice.dto.response.SchedMedExamListResponse;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 import com.raf.si.patientservice.service.SchedMedExaminationService;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -74,5 +77,20 @@ public class SchedMedExaminationController {
     (@Valid @RequestBody UpdateSchedMedExamRequest updateSchedMedExamRequest){
         return ResponseEntity.ok(schedMedExaminationService.updateSchedMedExaminationPatientArrivalStatus(updateSchedMedExamRequest));
 
+    }
+
+    @PostMapping("/{lbz}/has-for-timeslot")
+    public ResponseEntity<List<Date>> doctorHasScheduledExamsForTimeSlot(@PathVariable("lbz") UUID lbz,
+                                                                         @RequestBody UpdateTermsNewShiftRequest request) {
+        return ResponseEntity.ok(schedMedExaminationService.doctorHasScheduledExamsForTimeSlot(lbz, request));
+    }
+
+    @PreAuthorize("hasRole('ROLE_DR_SPEC') or hasRole('ROLE_DR_SPEC_POV')")
+    @GetMapping("/covid")
+    public ResponseEntity<SchedMedExamListResponse> getCovidScheduledExams(@RequestParam(name = "lbp", required = false) UUID lbp,
+                                                                           @RequestParam(name = "date", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date date,
+                                                                           @RequestParam(defaultValue = "0") int page,
+                                                                           @RequestParam(defaultValue = "5") int size) {
+        return ResponseEntity.ok(schedMedExaminationService.findCovidSchedMedExams(lbp, date, PageRequest.of(page, size)));
     }
 }

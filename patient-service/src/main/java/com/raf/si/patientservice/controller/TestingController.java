@@ -2,6 +2,8 @@ package com.raf.si.patientservice.controller;
 
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
 import com.raf.si.patientservice.dto.request.TestingRequest;
+import com.raf.si.patientservice.dto.request.TimeRequest;
+import com.raf.si.patientservice.dto.request.UpdateTermsNewShiftRequest;
 import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.service.TestingService;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -89,7 +92,12 @@ public class TestingController {
             " or hasRole('ROLE_MED_BIOHEMICAR') or hasRole('ROLE_SPEC_MED_BIOHEMIJE')")
     @PatchMapping("/{id}/update-test-result")
     public ResponseEntity<TestingResponse> updateTestResult(@PathVariable("id") Long id,
-                                                   @RequestParam String newTestResult) {
+                                                            @RequestParam String newTestResult) {
         return ResponseEntity.ok(testingService.updateTestResult(id, newTestResult));
+    }
+
+    @PostMapping("/update-nurse-terms")
+    public ResponseEntity<List<LocalDateTime>> removeNurseFromTerms(@RequestBody UpdateTermsNewShiftRequest request) {
+        return ResponseEntity.ok(testingService.removeNurseFromTerms(request));
     }
 }
