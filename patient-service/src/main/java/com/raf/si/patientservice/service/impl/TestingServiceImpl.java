@@ -3,6 +3,7 @@ package com.raf.si.patientservice.service.impl;
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
 import com.raf.si.patientservice.dto.request.TestingRequest;
 import com.raf.si.patientservice.dto.request.TimeRequest;
+import com.raf.si.patientservice.dto.request.UpdateTermsNewShiftRequest;
 import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
@@ -36,6 +37,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 import static com.raf.si.patientservice.model.enums.examination.PatientArrivalStatus.*;
 import static com.raf.si.patientservice.model.enums.examination.ExaminationStatus.*;
@@ -289,6 +291,52 @@ public class TestingServiceImpl implements TestingService {
 
         log.info(String.format("Rezultat testiranja za testiranje sa id-jem '%d' je promenjeno na '%s'"), id, testResult);
         return testingMapper.testingToResponse(testing);
+    }
+
+    @Override
+    public List<LocalDateTime> removeNurseFromTerms(UpdateTermsNewShiftRequest request) {
+        TimeRequest oldShift = request.getOldShift();
+        TimeRequest newShift = request.getNewShift();
+
+        List<AvailableTerm> oldShiftTerms = availableTermRepository.findByTimeSlot(
+                oldShift.getStartTime(),
+                oldShift.getEndTime()
+        );
+
+        List<AvailableTerm> newShiftTerms = availableTermRepository.findByTimeSlot(
+                newShift.getStartTime(),
+                newShift.getEndTime()
+        );
+
+        for (AvailableTerm term : oldShiftTerms) {
+            term.decrementAvailableNursesNum();
+        }
+
+        for (AvailableTerm term : newShiftTerms) {
+            term.incrementAvailableNursesNum();
+        }
+
+        List<AvailableTerm> notEnoughNurses = new ArrayList<>();
+        Set<AvailableTerm> distinctTerms = new HashSet<>(oldShiftTerms);
+        distinctTerms.addAll(newShiftTerms);
+
+        for (AvailableTerm term : distinctTerms) {
+            if (term.getAvailableNursesNum() == term.getScheduledTermsNum()) {
+                term.setAvailability(Availability.POTPUNO_POPUNJEN_TERMIN);
+            } else if (term.getAvailableNursesNum() > term.getScheduledTermsNum()) {
+                term.setAvailability(Availability.MOGUCE_ZAKAZATI_U_OVOM_TERMINU);
+            } else {
+                notEnoughNurses.add(term);
+            }
+        }
+
+        if (notEnoughNurses.isEmpty()) {
+            availableTermRepository.saveAll(distinctTerms);
+        }
+
+        return notEnoughNurses.stream()
+                .map(AvailableTerm::getDateAndTime)
+                .collect(Collectors.toList());
     }
 
     private void checkDateInFuture(LocalDateTime date){

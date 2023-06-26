@@ -12,6 +12,7 @@ import com.raf.si.userservice.model.enums.ShiftType;
 import com.raf.si.userservice.repository.*;
 import com.raf.si.userservice.service.EmailService;
 import com.raf.si.userservice.service.UserService;
+import com.raf.si.userservice.utils.HttpUtils;
 import com.raf.si.userservice.utils.TokenPayload;
 import com.raf.si.userservice.utils.TokenPayloadUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -320,8 +321,8 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public UserShiftResponse addShift(UUID lbz, AddShiftRequest request) {
-        User user = findUserByLbz(lbz);
+    public UserShiftResponse addShift(UUID lbz, AddShiftRequest request, String token) {
+        User user = findUserWithShiftsByLbz(lbz);
         entityManager.lock(user, LockModeType.PESSIMISTIC_WRITE);
 
         checkShiftDateValid(request.getDate());
@@ -336,16 +337,18 @@ public class UserServiceImpl implements UserService {
 
         Shift shift = userMapper.addShiftRequestToModel(user, request, shiftTime);
 
-        long shiftLen = ChronoUnit.HOURS.between(shift.getStartTime(), shift.getEndTime());
-        if (shiftLen < 6) {
-            String errMessage = "Smena mora da bude bar 6 sati";
-            log.error(errMessage);
-            throw new BadRequestException(errMessage);
-        }
-        if (shiftLen > 12) {
-            String errMessage = "Smena ne sme da bude duža od 12 sati";
-            log.error(errMessage);
-            throw new BadRequestException(errMessage);
+        if (!shift.getShiftType().equals(ShiftType.SLOBODAN_DAN)) {
+            long shiftLen = ChronoUnit.HOURS.between(shift.getStartTime(), shift.getEndTime());
+            if (shiftLen < 6) {
+                String errMessage = "Smena mora da bude bar 6 sati";
+                log.error(errMessage);
+                throw new BadRequestException(errMessage);
+            }
+            if (shiftLen > 12) {
+                String errMessage = "Smena ne sme da bude duža od 12 sati";
+                log.error(errMessage);
+                throw new BadRequestException(errMessage);
+            }
         }
 
         Shift existingShift = findExistingShift(user, shift);
@@ -353,7 +356,7 @@ public class UserServiceImpl implements UserService {
         if (existingShift == null) {
             addNewShift(user, shift);
         } else {
-            updateExistingShift(user, shift, existingShift);
+            updateExistingShift(user, shift, existingShift, token);
         }
 
         log.info(String.format("Sacuvana smena '%s' za korisnika za lbz-om %s", shift, lbz));
@@ -385,7 +388,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Boolean canScheduleForDoctor(UUID lbz, boolean covid, TimeRequest timeRequest) {
-        return shiftRepository.canScheduleForLbz(lbz, covid, timeRequest.getStartTime(), timeRequest.getEndTime());
+        return shiftRepository.canScheduleForLbz(lbz, covid, timeRequest.getStartTime(), timeRequest.getEndTime(), ShiftType.SLOBODAN_DAN);
     }
 
     @Override
@@ -491,7 +494,9 @@ public class UserServiceImpl implements UserService {
         shiftRepository.save(shift);
     }
 
-    private void updateExistingShift(User user, Shift shift, Shift existingShift) {
+    private void updateExistingShift(User user, Shift shift, Shift existingShift, String token) {
+        checkCanUpdateShift(user, shift, existingShift, token);
+
         if (shift.getShiftType().equals(ShiftType.SLOBODAN_DAN) && !existingShift.getShiftType().equals(ShiftType.SLOBODAN_DAN)) {
             if (canAddDayOff(user, shift)) {
                 if (shiftThisYear(shift)) {
@@ -513,6 +518,62 @@ public class UserServiceImpl implements UserService {
         existingShift.setEndTime(shift.getEndTime());
 
         shiftRepository.save(existingShift);
+    }
+
+    private void checkCanUpdateShift(User user, Shift shift, Shift existingShift, String token) {
+        TimeRequest existingShiftTimeRequest = new TimeRequest(existingShift.getStartTime(), existingShift.getEndTime());
+        if (existingShift.getShiftType().equals(ShiftType.SLOBODAN_DAN)) {
+            existingShiftTimeRequest.setStartTime(existingShift.getStartTime().plusYears(100));
+            existingShiftTimeRequest.setEndTime(existingShiftTimeRequest.getStartTime());
+        }
+
+        TimeRequest newShiftRequest = new TimeRequest(shift.getStartTime(), shift.getEndTime());
+        if (shift.getShiftType().equals(ShiftType.SLOBODAN_DAN)) {
+            newShiftRequest.setStartTime(existingShift.getStartTime().plusYears(100));
+            newShiftRequest.setEndTime(newShiftRequest.getStartTime());
+        }
+
+        UpdateTermsNewShiftRequest request = new UpdateTermsNewShiftRequest(existingShiftTimeRequest, newShiftRequest);
+
+        List<String> userPermissions = user.getPermissions()
+                .stream()
+                .map(Permission::getName)
+                .collect(Collectors.toList());
+
+        boolean isDoctor = Permission.doctorPermissions.stream().anyMatch(perm -> userPermissions.contains(perm));
+        if (isDoctor) {
+            checkDoctorScheduledExamsForTimeSlot(user, request, token);
+        }
+
+        boolean isNurse = Permission.nursePermissions.stream().anyMatch(perm -> userPermissions.contains(perm));
+        if (isNurse) {
+            checkAndUpdateNurseAvailableTermsForTimeSlot(request, token);
+        }
+    }
+
+    private void checkDoctorScheduledExamsForTimeSlot(User user, UpdateTermsNewShiftRequest request, String token) {
+        UUID lbz = user.getLbz();
+        List<Date> alreadyScheduled = HttpUtils.checkDoctorScheduledExamsForTimeSlot(lbz, request, token);
+        if (alreadyScheduled != null && !alreadyScheduled.isEmpty()) {
+            String errMessage = String.format("Prosledjeni doktor ima zakazane preglede tog dana u terminima:");
+            for (Date date : alreadyScheduled) {
+                errMessage += "\n" + date;
+            }
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+    }
+
+    private void checkAndUpdateNurseAvailableTermsForTimeSlot(UpdateTermsNewShiftRequest request, String token) {
+        List<LocalDateTime> fullTerms = HttpUtils.checkAndUpdateNurseTerms(request, token);
+        if (fullTerms != null && !fullTerms.isEmpty()) {
+            String errMessage = "Popunjeni su svi termini testiranja i vakcinacije za:";
+            for (LocalDateTime ldt : fullTerms) {
+                errMessage += "\n" + ldt;
+            }
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
     }
 
     private boolean canAddDayOff(User user, Shift shift) {

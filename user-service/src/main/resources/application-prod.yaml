@@ -40,3 +40,6 @@ mail:
       enable: "true"
     auth: "true"
     debug: "true"
+
+patient-service-url: "http://patient-service:8082/api"
+
