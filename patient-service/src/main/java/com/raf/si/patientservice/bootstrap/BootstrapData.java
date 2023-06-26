@@ -87,9 +87,41 @@ public class BootstrapData implements CommandLineRunner {
     public void run(String... args) throws ParseException, IOException {
         makePatient();
         HospitalRoom hospitalRoom = makeRoom();
+        addCovidRooms();
         makeHospitalization(hospitalRoom);
         makeAppointment();
         //makeSchedExam();
+    }
+
+    private void addCovidRooms() {
+        HospitalRoom hospitalRoom = new HospitalRoom();
+        hospitalRoom.setPbo(UUID.fromString("50869452-02f6-4ef7-8592-24d342cd70d1"));
+        hospitalRoom.setDescription("COVID Bolnička soba 1");
+        hospitalRoom.setRoomName("COVID Soba 1");
+        hospitalRoom.setRoomNumber(1);
+        hospitalRoom.setCapacity(15);
+        hospitalRoom.setOccupation(1);
+        hospitalRoom.setCovid(true);
+        hospitalRoomRepository.save(hospitalRoom);
+
+        HospitalRoom hospitalRoom1 = new HospitalRoom();
+        hospitalRoom1.setPbo(UUID.fromString("50869452-02f6-4ef7-8592-24d342cd70d1"));
+        hospitalRoom1.setDescription("Bolnička soba 2");
+        hospitalRoom1.setRoomName("Soba 2");
+        hospitalRoom1.setRoomNumber(2);
+        hospitalRoom1.setCapacity(20);
+        hospitalRoom1.setOccupation(1);
+        hospitalRoomRepository.save(hospitalRoom1);
+
+        HospitalRoom hospitalRoom2 = new HospitalRoom();
+        hospitalRoom2.setPbo(UUID.fromString("50869452-02f6-4ef7-8592-24d342cd70d1"));
+        hospitalRoom2.setDescription("COVID Bolnička soba 3");
+        hospitalRoom2.setRoomName("COVID Soba 3");
+        hospitalRoom2.setRoomNumber(3);
+        hospitalRoom2.setCapacity(15);
+        hospitalRoom2.setOccupation(1);
+        hospitalRoom2.setCovid(true);
+        hospitalRoomRepository.save(hospitalRoom2);
     }
 
     private void makePatient() throws ParseException, IOException {
