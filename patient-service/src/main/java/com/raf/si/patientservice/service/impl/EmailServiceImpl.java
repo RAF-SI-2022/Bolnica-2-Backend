@@ -36,7 +36,7 @@ public class EmailServiceImpl implements EmailService {
     private final JavaMailSender emailSender;
     private static final String VACCINATION_PDF = "certificate/Certificate_vaccination.pdf";
     private static final String TESTING_PDF = "certificate/Certificate_testing.pdf";
-    private static final String DEST_FILE = "src/main/resources/certificate/";
+    private static final String DEST_FILE = "patient-service/src/main/resources/certificate/";
 
     public EmailServiceImpl(JavaMailSender emailSender) {
         this.emailSender = emailSender;
@@ -65,7 +65,11 @@ public class EmailServiceImpl implements EmailService {
             throw new InternalServerErrorException("Failed to send email");
         } finally {
             if(file != null) {
-                file.delete();
+                try {
+                    FileUtils.delete(file);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
         log.info("Imejl uspesno poslat na adresu '{}'", patient.getEmail());
