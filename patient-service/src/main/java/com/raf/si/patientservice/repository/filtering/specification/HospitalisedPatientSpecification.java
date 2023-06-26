@@ -57,7 +57,7 @@ public class HospitalisedPatientSpecification implements Specification<Hospitali
         if(filter.getIsImmunized() != null)
             predicates.add(criteriaBuilder.equal(isImmunized, filter.getIsImmunized()));
         //if(filter.getOnRespirator() != null)
-        //    predicates.add(criteriaBuilder.equal(onRespirator, filter.getOnRespirator()));
+        //  predicates.add(criteriaBuilder.equal(onRespirator, filter.getOnRespirator()));
 
         return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
     }

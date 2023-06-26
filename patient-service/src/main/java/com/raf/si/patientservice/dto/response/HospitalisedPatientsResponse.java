@@ -22,6 +22,8 @@ public class HospitalisedPatientsResponse {
     private String patientLastName;
     private Date birthDate;
     private String jmbg;
+    private Boolean onRespirator;
+    private Boolean immunized;
     private Date receiptDate;
     private String diagnosis;
     private String note;
