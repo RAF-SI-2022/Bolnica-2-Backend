@@ -42,6 +42,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 import static com.raf.si.patientservice.model.enums.examination.ExaminationStatus.OTKAZANO;
 import static com.raf.si.patientservice.model.enums.examination.PatientArrivalStatus.*;
@@ -275,6 +276,15 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
 
         log.info(String.format("Zakazano testiranje sa id-jem %s je obrisano", id));
         return vaccinationMapper.scheduledVaccinationToResponse(scheduledVaccination);
+    }
+
+    @Override
+    public List<VaccinationCovidResponse> getVaccinationCovidHistory(UUID lbp) {
+        log.info("Dohvatanje istorije covid vakcinisanja za lbp '{}'", lbp);
+        return vaccinationCovidRepository.getHistoryByLbp(lbp)
+                .stream()
+                .map(vaccinationMapper::vaccinationCovidToResponse)
+                .collect(Collectors.toList());
     }
 
     private ExaminationStatus findExaminationStatus(String examinationStatusString) {

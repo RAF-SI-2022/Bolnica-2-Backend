@@ -333,6 +333,15 @@ public class TestingServiceImpl implements TestingService {
         return response;
     }
 
+    @Override
+    public List<TestingResponse> getTestingHistory(UUID lbp) {
+        log.info("Dohvatanje istorije testiranja za lbp '{}'", lbp);
+        return testingRepository.findTestingByLbp(lbp)
+                .stream()
+                .map(testingMapper::testingToResponse)
+                .collect(Collectors.toList());
+    }
+
     private List<LocalDateTime> removeNurseFromTermsLocked(UpdateTermsNewShiftRequest request) {
         TimeRequest oldShift = request.getOldShift();
         TimeRequest newShift = request.getNewShift();

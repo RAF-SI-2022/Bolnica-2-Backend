@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -106,6 +107,16 @@ public class VaccinationCovidControllerTest {
 
         assertEquals(vaccinationCovidController.deleteScheduledVaccination(1L)
                 , ResponseEntity.ok(response));
+    }
+
+    @Test
+    void getVaccinationCovidHistory_Success() {
+        List<VaccinationCovidResponse> vaccinationCovidResponses = new ArrayList<>();
+        when(vaccinationCovidService.getVaccinationCovidHistory(any()))
+                .thenReturn(vaccinationCovidResponses);
+
+        assertEquals(vaccinationCovidController.getVaccinationCovidHistory(UUID.randomUUID()).getBody(),
+                vaccinationCovidResponses);
     }
 
     @Test

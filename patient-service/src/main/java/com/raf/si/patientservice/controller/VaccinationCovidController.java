@@ -83,6 +83,13 @@ public class VaccinationCovidController {
 
     @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA') or hasRole('ROLE_DR_SPEC') or hasRole('ROLE_DR_SPEC_POV') " +
             "or hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @GetMapping("/history/{lbp}")
+    public ResponseEntity<List<VaccinationCovidResponse>> getVaccinationCovidHistory(@PathVariable("lbp") UUID lbp) {
+        return ResponseEntity.ok(vaccinationCovidService.getVaccinationCovidHistory(lbp));
+    }
+
+    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA') or hasRole('ROLE_DR_SPEC') or hasRole('ROLE_DR_SPEC_POV') " +
+            "or hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
     @GetMapping("/certificate-history/{lbp}")
     public ResponseEntity<List<CovidCertificateResponse>> getCovidCertificatesHistory(@PathVariable("lbp") UUID lbp,
                                                                                       @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime dateApply,

@@ -37,6 +37,7 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -308,7 +309,17 @@ public class TestingServiceTest {
                 , testingService.deleteScheduledTesting(1L));
     }
 
+    @Test
+    void getTestingHistory_Success() {
+        Testing testing = makeTesting();
+        List<Testing> list = Collections.singletonList(testing);
 
+        when(testingRepository.findTestingByLbp(any()))
+                .thenReturn(list);
+
+        assertEquals(testingService.getTestingHistory(UUID.randomUUID()),
+                list.stream().map(testingMapper::testingToResponse).collect(Collectors.toList()));
+    }
 
     private Testing makeTesting(){
         Testing testing = new Testing();
