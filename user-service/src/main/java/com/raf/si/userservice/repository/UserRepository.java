@@ -2,6 +2,7 @@ package com.raf.si.userservice.repository;
 
 import com.raf.si.userservice.model.Department;
 import com.raf.si.userservice.model.User;
+import com.raf.si.userservice.model.enums.ShiftType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -56,8 +57,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(value = "select count(distinct u) from users u join u.permissions as p join u.shifts as s on s.user=u" +
             " where u.department.pbo=:pbo and u.covidAccess=true and p.name in :permissions" +
-            " and s.startTime<=:start and s.endTime>=:end")
-    long countCovidNursesByPboAndShiftInTimeSlot(UUID pbo, List<String> permissions, LocalDateTime start, LocalDateTime end);
+            " and s.startTime<=:start and s.endTime>=:end and s.shiftType!=:shiftType")
+    long countCovidNursesByPboAndShiftInTimeSlot(UUID pbo, List<String> permissions, LocalDateTime start, LocalDateTime end, ShiftType shiftType);
 
     @Query(value = "select u from users u where u.department.pbo=:pbo")
     Page<User> findSubordinatesForHeadOfDepartment(UUID pbo, Pageable pageable);

@@ -76,7 +76,7 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
     @Override
     public ScheduledVaccinationResponse scheduleVaccination(UUID lbp, ScheduledVaccinationRequest request, String token) {
 
-        LocalDateTime day =request.getDateAndTime().truncatedTo(ChronoUnit.DAYS);
+        LocalDateTime day = request.getDateAndTime().truncatedTo(ChronoUnit.DAYS);
         Lock dayLock = lockRegistry.obtain(day.toString());
         Lock patientLock = lockRegistry.obtain(String.valueOf(lbp));
         try{

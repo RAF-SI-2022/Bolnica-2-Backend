@@ -25,4 +25,8 @@ public interface ScheduledMedExamRepository extends JpaRepository<ScheduledMedEx
             , UUID lbzDoctor);
     Optional<List<ScheduledMedExamination>> findByPatientAndAppointmentDateBetween(Patient patient, Date startDate, Date endDate);
     Optional<ScheduledMedExamination> findById(Long id);
+
+    @Query(value = "select s from ScheduledMedExamination s where s.lbzDoctor=:lbz" +
+            " and s.appointmentDate>=:start and s.appointmentDate<=:end")
+    List<ScheduledMedExamination> findSchedExamsForDoctorAndTimeSlot(UUID lbz, Date start, Date end);
 }

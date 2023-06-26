@@ -3,6 +3,7 @@ package com.raf.si.patientservice.service.impl;
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
 import com.raf.si.patientservice.dto.request.TimeRequest;
 import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
+import com.raf.si.patientservice.dto.request.UpdateTermsNewShiftRequest;
 import com.raf.si.patientservice.dto.response.SchedMedExamListResponse;
 import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 import com.raf.si.patientservice.dto.response.http.UserResponse;
@@ -35,6 +36,7 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -214,6 +216,79 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
                     log.info(errMessage);
                     throw new BadRequestException(errMessage);
                 });
+    }
+
+    @Override
+    public List<Date> doctorHasScheduledExamsForTimeSlot(UUID lbz, UpdateTermsNewShiftRequest request) {
+        Lock doctorLock = lockRegistry.obtain(String.valueOf(lbz));
+        try{
+            if(!doctorLock.tryLock(1, TimeUnit.SECONDS)){
+                String errMessage = "Neko već pokušava da ubaci pregled za doktora";
+                log.info(errMessage);
+                throw new BadRequestException(errMessage);
+            }
+            log.info(String.format("Locking fordoctor %s", lbz));
+
+        } catch (BadRequestException e) {
+            throw e;
+        }catch(InterruptedException e){
+            log.info(e.getMessage());
+            throw new InternalServerErrorException("Greška pri zaključavanju baze");
+        }
+
+        List<Date> response;
+        try{
+            response = doctorHasScheduledExamsForTimeSlotLocked(lbz, request);
+        }catch(RuntimeException e) {
+            throw e;
+        }finally{
+            doctorLock.unlock();
+            log.info(String.format("Unlocking for doctor %s", lbz));
+
+        }
+        return response;
+    }
+
+    private List<Date> doctorHasScheduledExamsForTimeSlotLocked(UUID lbz, UpdateTermsNewShiftRequest request) {
+        TimeRequest oldShift = request.getOldShift();
+        TimeRequest newShift = request.getNewShift();
+
+        List<ScheduledMedExamination> oldShiftExams = findExamsForLbzAndTimeSlot(
+                lbz,
+                oldShift.getStartTime(),
+                oldShift.getEndTime()
+        );
+        List<ScheduledMedExamination> newShiftExams = findExamsForLbzAndTimeSlot(
+                lbz,
+                newShift.getStartTime(),
+                newShift.getEndTime()
+        );
+
+        List<ScheduledMedExamination> leftUnattended = new ArrayList<>();
+        for (ScheduledMedExamination examination : oldShiftExams) {
+            if (!newShiftExams.contains(examination)) {
+                leftUnattended.add(examination);
+            }
+        }
+
+        return leftUnattended.stream()
+                .map(ScheduledMedExamination::getAppointmentDate)
+                .collect(Collectors.toList());
+    }
+
+    private List<ScheduledMedExamination> findExamsForLbzAndTimeSlot(UUID lbz, LocalDateTime start, LocalDateTime end) {
+        Date startDate = Date.from(start.atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(end.atZone(ZoneId.systemDefault()).toInstant());
+        List<ScheduledMedExamination> scheduled = scheduledMedExamRepository.findSchedExamsForDoctorAndTimeSlot(
+                lbz,
+                startDate,
+                endDate
+        );
+
+        if (scheduled == null) {
+            scheduled = new ArrayList<>();
+        }
+        return scheduled;
     }
 
     private int max(int first, int... rest) {
