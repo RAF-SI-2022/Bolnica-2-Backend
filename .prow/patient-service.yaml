@@ -54,7 +54,7 @@ presubmits:
               git checkout $branch
               cd "$SERVICE_NAME"
 
-              sudo apt install ttf-mscorefonts-installer fonts-cantarell lmodern ttf-aenigma ttf-georgewilliams ttf-bitstream-vera ttf-sjfonts ttf-unifont fonts-entypo fonts-isabella fonts-mplus fonts-prociono ttf-anonymous-pro ttf-engadget ttf-staypuft ttf-summersby -yqq
+              apt install ttf-mscorefonts-installer fonts-cantarell lmodern ttf-aenigma ttf-georgewilliams ttf-bitstream-vera ttf-sjfonts ttf-unifont fonts-entypo fonts-isabella fonts-mplus fonts-prociono ttf-anonymous-pro ttf-engadget ttf-staypuft ttf-summersby -yqq
 
               mvn clean verify sonar:sonar -Pcoverage \
                 -Dsonar.host.url=https://sonar.k8s.elab.rs \
@@ -108,7 +108,7 @@ postsubmits:
               
               ref=$(git rev-parse --abbrev-ref HEAD)
 
-              sudo apt install ttf-mscorefonts-installer fonts-cantarell lmodern ttf-aenigma ttf-georgewilliams ttf-bitstream-vera ttf-sjfonts ttf-unifont fonts-entypo fonts-isabella fonts-mplus fonts-prociono ttf-anonymous-pro ttf-engadget ttf-staypuft ttf-summersby -yqq
+              apt install ttf-mscorefonts-installer fonts-cantarell lmodern ttf-aenigma ttf-georgewilliams ttf-bitstream-vera ttf-sjfonts ttf-unifont fonts-entypo fonts-isabella fonts-mplus fonts-prociono ttf-anonymous-pro ttf-engadget ttf-staypuft ttf-summersby -yqq
 
               mvn clean verify sonar:sonar -Pcoverage \
                 -Dsonar.host.url=https://sonar.k8s.elab.rs \
