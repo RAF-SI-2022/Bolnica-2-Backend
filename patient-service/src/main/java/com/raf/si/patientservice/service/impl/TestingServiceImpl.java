@@ -2,10 +2,8 @@ package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
 import com.raf.si.patientservice.dto.request.TestingRequest;
-import com.raf.si.patientservice.dto.response.AvailableTermResponse;
-import com.raf.si.patientservice.dto.response.ScheduledTestingListResponse;
-import com.raf.si.patientservice.dto.response.ScheduledTestingResponse;
-import com.raf.si.patientservice.dto.response.TestingResponse;
+import com.raf.si.patientservice.dto.request.TimeRequest;
+import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.exception.NotFoundException;
@@ -14,6 +12,7 @@ import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
 import com.raf.si.patientservice.model.enums.examination.PatientArrivalStatus;
 import com.raf.si.patientservice.model.enums.testing.Availability;
+import com.raf.si.patientservice.model.enums.testing.TestResult;
 import com.raf.si.patientservice.repository.AvailableTermRepository;
 import com.raf.si.patientservice.repository.PatientConditionRepository;
 import com.raf.si.patientservice.repository.ScheduledTestingRepository;
@@ -107,7 +106,7 @@ public class TestingServiceImpl implements TestingService {
                                                            ScheduledTestingRequest request,
                                                            String token) {
 
-        LocalDateTime requestDate = request.getDateAndTime().truncatedTo(ChronoUnit.SECONDS);
+        LocalDateTime requestDate = request.getDateAndTime().truncatedTo(ChronoUnit.MINUTES);
         request.setDateAndTime(requestDate);
 
         Patient patient = patientService.findPatient(lbp);
@@ -118,9 +117,10 @@ public class TestingServiceImpl implements TestingService {
         checkDateInFuture(request.getDateAndTime());
         checkPatientTestingsForDay(patient, request.getDateAndTime());
 
+        LocalDateTime startDateAndTime = request.getDateAndTime().minusMinutes(ScheduledTesting.getTestDurationMinutes());
         LocalDateTime endDateAndTime = request.getDateAndTime().plusMinutes(ScheduledTesting.getTestDurationMinutes());
         List<AvailableTerm> availableTerms = availableTermRepository.findByDateAndTimeBetweenAndPbo(
-                request.getDateAndTime(),
+                startDateAndTime,
                 endDateAndTime,
                 tokenPayload.getPbo()
         );
@@ -149,7 +149,7 @@ public class TestingServiceImpl implements TestingService {
 
     @Override
     public AvailableTermResponse getAvailableTerm(LocalDateTime dateAndTime, String token) {
-        dateAndTime = dateAndTime.truncatedTo(ChronoUnit.SECONDS);
+        dateAndTime = dateAndTime.truncatedTo(ChronoUnit.MINUTES);
         TokenPayload tokenPayload = TokenPayloadUtil.getTokenPayload();
         Optional<AvailableTerm> availableTermOptional = availableTermRepository.findByDateAndTimeAndPbo(dateAndTime, tokenPayload.getPbo());
         AvailableTerm availableTerm;
@@ -259,6 +259,38 @@ public class TestingServiceImpl implements TestingService {
         return testingMapper.scheduledTestingToResponse(scheduledTesting);
     }
 
+    @Override
+    public TestingListResponse processingOfTestResults(Pageable pageable) {
+        Page<Testing> testingPage = testingRepository.findTestingByTestResult(TestResult.NEOBRADJEN, pageable);
+        return testingMapper.testingPageToResponse(testingPage);
+    }
+
+    @Override
+    public TestingResponse updateTestResult(Long id, String testResultString) {
+        Testing testing = testingRepository.findById(id)
+            .orElseThrow(() -> {
+                String errMessage = String.format("Testiranje sa id-jem '%d' nije pronadjeno", id);
+                log.error(errMessage);
+                throw new NotFoundException(errMessage);
+            });
+
+        TestResult testResult = TestResult.valueOfNotation(testResultString);
+        if (testResult == null) {
+            String errMessage = String.format("Rezultat testiranja '%s' ne postoji", testResultString);
+            log.error(errMessage);
+            throw new NotFoundException(errMessage);
+        }
+
+        testing.setTestResult(testResult);
+//        if (testResult.equals(TestResult.POZITIVAN) || testResult.equals(TestResult.NEGATIVAN)) {
+//            certificate()
+//        }
+        testingRepository.save(testing);
+
+        log.info(String.format("Rezultat testiranja za testiranje sa id-jem '%d' je promenjeno na '%s'"), id, testResult);
+        return testingMapper.testingToResponse(testing);
+    }
+
     private void checkDateInFuture(LocalDateTime date){
         LocalDateTime currDate = LocalDateTime.now();
         if (currDate.isAfter(date)) {
@@ -308,23 +340,27 @@ public class TestingServiceImpl implements TestingService {
 
     private AvailableTerm makeAvailableTerm(LocalDateTime dateAndTime, String token) {
         TokenPayload tokenPayload = TokenPayloadUtil.getTokenPayload();
-        int availableNurses = getAvailableNurses(tokenPayload.getPbo(), token);
+        TimeRequest timeRequest = new TimeRequest(
+                dateAndTime,
+                dateAndTime.plusMinutes(ScheduledTesting.getTestDurationMinutes())
+        );
+        int availableNurses = getAvailableNurses(tokenPayload.getPbo(), timeRequest, token);
         return testingMapper.makeAvailableTerm(dateAndTime,
                 tokenPayload.getPbo(),
                 availableNurses);
     }
 
-    private int getAvailableNurses(UUID pbo, String token) {
+    private int getAvailableNurses(UUID pbo, TimeRequest request, String token) {
         int availableNurses;
         try {
-            availableNurses = HttpUtils.getNumOfCovidNursesForDepartment(pbo, token);
+            availableNurses = HttpUtils.getNumOfCovidNursesForDepartment(pbo, request, token);
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new InternalServerErrorException(e.getMessage());
         }
 
         if (availableNurses < 1) {
-            String errMessage = String.format("Nema dostupnih sestara za departman sa pbo-om %s", pbo);
+            String errMessage = String.format("Nema dostupnih sestara za departman sa pbo-om %s za termin '%s'", pbo, request.getStartTime());
             log.error(errMessage);
             throw new BadRequestException(errMessage);
         }

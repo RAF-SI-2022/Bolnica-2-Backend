@@ -276,19 +276,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Integer getNumOfCovidNursesByDepartment(UUID pbo) {
+    public Integer getNumOfCovidNursesByDepartmentInTimeSlot(UUID pbo, TimeRequest request) {
         List<String> permissions = Arrays.asList(new String[] {"ROLE_MED_SESTRA", "ROLE_VISA_MED_SESTRA"});
-        return (int) userRepository.countCovidNursesByPbo(pbo, permissions);
+        return (int) userRepository.countCovidNursesByPboAndShiftInTimeSlot(
+                pbo,
+                permissions,
+                request.getStartTime(),
+                request.getEndTime()
+        );
     }
 
     @Override
     public UserListAndCountResponse getSubordinates(Pageable pageable) {
         UUID lbz = TokenPayloadUtil.getTokenPayload().getLbz();
-        User user = userRepository.findByLbzAndFetchPermissions(lbz)
-                .orElseThrow( () -> {
-                    log.error("Ne postoji korisnik sa lbz '{}'", lbz);
-                    throw new NotFoundException("Korisnik sa datim lbz-om ne postoji");
-                });
+        User user = findUserWithShiftsByLbz(lbz);
 
         List<Permission> permissions = user.getPermissions();
         List<String> permissionNames = permissions.stream()
@@ -334,6 +335,19 @@ public class UserServiceImpl implements UserService {
         ShiftTime shiftTime = shiftTimeRepository.findByShiftType(shiftType);
 
         Shift shift = userMapper.addShiftRequestToModel(user, request, shiftTime);
+
+        long shiftLen = ChronoUnit.HOURS.between(shift.getStartTime(), shift.getEndTime());
+        if (shiftLen < 6) {
+            String errMessage = "Smena mora da bude bar 6 sati";
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+        if (shiftLen > 12) {
+            String errMessage = "Smena ne sme da bude duža od 12 sati";
+            log.error(errMessage);
+            throw new BadRequestException(errMessage);
+        }
+
         Shift existingShift = findExistingShift(user, shift);
 
         if (existingShift == null) {
@@ -367,6 +381,17 @@ public class UserServiceImpl implements UserService {
         user = userRepository.save(user);
         log.info(String.format("Korisniku sa lbz-om %s je promenjen broj slobodnih dana na %d", lbz,  daysOff));
         return userMapper.modelToResponse(user);
+    }
+
+    @Override
+    public Boolean canScheduleForDoctor(UUID lbz, boolean covid, TimeRequest timeRequest) {
+        return shiftRepository.canScheduleForLbz(lbz, covid, timeRequest.getStartTime(), timeRequest.getEndTime());
+    }
+
+    @Override
+    public UserShiftResponse getUserWithShiftsByLbz(UUID lbz) {
+        User user = findUserWithShiftsByLbz(lbz);
+        return userMapper.modelToUserShiftResponse(user);
     }
 
     private List<Boolean> adjustIncludeDeleteParameter(boolean includeDeleted) {
@@ -410,6 +435,14 @@ public class UserServiceImpl implements UserService {
         }
 
         return false;
+    }
+
+    private User findUserWithShiftsByLbz(UUID lbz) {
+        return userRepository.findByLbzAndFetchPermissions(lbz)
+                .orElseThrow( () -> {
+                    log.error("Ne postoji korisnik sa lbz '{}'", lbz);
+                    throw new NotFoundException("Korisnik sa datim lbz-om ne postoji");
+                });
     }
 
     private Shift findExistingShift(User user, Shift shift) {

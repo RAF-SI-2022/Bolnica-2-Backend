@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -53,9 +54,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query(value = "select distinct u from users u left join u.permissions p where p.name = :headPermission and u.department = :department")
     Optional<User> getHeadOfDepartment(@PathVariable("department") Department department, @PathVariable("headPermission") String headPermission);
 
-    @Query(value = "select count(distinct u) from users u left join u.permissions p where u.department.pbo=:pbo" +
-            " and u.covidAccess=true and p.name in :permissions")
-    long countCovidNursesByPbo(UUID pbo, List<String> permissions);
+    @Query(value = "select count(distinct u) from users u join u.permissions as p join u.shifts as s on s.user=u" +
+            " where u.department.pbo=:pbo and u.covidAccess=true and p.name in :permissions" +
+            " and s.startTime<=:start and s.endTime>=:end")
+    long countCovidNursesByPboAndShiftInTimeSlot(UUID pbo, List<String> permissions, LocalDateTime start, LocalDateTime end);
 
     @Query(value = "select u from users u where u.department.pbo=:pbo")
     Page<User> findSubordinatesForHeadOfDepartment(UUID pbo, Pageable pageable);

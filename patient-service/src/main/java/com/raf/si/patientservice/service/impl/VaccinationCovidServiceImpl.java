@@ -2,6 +2,7 @@ package com.raf.si.patientservice.service.impl;
 
 
 import com.raf.si.patientservice.dto.request.ScheduledVaccinationRequest;
+import com.raf.si.patientservice.dto.request.TimeRequest;
 import com.raf.si.patientservice.dto.request.VaccinationCovidRequest;
 import com.raf.si.patientservice.dto.response.DosageReceivedResponse;
 import com.raf.si.patientservice.dto.response.ScheduledVaccinationListResponse;
@@ -105,7 +106,7 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
     }
 
     private ScheduledVaccinationResponse scheduleVaccinationLocked(UUID lbp, ScheduledVaccinationRequest request, String token) {
-        LocalDateTime requestDate = request.getDateAndTime().truncatedTo(ChronoUnit.SECONDS);
+        LocalDateTime requestDate = request.getDateAndTime().truncatedTo(ChronoUnit.MINUTES);
         request.setDateAndTime(requestDate);
 
         Patient patient = patientService.findPatient(lbp);
@@ -116,9 +117,10 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
         checkDateInFuture(request.getDateAndTime());
         checkPatientTestingsForDay(patient, request.getDateAndTime());
 
+        LocalDateTime startDateAndTime = request.getDateAndTime().minusMinutes(ScheduledTesting.getTestDurationMinutes());
         LocalDateTime endDateAndTime = request.getDateAndTime().plusMinutes(ScheduledTesting.getTestDurationMinutes());
         List<AvailableTerm> availableTerms = availableTermRepository.findByDateAndTimeBetweenAndPbo(
-                request.getDateAndTime(),
+                startDateAndTime,
                 endDateAndTime,
                 tokenPayload.getPbo()
         );
@@ -323,16 +325,20 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
 
     private AvailableTerm makeAvailableTerm(LocalDateTime dateAndTime, String token) {
         TokenPayload tokenPayload = TokenPayloadUtil.getTokenPayload();
-        int availableNurses = getAvailableNurses(tokenPayload.getPbo(), token);
+        TimeRequest timeRequest = new TimeRequest(
+                dateAndTime,
+                dateAndTime.plusMinutes(ScheduledTesting.getTestDurationMinutes())
+        );
+        int availableNurses = getAvailableNurses(tokenPayload.getPbo(), timeRequest, token);
         return vaccinationMapper.makeAvailableTerm(dateAndTime,
                 tokenPayload.getPbo(),
                 availableNurses);
     }
 
-    private int getAvailableNurses(UUID pbo, String token) {
+    private int getAvailableNurses(UUID pbo, TimeRequest request, String token) {
         int availableNurses;
         try {
-            availableNurses = HttpUtils.getNumOfCovidNursesForDepartment(pbo, token);
+            availableNurses = HttpUtils.getNumOfCovidNursesForDepartment(pbo, request, token);
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new InternalServerErrorException(e.getMessage());

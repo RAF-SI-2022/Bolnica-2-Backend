@@ -2,10 +2,7 @@ package com.raf.si.patientservice.controller;
 
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
 import com.raf.si.patientservice.dto.request.TestingRequest;
-import com.raf.si.patientservice.dto.response.AvailableTermResponse;
-import com.raf.si.patientservice.dto.response.ScheduledTestingListResponse;
-import com.raf.si.patientservice.dto.response.ScheduledTestingResponse;
-import com.raf.si.patientservice.dto.response.TestingResponse;
+import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.service.TestingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -78,5 +75,21 @@ public class TestingController {
     @DeleteMapping("/scheduled/delete/{id}")
     public ResponseEntity<ScheduledTestingResponse> deleteScheduledTesting(@PathVariable("id") Long id) {
         return ResponseEntity.ok(testingService.deleteScheduledTesting(id));
+    }
+
+    @PreAuthorize("hasRole('ROLE_VISI_LAB_TEHNICAR') or hasRole('ROLE_LAB_TEHNICAR')" +
+            " or hasRole('ROLE_MED_BIOHEMICAR') or hasRole('ROLE_SPEC_MED_BIOHEMIJE')")
+    @GetMapping("/scheduled/in-process")
+    public ResponseEntity<TestingListResponse> processingOfTestResults(@RequestParam(defaultValue = "0") int page,
+                                                                       @RequestParam(defaultValue = "5") int size){
+        return ResponseEntity.ok(testingService.processingOfTestResults(PageRequest.of(page, size)));
+    }
+
+    @PreAuthorize("hasRole('ROLE_VISI_LAB_TEHNICAR') or hasRole('ROLE_LAB_TEHNICAR')" +
+            " or hasRole('ROLE_MED_BIOHEMICAR') or hasRole('ROLE_SPEC_MED_BIOHEMIJE')")
+    @PatchMapping("/{id}/update-test-result")
+    public ResponseEntity<TestingResponse> updateTestResult(@PathVariable("id") Long id,
+                                                   @RequestParam String newTestResult) {
+        return ResponseEntity.ok(testingService.updateTestResult(id, newTestResult));
     }
 }

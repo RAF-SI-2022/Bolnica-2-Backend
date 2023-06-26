@@ -13,7 +13,8 @@ import java.util.UUID;
 @Repository
 public interface AvailableTermRepository extends JpaRepository<AvailableTerm, Long> {
 
-    @Query(value = "select a from AvailableTerm a where a.pbo=:pbo and a.dateAndTime between :startTime and :endTime")
+    @Query(value = "select a from AvailableTerm a where a.pbo=:pbo" +
+            " and a.dateAndTime>:startTime and a.dateAndTime<:endTime")
     List<AvailableTerm> findByDateAndTimeBetweenAndPbo(LocalDateTime startTime, LocalDateTime endTime, UUID pbo);
 
     @Query(value = "select a from AvailableTerm a where a.dateAndTime=:dateAndTime and a.pbo=:pbo")

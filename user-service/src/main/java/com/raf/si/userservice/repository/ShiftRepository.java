@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 public interface ShiftRepository extends JpaRepository<Shift, Long> {
@@ -18,4 +19,9 @@ public interface ShiftRepository extends JpaRepository<Shift, Long> {
     long countShiftsByShiftTypeForUserBetweenDates(User user, LocalDateTime start, LocalDateTime end, ShiftType shiftType);
 
     List<Shift> findByUserAndStartTimeBetween(User user, LocalDateTime start, LocalDateTime end);
+
+    @Query(value = "select case when (count(s) > 0) then true else false end" +
+            " from Shift s where s.user.lbz=:lbz and s.user.covidAccess=:covid" +
+            " and s.startTime<=:start and s.endTime>=:end")
+    Boolean canScheduleForLbz(UUID lbz, boolean covid, LocalDateTime start, LocalDateTime end);
 }

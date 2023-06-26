@@ -16,7 +16,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,16 +30,19 @@ public class  BootstrapData implements CommandLineRunner {
     private final DepartmentRepository departmentRepository;
     private final HospitalRepository hospitalRepository;
     private final ShiftTimeRepository shiftTimeRepository;
+    private final ShiftRepository shiftRepository;
     private final PasswordEncoder passwordEncoder;
 
     public BootstrapData(UserRepository userRepository, PermissionsRepository permissionsRepository,
                          DepartmentRepository departmentRepository, HospitalRepository hospitalRepository,
-                         ShiftTimeRepository shiftTimeRepository, PasswordEncoder passwordEncoder) {
+                         ShiftTimeRepository shiftTimeRepository, ShiftRepository shiftRepository,
+                         PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.permissionsRepository = permissionsRepository;
         this.departmentRepository = departmentRepository;
         this.hospitalRepository = hospitalRepository;
         this.shiftTimeRepository = shiftTimeRepository;
+        this.shiftRepository = shiftRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -101,11 +106,11 @@ public class  BootstrapData implements CommandLineRunner {
         addDepartmentsToHospital(
                 List.of("Interne bolesti", "Neurologija",
                         "Hirurgija", "Ginekologija i akušerstvo",
-                        "Onkologija","Laboratorija", "Dijagnostika", "Stacionar"),
+                        "Onkologija","Laboratorija", "Dijagnostika", "Stacionar", "Covid odsek"),
                 List.of("4349eb95-d671-41c6-8cb1-389a45466cde", "c2de9275-ee7d-4994-85e7-ab433c843529",
                         "4260b200-9abf-42c5-acdf-8050fd55783e", "bf027665-8d73-4ec1-8f05-9e73ca4434a0",
                         "73e69114-7e40-4bd9-a69d-1599ba011baf", "13531c13-ac0b-465c-9b2c-56ecd5bf3474",
-                        "4812d5d8-f43c-432a-a12c-7ff88c28fd4d", "49f62e58-d996-4f7d-bded-965a8719454f"),
+                        "4812d5d8-f43c-432a-a12c-7ff88c28fd4d", "49f62e58-d996-4f7d-bded-965a8719454f", "50869452-02f6-4ef7-8592-24d342cd70d1"),
                 kbcZemun
         );
 
@@ -183,6 +188,24 @@ public class  BootstrapData implements CommandLineRunner {
         userRepository.save(medSestra);
 
         addShiftTimes();
+
+        LocalDateTime startTime = LocalDateTime.of(2024, 1, 1, 1, 1);
+        LocalDateTime endTime = startTime.plusHours(11);
+
+        Shift shift = new Shift();
+        shift.setShiftType(ShiftType.MEDJUSMENA);
+        shift.setUser(user);
+        shift.setStartTime(startTime);
+        shift.setEndTime(endTime);
+
+        Shift nurseShift = new Shift();
+        nurseShift.setShiftType(ShiftType.MEDJUSMENA);
+        nurseShift.setUser(medSestra);
+        nurseShift.setStartTime(startTime);
+        nurseShift.setEndTime(endTime);
+
+        shiftRepository.save(shift);
+        shiftRepository.save(nurseShift);
 
         addOtherUsers();
     }
@@ -271,10 +294,32 @@ public class  BootstrapData implements CommandLineRunner {
             user.setTitle(Title.valueOfNotation(split[12]));
             user.setProfession(Profession.valueOfNotation(split[13]));
             user.setLbz(UUID.fromString(split[14]));
+            user.setCovidAccess(true);
             user = findUserDaysOff(user);
             userRepository.save(user);
+
+            addShiftsForUser(user);
         }
 
+    }
+
+    private void addShiftsForUser(User user) {
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS);
+
+        for (int i = 0; i < 10; i++) {
+            Shift shift = new Shift();
+
+            shift.setUser(user);
+            shift.setShiftType(ShiftType.PRVA_SMENA);
+
+            LocalDateTime startTime = now.plusDays(i).plusHours(6);
+            LocalDateTime endTime = startTime.plusHours(8);
+
+            shift.setStartTime(startTime);
+            shift.setEndTime(endTime);
+
+            shiftRepository.save(shift);
+        }
     }
 
     private User findUserDaysOff(User user) {
