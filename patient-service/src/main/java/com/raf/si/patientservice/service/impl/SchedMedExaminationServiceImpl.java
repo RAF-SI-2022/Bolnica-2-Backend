@@ -220,6 +220,36 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
 
     @Override
     public List<Date> doctorHasScheduledExamsForTimeSlot(UUID lbz, UpdateTermsNewShiftRequest request) {
+        Lock doctorLock = lockRegistry.obtain(String.valueOf(lbz));
+        try{
+            if(!doctorLock.tryLock(1, TimeUnit.SECONDS)){
+                String errMessage = "Neko već pokušava da ubaci pregled za doktora";
+                log.info(errMessage);
+                throw new BadRequestException(errMessage);
+            }
+            log.info(String.format("Locking fordoctor %s", lbz));
+
+        } catch (BadRequestException e) {
+            throw e;
+        }catch(InterruptedException e){
+            log.info(e.getMessage());
+            throw new InternalServerErrorException("Greška pri zaključavanju baze");
+        }
+
+        List<Date> response;
+        try{
+            response = doctorHasScheduledExamsForTimeSlotLocked(lbz, request);
+        }catch(RuntimeException e) {
+            throw e;
+        }finally{
+            doctorLock.unlock();
+            log.info(String.format("Unlocking for doctor %s", lbz));
+
+        }
+        return response;
+    }
+
+    private List<Date> doctorHasScheduledExamsForTimeSlotLocked(UUID lbz, UpdateTermsNewShiftRequest request) {
         TimeRequest oldShift = request.getOldShift();
         TimeRequest newShift = request.getNewShift();
 

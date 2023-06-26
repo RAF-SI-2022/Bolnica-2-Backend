@@ -30,7 +30,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -54,6 +57,8 @@ public class TestingServiceImpl implements TestingService {
     private final PatientService patientService;
     private final TestingMapper testingMapper;
     private final LockRegistry lockRegistry;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public TestingServiceImpl(ScheduledTestingRepository scheduledTestingRepository,
                               TestingRepository testingRepository,
@@ -74,7 +79,7 @@ public class TestingServiceImpl implements TestingService {
 
     @Override
     public ScheduledTestingResponse scheduleTesting(UUID lbp, ScheduledTestingRequest request, String token) {
-        LocalDateTime day =request.getDateAndTime().truncatedTo(ChronoUnit.DAYS);
+        LocalDateTime day = request.getDateAndTime().truncatedTo(ChronoUnit.DAYS);
         Lock dayLock = lockRegistry.obtain(day.toString());
         Lock patientLock = lockRegistry.obtain(String.valueOf(lbp));
         try{
@@ -295,6 +300,36 @@ public class TestingServiceImpl implements TestingService {
 
     @Override
     public List<LocalDateTime> removeNurseFromTerms(UpdateTermsNewShiftRequest request) {
+        LocalDateTime day = request.getOldShift().getStartTime().truncatedTo(ChronoUnit.DAYS);
+        Lock dayLock = lockRegistry.obtain(day.toString());
+        try{
+            if(!dayLock.tryLock(1, TimeUnit.SECONDS)){
+                String errMessage = "Neko već pokušava da ubaci pregled za prosledjeni dan";
+                log.info(errMessage);
+                throw new BadRequestException(errMessage);
+            }
+            log.info(String.format("Locking for and day %s", day));
+        } catch (BadRequestException e) {
+            throw e;
+        }catch(InterruptedException e){
+            log.info(e.getMessage());
+            throw new InternalServerErrorException("Greška pri zaključavanju baze");
+        }
+
+        List<LocalDateTime> response;
+        try{
+            response = removeNurseFromTermsLocked(request);
+        }catch(RuntimeException e) {
+            throw e;
+        }finally{
+            dayLock.unlock();
+            log.info(String.format("Unlocking for day %s", day));
+        }
+        return response;
+    }
+
+    @Transactional
+    private List<LocalDateTime> removeNurseFromTermsLocked(UpdateTermsNewShiftRequest request) {
         TimeRequest oldShift = request.getOldShift();
         TimeRequest newShift = request.getNewShift();
 
@@ -307,6 +342,8 @@ public class TestingServiceImpl implements TestingService {
                 newShift.getStartTime(),
                 newShift.getEndTime()
         );
+
+        entityManager.clear();
 
         for (AvailableTerm term : oldShiftTerms) {
             term.decrementAvailableNursesNum();

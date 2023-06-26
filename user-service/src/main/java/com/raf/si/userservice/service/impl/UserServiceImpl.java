@@ -283,7 +283,8 @@ public class UserServiceImpl implements UserService {
                 pbo,
                 permissions,
                 request.getStartTime(),
-                request.getEndTime()
+                request.getEndTime(),
+                ShiftType.SLOBODAN_DAN
         );
     }
 
@@ -553,7 +554,14 @@ public class UserServiceImpl implements UserService {
 
     private void checkDoctorScheduledExamsForTimeSlot(User user, UpdateTermsNewShiftRequest request, String token) {
         UUID lbz = user.getLbz();
-        List<Date> alreadyScheduled = HttpUtils.checkDoctorScheduledExamsForTimeSlot(lbz, request, token);
+        List<Date> alreadyScheduled;
+        try {
+            alreadyScheduled = HttpUtils.checkDoctorScheduledExamsForTimeSlot(lbz, request, token);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new InternalServerErrorException(e.getMessage());
+        }
+
         if (alreadyScheduled != null && !alreadyScheduled.isEmpty()) {
             String errMessage = String.format("Prosledjeni doktor ima zakazane preglede tog dana u terminima:");
             for (Date date : alreadyScheduled) {
@@ -562,10 +570,17 @@ public class UserServiceImpl implements UserService {
             log.error(errMessage);
             throw new BadRequestException(errMessage);
         }
+
     }
 
     private void checkAndUpdateNurseAvailableTermsForTimeSlot(UpdateTermsNewShiftRequest request, String token) {
-        List<LocalDateTime> fullTerms = HttpUtils.checkAndUpdateNurseTerms(request, token);
+        List<LocalDateTime> fullTerms;
+        try {
+            fullTerms = HttpUtils.checkAndUpdateNurseTerms(request, token);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new InternalServerErrorException(e.getMessage());
+        }
         if (fullTerms != null && !fullTerms.isEmpty()) {
             String errMessage = "Popunjeni su svi termini testiranja i vakcinacije za:";
             for (LocalDateTime ldt : fullTerms) {
