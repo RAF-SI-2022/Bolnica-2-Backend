@@ -1,5 +1,6 @@
 package com.raf.si.patientservice.unit.service;
 
+import com.raf.si.patientservice.dto.response.HospitalBedAvailabilityResponse;
 import com.raf.si.patientservice.dto.response.HospitalRoomListResponse;
 import com.raf.si.patientservice.model.HospitalRoom;
 import com.raf.si.patientservice.repository.HospitalRoomRepository;
@@ -46,4 +47,22 @@ public class HospitalRoomServiceTest {
         assertEquals(hospitalRoomService.getHospitalRooms(UUID.randomUUID(), pageable),
                 new HospitalRoomListResponse(rooms, roomCount));
     }
+
+    @Test
+    void getBedAvailability_Success() {
+        UUID pbo = UUID.randomUUID();
+        int totalBeds = 10;
+        int bedsInUse = 5;
+        int availableBeds = totalBeds - bedsInUse;
+
+        when(hospitalRoomRepository.countTotalBedsByDepartment(pbo))
+                .thenReturn(totalBeds);
+        when(hospitalRoomRepository.countBedsInUseByDepartment(pbo))
+                .thenReturn(bedsInUse);
+
+        HospitalBedAvailabilityResponse expectedResponse = new HospitalBedAvailabilityResponse(totalBeds, bedsInUse, availableBeds);
+
+        assertEquals(expectedResponse, hospitalRoomService.getBedAvailability(pbo));
+    }
+
 }
