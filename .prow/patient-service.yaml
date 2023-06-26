@@ -52,10 +52,6 @@ presubmits:
               git reset --hard HEAD~1
               git checkout $PULL_HEAD_REF
               git checkout $branch
-
-              echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
-              apt-get install ttf-mscorefonts-installer
-
               cd "$SERVICE_NAME"
               mvn clean verify sonar:sonar -Pcoverage \
                 -Dsonar.host.url=https://sonar.k8s.elab.rs \
@@ -105,10 +101,6 @@ postsubmits:
               # docker compose up -d mysql-user
               # docker compose --profile user-service up -d
               docker compose up -d redis user-db patient-db user-service
-
-              echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
-              apt-get install ttf-mscorefonts-installer
-
               cd "$SERVICE_NAME"
               
               ref=$(git rev-parse --abbrev-ref HEAD)
