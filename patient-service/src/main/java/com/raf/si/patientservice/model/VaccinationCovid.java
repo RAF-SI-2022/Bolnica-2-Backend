@@ -40,7 +40,7 @@ public class VaccinationCovid {
     private Boolean deleted = false;
 
     public void incrementDosage(Long dosage){
-        doseReceived = doseReceived + 1;
+        doseReceived = dosage + 1;
     }
 
     public Long getDosageAsLong(){
