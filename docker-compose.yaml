@@ -15,8 +15,6 @@ services:
       image: docker.io/grafana/grafana-oss:9.5.2
       ports:
         - "3000:3000"
-      volumes:
-        - grafana:/var/lib/grafana
       user: 'root'
       profiles:
         - user-service
@@ -132,6 +130,3 @@ services:
     depends_on:
       - laboratory-db
       - redis
-
-volumes:
-  grafana:
