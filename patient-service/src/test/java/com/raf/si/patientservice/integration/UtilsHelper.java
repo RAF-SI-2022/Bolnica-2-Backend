@@ -65,6 +65,22 @@ public class UtilsHelper {
         return  jwtUtil.generateToken(claims, "3e1a51ab-a3aa-1add-a3ad-28e043f8b435");
     }
 
+    public String generateCovidNurseToken() {
+        String[] roles= new String[]{"ROLE_VISA_MED_SESTRA","ROLE_MED_SESTRA"};
+        Claims claims= Jwts.claims();
+
+        claims.put("firstName", "Medicinska");
+        claims.put("lastName","Sestra");
+        claims.put("title","Med. sestra");
+        claims.put("pbo",UUID.fromString("50869452-02f6-4ef7-8592-24d342cd70d1"));
+        claims.put("departmentName","Dijagnostika");
+        claims.put("pbb",UUID.randomUUID());
+        claims.put("hospitalName", "NoviBeograd");
+        claims.put("permissions",roles);
+        claims.put("covidAccess", false);
+        return  jwtUtil.generateToken(claims, "3e1a51ab-a3aa-1add-a3ad-28e043f8b435");
+    }
+
     private String generateToken(List<String> roles, String profession, String token){
         Claims claims= Jwts.claims();
         claims.put("firstName", "User");

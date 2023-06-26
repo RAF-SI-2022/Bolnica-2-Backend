@@ -22,8 +22,10 @@ import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -60,9 +62,10 @@ public class VaccinationCovidControllerCreateSteps extends CucumberConfig {
     @When("nurse provides valid information for scheduled vaccination covid")
     public void nurse_provides_valid_information_for_scheduled_vaccination_covid() throws Exception {
         ScheduledVaccinationRequest request = util.makeSchedVaccinationCovidRequest();
+        request.setDateAndTime(LocalDateTime.now().plusDays(1).truncatedTo(ChronoUnit.DAYS).plusHours(7));
 
         resultAction= mvc.perform(post("/vaccination/schedule/"+util.getPatientBootstrapLbp())
-                .header("Authorization", "Bearer " + util.generateNurseTokenValid())
+                .header("Authorization", "Bearer " + util.generateCovidNurseToken())
                 .content(gson.toJson(request))
                 .contentType(MediaType.APPLICATION_JSON));
     }
@@ -71,6 +74,7 @@ public class VaccinationCovidControllerCreateSteps extends CucumberConfig {
         List<ScheduledVaccinationCovid> createdRequest= scheduledVaccinationCovidRepository
                 .findByPatient_lbp(util.getPatientBootstrapLbp()).get();
         assertNotNull(createdRequest);
+        resultAction.andDo(MockMvcResultHandlers.print());
         resultAction.andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(createdRequest
                         .get(createdRequest.size()-1).getId()));
