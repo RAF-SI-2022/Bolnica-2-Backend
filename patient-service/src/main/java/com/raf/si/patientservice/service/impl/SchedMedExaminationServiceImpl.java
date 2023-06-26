@@ -13,7 +13,9 @@ import com.raf.si.patientservice.model.Patient;
 import com.raf.si.patientservice.model.ScheduledMedExamination;
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
 import com.raf.si.patientservice.repository.ScheduledMedExamRepository;
+import com.raf.si.patientservice.repository.filtering.filter.CovidSchedMedExamFilter;
 import com.raf.si.patientservice.repository.filtering.filter.ScheduledMedExamFilter;
+import com.raf.si.patientservice.repository.filtering.specification.CovidSchedMedExamSpecification;
 import com.raf.si.patientservice.repository.filtering.specification.ScheduledMedExamSpecification;
 import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.SchedMedExaminationService;
@@ -216,6 +218,20 @@ public class SchedMedExaminationServiceImpl implements SchedMedExaminationServic
                     log.info(errMessage);
                     throw new BadRequestException(errMessage);
                 });
+    }
+
+    @Override
+    public SchedMedExamListResponse findCovidSchedMedExams(UUID lbp, Date date, Pageable pageable) {
+        Patient patient = null;
+        if (lbp != null) {
+            patient = patientService.findPatient(lbp);
+        }
+
+        CovidSchedMedExamFilter filter = new CovidSchedMedExamFilter(patient, date);
+        CovidSchedMedExamSpecification spec = new CovidSchedMedExamSpecification(filter);
+
+        Page<ScheduledMedExamination> examinationPage = scheduledMedExamRepository.findAll(spec, pageable);
+        return schedMedExamMapper.schedMedExamPageToSchedMedExamListResponse(examinationPage);
     }
 
     @Override

@@ -23,4 +23,5 @@ public interface SchedMedExaminationService {
     SchedMedExamResponse updateSchedMedExaminationPatientArrivalStatus(UpdateSchedMedExamRequest updateSchedMedExamRequest);
     ScheduledMedExamination findSchedMedExamById(Long id);
     List<Date> doctorHasScheduledExamsForTimeSlot(UUID lbz, UpdateTermsNewShiftRequest request);
+    SchedMedExamListResponse findCovidSchedMedExams(UUID lbp, Date date, Pageable pageable);
 }

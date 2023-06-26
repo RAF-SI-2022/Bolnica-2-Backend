@@ -84,4 +84,13 @@ public class SchedMedExaminationController {
                                                                          @RequestBody UpdateTermsNewShiftRequest request) {
         return ResponseEntity.ok(schedMedExaminationService.doctorHasScheduledExamsForTimeSlot(lbz, request));
     }
+
+    @PreAuthorize("hasRole('ROLE_DR_SPEC') or hasRole('ROLE_DR_SPEC_POV')")
+    @GetMapping("/covid")
+    public ResponseEntity<SchedMedExamListResponse> getCovidScheduledExams(@RequestParam(name = "lbp", required = false) UUID lbp,
+                                                                           @RequestParam(name = "date", required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") Date date,
+                                                                           @RequestParam(defaultValue = "0") int page,
+                                                                           @RequestParam(defaultValue = "5") int size) {
+        return ResponseEntity.ok(schedMedExaminationService.findCovidSchedMedExams(lbp, date, PageRequest.of(page, size)));
+    }
 }
