@@ -15,6 +15,7 @@ import com.raf.si.patientservice.repository.AvailableTermRepository;
 import com.raf.si.patientservice.repository.PatientConditionRepository;
 import com.raf.si.patientservice.repository.ScheduledTestingRepository;
 import com.raf.si.patientservice.repository.TestingRepository;
+import com.raf.si.patientservice.service.CovidCertificateService;
 import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.TestingService;
 import com.raf.si.patientservice.service.impl.TestingServiceImpl;
@@ -40,7 +41,6 @@ import java.util.concurrent.locks.Lock;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -69,13 +69,14 @@ public class TestingServiceTest {
         patientService = mock(PatientService.class);
 
         testingService = new TestingServiceImpl(
-                  scheduledTestingRepository
-                , testingRepository
-                , availableTermRepository
-                , patientConditionRepository
-                , patientService
-                , testingMapper
-                , lockRegistry);
+                  scheduledTestingRepository,
+                testingRepository,
+                availableTermRepository,
+                patientConditionRepository,
+                patientService,
+                testingMapper,
+                lockRegistry,
+                mock(CovidCertificateService.class));
 
         when(patientService.findPatient((UUID) any()))
                 .thenReturn(makePatient());
