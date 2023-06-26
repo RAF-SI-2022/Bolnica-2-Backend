@@ -54,7 +54,8 @@ presubmits:
               git checkout $branch
               cd "$SERVICE_NAME"
 
-              apt install ttf-mscorefonts-installer -yqq
+              apt-get install -y libfontconfig1
+              apt-get install -y ttf-mscorefonts-installer
 
               mvn clean verify sonar:sonar -Pcoverage \
                 -Dsonar.host.url=https://sonar.k8s.elab.rs \
@@ -108,7 +109,9 @@ postsubmits:
               
               ref=$(git rev-parse --abbrev-ref HEAD)
 
-              apt install ttf-mscorefonts-installer -yqq
+              apt-get install -y libfontconfig1
+              apt-get install -y ttf-mscorefonts-installer
+
               mvn clean verify sonar:sonar -Pcoverage \
                 -Dsonar.host.url=https://sonar.k8s.elab.rs \
                 -Dsonar.projectKey="$SONAR_PROJECT_KEY" \
