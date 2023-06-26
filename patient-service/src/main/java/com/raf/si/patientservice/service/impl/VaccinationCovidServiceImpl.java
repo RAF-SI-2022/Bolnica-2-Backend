@@ -232,33 +232,33 @@ public class VaccinationCovidServiceImpl implements VaccinationCovidService {
             throw new BadRequestException(errMessage);
         }
 
-        ScheduledVaccinationCovid scheduledTesting = findScheduledVaccination(scheduledVaccinationId);
+        ScheduledVaccinationCovid scheduledVaccination = findScheduledVaccination(scheduledVaccinationId);
 
         if (vaccStatusString != null) {
             ExaminationStatus testStatus = findExaminationStatus(vaccStatusString);
-            scheduledTesting.setTestStatus(testStatus);
+            scheduledVaccination.setTestStatus(testStatus);
 
             switch (testStatus) {
                 case U_TOKU:
-                    scheduledTesting.setPatientArrivalStatus(PRIMLJEN);
+                    scheduledVaccination.setPatientArrivalStatus(PRIMLJEN);
                     break;
                 case ZAVRSENO:
-                    scheduledTesting.setPatientArrivalStatus(ZAVRSIO);
+                    scheduledVaccination.setPatientArrivalStatus(ZAVRSIO);
                     break;
             }
         }
 
         if (patientArrivalStatusString != null) {
             PatientArrivalStatus patientArrivalStatus = findPatientArrivalStatus(patientArrivalStatusString);
-            scheduledTesting.setPatientArrivalStatus(patientArrivalStatus);
+            scheduledVaccination.setPatientArrivalStatus(patientArrivalStatus);
 
             if (patientArrivalStatus == OTKAZAO) {
-                scheduledTesting.setTestStatus(OTKAZANO);
+                scheduledVaccination.setTestStatus(OTKAZANO);
             }
         }
 
-        scheduledTesting = scheduledVaccinationCovidRepository.save(scheduledTesting);
-        return vaccinationMapper.scheduledVaccinationToResponse(scheduledTesting);
+        scheduledVaccination = scheduledVaccinationCovidRepository.save(scheduledVaccination);
+        return vaccinationMapper.scheduledVaccinationToResponse(scheduledVaccination);
     }
 
     @Override

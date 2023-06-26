@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface ScheduledVaccinationCovidRepository extends JpaRepository<ScheduledVaccinationCovid, Long>,
@@ -17,4 +19,5 @@ public interface ScheduledVaccinationCovidRepository extends JpaRepository<Sched
     @Query(value = "select s from ScheduledVaccinationCovid s where s.patient=:patient" +
             " and s.dateAndTime between :startDate and :endDate")
     List<ScheduledVaccinationCovid> findByPatientAndDateAndTimeBetween(Patient patient, LocalDateTime startDate, LocalDateTime endDate);
+    Optional<List<ScheduledVaccinationCovid>> findByPatient_lbp(UUID lbp);
 }
