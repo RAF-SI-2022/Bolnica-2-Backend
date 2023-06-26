@@ -24,6 +24,8 @@ public class HospitalRoom {
     private Integer capacity;
     @Column(nullable = false)
     private Integer occupation;
+    @Column(nullable = false)
+    private Integer respirators;
     @Column
     private String description;
     @Column
