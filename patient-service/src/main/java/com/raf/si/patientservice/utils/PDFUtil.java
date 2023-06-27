@@ -25,6 +25,16 @@ public class PDFUtil {
     private static final String TESTING_PDF = "certificate/Certificate_testing.pdf";
     private static final String FONT_URL = "certificate/arial.ttf";
     private static final String DEST_FILE = "certificate/";
+    private static Font font;
+
+    static {
+        Resource resource = new ClassPathResource(FONT_URL);
+        try {
+            font = FontRepository.openFont(resource.getURI().getPath());
+        } catch (IOException e) {
+            font = null;
+        }
+    }
 
     public static File createPDF(CovidCertificate covidCertificate, Patient patient) {
         Resource resource;
@@ -58,6 +68,7 @@ public class PDFUtil {
                 // Loop through the fragments
                 for (TextFragment textFragment : textFragmentCollection) {
                     // Update text and other properties
+                    textFragment.getTextState().setFont(font);
                     textFragment.setText(entry.getValue());
 
                 }
