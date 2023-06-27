@@ -1,9 +1,6 @@
 package com.raf.si.patientservice.utils;
 
-import com.aspose.pdf.Document;
-import com.aspose.pdf.TextFragment;
-import com.aspose.pdf.TextFragmentAbsorber;
-import com.aspose.pdf.TextFragmentCollection;
+import com.aspose.pdf.*;
 import com.raf.si.patientservice.dto.CertificatePlaceHolders;
 import com.raf.si.patientservice.model.CovidCertificate;
 import com.raf.si.patientservice.model.Patient;
@@ -26,6 +23,7 @@ public class PDFUtil {
 
     private static final String VACCINATION_PDF = "certificate/Certificate_vaccination.pdf";
     private static final String TESTING_PDF = "certificate/Certificate_testing.pdf";
+    private static final String FONT_URL = "certificate/arial.ttf";
     private static final String DEST_FILE = "certificate/";
 
     public static File createPDF(CovidCertificate covidCertificate, Patient patient) {
@@ -36,6 +34,7 @@ public class PDFUtil {
             resource = new ClassPathResource(TESTING_PDF);
         }
 
+        FontRepository.addLocalFontPath(FONT_URL);
         Document pdfDocument = null;
         String filename = UUID.randomUUID().toString() + ".pdf";
         Map<String, String> words = new HashMap<>();
