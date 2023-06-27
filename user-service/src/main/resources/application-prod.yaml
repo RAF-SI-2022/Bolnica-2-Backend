@@ -29,6 +29,9 @@ jwt:
   secret:
     key: "secret_key"
 
+reset-password:
+  uri: "https://bolnica-2.k8s.elab.rs/forgot-password/"
+
 mail:
   host: "smtp.office365.com"
   port: 587

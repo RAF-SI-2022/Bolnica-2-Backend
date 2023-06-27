@@ -291,7 +291,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserListAndCountResponse getSubordinates(Pageable pageable) {
         UUID lbz = TokenPayloadUtil.getTokenPayload().getLbz();
-        User user = findUserWithShiftsByLbz(lbz);
+        User user = findUserWithPermissionsByLbz(lbz);
 
         List<Permission> permissions = user.getPermissions();
         List<String> permissionNames = permissions.stream()
@@ -323,7 +323,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public UserShiftResponse addShift(UUID lbz, AddShiftRequest request, String token) {
-        User user = findUserWithShiftsByLbz(lbz);
+        User user = findUserWithPermissionsByLbz(lbz);
         entityManager.lock(user, LockModeType.PESSIMISTIC_WRITE);
 
         checkShiftDateValid(request.getDate());
@@ -394,7 +394,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserShiftResponse getUserWithShiftsByLbz(UUID lbz) {
-        User user = findUserWithShiftsByLbz(lbz);
+        User user = findUserWithPermissionsByLbz(lbz);
         return userMapper.modelToUserShiftResponse(user);
     }
 
@@ -410,7 +410,7 @@ public class UserServiceImpl implements UserService {
         if (hasCovidAccess == null) {
             return Arrays.asList(new Boolean[] {true, false});
         }
-        return Arrays.asList(new Boolean[]{hasCovidAccess});
+        return Arrays.asList(new Boolean[] {hasCovidAccess});
     }
 
     private boolean canUpdateCovidAccess(User userForUpdate) {
@@ -441,7 +441,7 @@ public class UserServiceImpl implements UserService {
         return false;
     }
 
-    private User findUserWithShiftsByLbz(UUID lbz) {
+    private User findUserWithPermissionsByLbz(UUID lbz) {
         return userRepository.findByLbzAndFetchPermissions(lbz)
                 .orElseThrow( () -> {
                     log.error("Ne postoji korisnik sa lbz '{}'", lbz);

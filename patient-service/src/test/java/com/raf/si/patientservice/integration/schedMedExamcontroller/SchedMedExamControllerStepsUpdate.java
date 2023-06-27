@@ -12,12 +12,8 @@ import io.cucumber.java.Before;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
-
-
-
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -96,7 +92,7 @@ public class SchedMedExamControllerStepsUpdate extends CucumberConfig {
 
     @When("Doctor tries to update the examination status of a scheduled medical exam to forbidden exam status")
     public void doctor_tries_to_update_the_examination_status_of_a_scheduled_medical_exam_to_forbidden_exam_status() throws Exception {
-        UpdateSchedMedExamRequest updateSchedMedExamRequest = util.createUpdateSchedMedExamRequest("Otkazano");
+        UpdateSchedMedExamRequest updateSchedMedExamRequest = util.createUpdateSchedMedExamRequest("Zakazano");
 
         resultAction = mvc.perform(put("/sched-med-exam/update-exam-status")
                 .header("Authorization", "Bearer " + util.generateDocaToken())

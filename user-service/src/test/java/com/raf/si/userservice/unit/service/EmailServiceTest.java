@@ -24,7 +24,7 @@ public class EmailServiceTest {
     @BeforeEach
     public void setUp() {
         javaMailSender = mock(JavaMailSender.class);
-        emailService = new EmailServiceImpl(javaMailSender);
+        emailService = new EmailServiceImpl(javaMailSender, "uri");
     }
 
     @Test

@@ -1,9 +1,7 @@
 package com.raf.si.patientservice.unit.service;
 
 import com.raf.si.patientservice.dto.request.SchedMedExamRequest;
-import com.raf.si.patientservice.dto.request.TimeRequest;
 import com.raf.si.patientservice.dto.request.UpdateSchedMedExamRequest;
-import com.raf.si.patientservice.dto.response.SchedMedExamResponse;
 import com.raf.si.patientservice.dto.response.http.UserResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
@@ -24,10 +22,7 @@ import com.raf.si.patientservice.utils.HttpUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,16 +31,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
 
-
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.mock;
 
 
 public class SchedMedExaminationServiceTest {
@@ -341,13 +334,31 @@ public class SchedMedExaminationServiceTest {
 
     @Test
     void updateSchedMedExaminationExamStatus_WhenGivenForbiddenStatus_ThrowBadRequestError(){
-        UpdateSchedMedExamRequest updateSchedMedExamRequest = createUpdateSchedMedExamRequest("Otkazano");
+        UpdateSchedMedExamRequest updateSchedMedExamRequest = createUpdateSchedMedExamRequest("Zakazano");
 
         when(scheduledMedExamRepository.findById(updateSchedMedExamRequest.getId())).thenReturn(Optional
                 .of(new ScheduledMedExamination()));
 
         assertThrows(BadRequestException.class, ()-> schedMedExaminationService
                 .updateSchedMedExaminationExamStatus(updateSchedMedExamRequest));
+    }
+
+    @Test
+    void updateSchedMedExaminationExamStatus_WhenCancelledStatus_Success(){
+        UpdateSchedMedExamRequest updateSchedMedExamRequest = createUpdateSchedMedExamRequest("Otkazano");
+        ScheduledMedExamination scheduledMedExamination= new ScheduledMedExamination();
+        scheduledMedExamination.setPatient(createPatient());
+
+        when(scheduledMedExamRepository.findById(updateSchedMedExamRequest.getId())).thenReturn(Optional
+                .of(scheduledMedExamination));
+
+        scheduledMedExamination= schedMedExamMapper.updateSchedMedExamRequestToScheduledMedExaminationExamStatus
+                (scheduledMedExamination,updateSchedMedExamRequest);
+
+        when(scheduledMedExamRepository.save(any())).thenReturn(scheduledMedExamination);
+
+        assertEquals(schedMedExaminationService.updateSchedMedExaminationExamStatus(updateSchedMedExamRequest),
+                schedMedExamMapper.scheduledMedExaminationToSchedMedExamResponse(scheduledMedExamination));
     }
 
     @Test
