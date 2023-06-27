@@ -2,23 +2,15 @@ version: '3.9'
 
 services:
   prometheus:
-    image: quay.io/prometheus/prometheus:v2.44.0
+    build: ./prometheus
     ports:
       - "9090:9090"
-    volumes:
-      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
-    profiles:
-      - user-service
-      - all
 
   grafana:
       image: docker.io/grafana/grafana-oss:9.5.2
       ports:
         - "3000:3000"
       user: 'root'
-      profiles:
-        - user-service
-        - all
 
   redis:
     image: harbor.k8s.elab.rs/bolnica-2/redis:7.0.11-alpine
