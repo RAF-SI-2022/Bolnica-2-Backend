@@ -1,6 +1,9 @@
 package com.raf.si.patientservice.utils;
 
-import com.aspose.pdf.*;
+import com.aspose.pdf.Document;
+import com.aspose.pdf.TextFragment;
+import com.aspose.pdf.TextFragmentAbsorber;
+import com.aspose.pdf.TextFragmentCollection;
 import com.raf.si.patientservice.dto.CertificatePlaceHolders;
 import com.raf.si.patientservice.model.CovidCertificate;
 import com.raf.si.patientservice.model.Patient;
@@ -42,6 +45,7 @@ public class PDFUtil {
         try {
             outputStream = FileUtils.openOutputStream(file);
             pdfDocument = new Document(resource.getInputStream());
+
             for (Map.Entry<String, String> entry : words.entrySet()) {
 
                 // Create TextAbsorber object to find all instances of the input search phrase
