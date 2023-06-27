@@ -104,15 +104,11 @@ postsubmits:
               # Primeri komandi (odkomentirasti neku komandu ili dodati neku svoju):
               # docker compose up -d mysql-user
               # docker compose --profile user-service up -d
-<<<<<<< HEAD
               docker compose up -d redis patient-db
-=======
-              docker compose up -d redis user-db patient-db user-service
 
               echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
               apt-get install -y ttf-mscorefonts-installer
 
->>>>>>> 900108dd018e40ebe535b5a9f3b5c3e5772de589
               cd "$SERVICE_NAME"
               
               ref=$(git rev-parse --abbrev-ref HEAD)
