@@ -656,6 +656,7 @@ public class BootstrapData implements CommandLineRunner {
         hospitalRoom.setRoomNumber(1);
         hospitalRoom.setCapacity(15);
         hospitalRoom.setOccupation(1);
+        hospitalRoom.setRespirators(5);
 
         hospitalRoomRepository.save(hospitalRoom);
         return hospitalRoom;
