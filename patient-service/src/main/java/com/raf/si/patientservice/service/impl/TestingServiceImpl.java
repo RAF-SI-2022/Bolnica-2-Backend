@@ -2,10 +2,9 @@ package com.raf.si.patientservice.service.impl;
 
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
 import com.raf.si.patientservice.dto.request.TestingRequest;
-import com.raf.si.patientservice.dto.response.AvailableTermResponse;
-import com.raf.si.patientservice.dto.response.ScheduledTestingListResponse;
-import com.raf.si.patientservice.dto.response.ScheduledTestingResponse;
-import com.raf.si.patientservice.dto.response.TestingResponse;
+import com.raf.si.patientservice.dto.request.TimeRequest;
+import com.raf.si.patientservice.dto.request.UpdateTermsNewShiftRequest;
+import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.exception.NotFoundException;
@@ -14,12 +13,14 @@ import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
 import com.raf.si.patientservice.model.enums.examination.PatientArrivalStatus;
 import com.raf.si.patientservice.model.enums.testing.Availability;
+import com.raf.si.patientservice.model.enums.testing.TestResult;
 import com.raf.si.patientservice.repository.AvailableTermRepository;
 import com.raf.si.patientservice.repository.PatientConditionRepository;
 import com.raf.si.patientservice.repository.ScheduledTestingRepository;
 import com.raf.si.patientservice.repository.TestingRepository;
 import com.raf.si.patientservice.repository.filtering.filter.ScheduledTestingFilter;
 import com.raf.si.patientservice.repository.filtering.specification.ScheduledTestingSpecification;
+import com.raf.si.patientservice.service.CovidCertificateService;
 import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.TestingService;
 import com.raf.si.patientservice.utils.HttpUtils;
@@ -30,16 +31,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
+import static com.raf.si.patientservice.model.enums.examination.ExaminationStatus.OTKAZANO;
 import static com.raf.si.patientservice.model.enums.examination.PatientArrivalStatus.*;
-import static com.raf.si.patientservice.model.enums.examination.ExaminationStatus.*;
 
 
 @Slf4j
@@ -53,6 +58,9 @@ public class TestingServiceImpl implements TestingService {
     private final PatientService patientService;
     private final TestingMapper testingMapper;
     private final LockRegistry lockRegistry;
+    private final CovidCertificateService covidCertificateService;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public TestingServiceImpl(ScheduledTestingRepository scheduledTestingRepository,
                               TestingRepository testingRepository,
@@ -60,7 +68,7 @@ public class TestingServiceImpl implements TestingService {
                               PatientConditionRepository patientConditionRepository,
                               PatientService patientService,
                               TestingMapper testingMapper,
-                              LockRegistry lockRegistry) {
+                              LockRegistry lockRegistry, CovidCertificateService covidCertificateService) {
 
         this.scheduledTestingRepository = scheduledTestingRepository;
         this.testingRepository = testingRepository;
@@ -69,15 +77,16 @@ public class TestingServiceImpl implements TestingService {
         this.patientService = patientService;
         this.testingMapper = testingMapper;
         this.lockRegistry = lockRegistry;
+        this.covidCertificateService = covidCertificateService;
     }
 
     @Override
     public ScheduledTestingResponse scheduleTesting(UUID lbp, ScheduledTestingRequest request, String token) {
-        LocalDateTime day =request.getDateAndTime().truncatedTo(ChronoUnit.DAYS);
+        LocalDateTime day = request.getDateAndTime().truncatedTo(ChronoUnit.DAYS);
         Lock dayLock = lockRegistry.obtain(day.toString());
         Lock patientLock = lockRegistry.obtain(String.valueOf(lbp));
-        try{
-            if(!dayLock.tryLock(1, TimeUnit.SECONDS) || !patientLock.tryLock(1, TimeUnit.SECONDS)){
+        try {
+            if (!dayLock.tryLock(1, TimeUnit.SECONDS) || !patientLock.tryLock(1, TimeUnit.SECONDS)) {
                 String errMessage = "Neko već pokušava da ubaci pregled za prosledjeni dan ili za pacijenta";
                 log.info(errMessage);
                 throw new BadRequestException(errMessage);
@@ -85,17 +94,17 @@ public class TestingServiceImpl implements TestingService {
             log.info(String.format("Locking for patient %s and day %s", lbp, day));
         } catch (BadRequestException e) {
             throw e;
-        }catch(InterruptedException e){
+        } catch (InterruptedException e) {
             log.info(e.getMessage());
             throw new InternalServerErrorException("Greška pri zaključavanju baze");
         }
 
         ScheduledTestingResponse response;
-        try{
+        try {
             response = scheduleTestingLocked(lbp, request, token);
-        }catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             throw e;
-        }finally{
+        } finally {
             dayLock.unlock();
             patientLock.unlock();
             log.info(String.format("Unlocking for patient %s and day %s", lbp, day));
@@ -107,7 +116,7 @@ public class TestingServiceImpl implements TestingService {
                                                            ScheduledTestingRequest request,
                                                            String token) {
 
-        LocalDateTime requestDate = request.getDateAndTime().truncatedTo(ChronoUnit.SECONDS);
+        LocalDateTime requestDate = request.getDateAndTime().truncatedTo(ChronoUnit.MINUTES);
         request.setDateAndTime(requestDate);
 
         Patient patient = patientService.findPatient(lbp);
@@ -118,9 +127,10 @@ public class TestingServiceImpl implements TestingService {
         checkDateInFuture(request.getDateAndTime());
         checkPatientTestingsForDay(patient, request.getDateAndTime());
 
+        LocalDateTime startDateAndTime = request.getDateAndTime().minusMinutes(ScheduledTesting.getTestDurationMinutes());
         LocalDateTime endDateAndTime = request.getDateAndTime().plusMinutes(ScheduledTesting.getTestDurationMinutes());
         List<AvailableTerm> availableTerms = availableTermRepository.findByDateAndTimeBetweenAndPbo(
-                request.getDateAndTime(),
+                startDateAndTime,
                 endDateAndTime,
                 tokenPayload.getPbo()
         );
@@ -149,7 +159,7 @@ public class TestingServiceImpl implements TestingService {
 
     @Override
     public AvailableTermResponse getAvailableTerm(LocalDateTime dateAndTime, String token) {
-        dateAndTime = dateAndTime.truncatedTo(ChronoUnit.SECONDS);
+        dateAndTime = dateAndTime.truncatedTo(ChronoUnit.MINUTES);
         TokenPayload tokenPayload = TokenPayloadUtil.getTokenPayload();
         Optional<AvailableTerm> availableTermOptional = availableTermRepository.findByDateAndTimeAndPbo(dateAndTime, tokenPayload.getPbo());
         AvailableTerm availableTerm;
@@ -165,8 +175,8 @@ public class TestingServiceImpl implements TestingService {
 
     @Override
     public ScheduledTestingListResponse getScheduledtestings(UUID lbp, LocalDate date, Pageable pageable) {
-        Patient patient = lbp == null? null: patientService.findPatient(lbp);
-        LocalDateTime dateTime = date == null? null: date.atStartOfDay();
+        Patient patient = lbp == null ? null : patientService.findPatient(lbp);
+        LocalDateTime dateTime = date == null ? null : date.atStartOfDay();
 
         ScheduledTestingFilter filter = new ScheduledTestingFilter(patient, dateTime);
         ScheduledTestingSpecification spec = new ScheduledTestingSpecification(filter);
@@ -206,8 +216,8 @@ public class TestingServiceImpl implements TestingService {
 
     @Override
     public ScheduledTestingResponse changeScheduledTestingStatus(Long scheduledTestingId,
-                                                        String testingStatusString,
-                                                        String patientArrivalStatusString) {
+                                                                 String testingStatusString,
+                                                                 String patientArrivalStatusString) {
 
         if (testingStatusString == null && patientArrivalStatusString == null) {
             String errMessage = "Mora da se prosledi bar jedan novi status (status testiranja ili status o prispeću pacijenta)";
@@ -259,7 +269,127 @@ public class TestingServiceImpl implements TestingService {
         return testingMapper.scheduledTestingToResponse(scheduledTesting);
     }
 
-    private void checkDateInFuture(LocalDateTime date){
+    @Override
+    public TestingListResponse processingOfTestResults(Pageable pageable) {
+        Page<Testing> testingPage = testingRepository.findTestingByTestResult(TestResult.NEOBRADJEN, pageable);
+        return testingMapper.testingPageToResponse(testingPage);
+    }
+
+    @Override
+    public TestingResponse updateTestResult(Long id, String testResultString) {
+        Testing testing = testingRepository.findById(id)
+                .orElseThrow(() -> {
+                    String errMessage = String.format("Testiranje sa id-jem '%d' nije pronadjeno", id);
+                    log.error(errMessage);
+                    throw new NotFoundException(errMessage);
+                });
+
+        TestResult testResult = TestResult.valueOfNotation(testResultString);
+        if (testResult == null) {
+            String errMessage = String.format("Rezultat testiranja '%s' ne postoji", testResultString);
+            log.error(errMessage);
+            throw new NotFoundException(errMessage);
+        }
+
+        testing.setTestResult(testResult);
+        testing = testingRepository.save(testing);
+
+        if (testResult.equals(TestResult.POZITIVAN) || testResult.equals(TestResult.NEGATIVAN)) {
+            covidCertificateService.createCertificate(testing);
+        }
+
+        log.info("Rezultat testiranja za testiranje sa id-jem {} je promenjeno na '{}'", id, testResult);
+        return testingMapper.testingToResponse(testing);
+    }
+
+    @Transactional
+    @Override
+    public List<LocalDateTime> removeNurseFromTerms(UpdateTermsNewShiftRequest request) {
+        LocalDateTime day = request.getOldShift().getStartTime().truncatedTo(ChronoUnit.DAYS);
+        Lock dayLock = lockRegistry.obtain(day.toString());
+        try {
+            if (!dayLock.tryLock(1, TimeUnit.SECONDS)) {
+                String errMessage = "Neko već pokušava da ubaci pregled za prosledjeni dan";
+                log.info(errMessage);
+                throw new BadRequestException(errMessage);
+            }
+            log.info(String.format("Locking for and day %s", day));
+        } catch (BadRequestException e) {
+            throw e;
+        } catch (InterruptedException e) {
+            log.info(e.getMessage());
+            throw new InternalServerErrorException("Greška pri zaključavanju baze");
+        }
+
+        List<LocalDateTime> response;
+        try {
+            response = removeNurseFromTermsLocked(request);
+        } catch (RuntimeException e) {
+            throw e;
+        } finally {
+            dayLock.unlock();
+            log.info(String.format("Unlocking for day %s", day));
+        }
+        return response;
+    }
+
+    @Override
+    public List<TestingResponse> getTestingHistory(UUID lbp) {
+        log.info("Dohvatanje istorije testiranja za lbp '{}'", lbp);
+        return testingRepository.findTestingByLbp(lbp)
+                .stream()
+                .map(testingMapper::testingToResponse)
+                .collect(Collectors.toList());
+    }
+
+    private List<LocalDateTime> removeNurseFromTermsLocked(UpdateTermsNewShiftRequest request) {
+        TimeRequest oldShift = request.getOldShift();
+        TimeRequest newShift = request.getNewShift();
+
+        List<AvailableTerm> oldShiftTerms = availableTermRepository.findByTimeSlot(
+                oldShift.getStartTime(),
+                oldShift.getEndTime()
+        );
+
+        List<AvailableTerm> newShiftTerms = availableTermRepository.findByTimeSlot(
+                newShift.getStartTime(),
+                newShift.getEndTime()
+        );
+
+        entityManager.clear();
+
+        for (AvailableTerm term : oldShiftTerms) {
+            term.decrementAvailableNursesNum();
+        }
+
+        for (AvailableTerm term : newShiftTerms) {
+            term.incrementAvailableNursesNum();
+        }
+
+        List<AvailableTerm> notEnoughNurses = new ArrayList<>();
+        Set<AvailableTerm> distinctTerms = new HashSet<>(oldShiftTerms);
+        distinctTerms.addAll(newShiftTerms);
+
+        for (AvailableTerm term : distinctTerms) {
+            if (term.getAvailableNursesNum() == term.getScheduledTermsNum()) {
+                term.setAvailability(Availability.POTPUNO_POPUNJEN_TERMIN);
+            } else if (term.getAvailableNursesNum() > term.getScheduledTermsNum()) {
+                term.setAvailability(Availability.MOGUCE_ZAKAZATI_U_OVOM_TERMINU);
+            } else {
+                notEnoughNurses.add(term);
+            }
+        }
+
+        if (notEnoughNurses.isEmpty()) {
+            availableTermRepository.saveAll(distinctTerms);
+        }
+
+        return notEnoughNurses.stream()
+                .map(AvailableTerm::getDateAndTime)
+                .collect(Collectors.toList());
+    }
+
+    private void checkDateInFuture(LocalDateTime date) {
         LocalDateTime currDate = LocalDateTime.now();
         if (currDate.isAfter(date)) {
             String errMessage = String.format("Datum %s je u proslosti", date);
@@ -308,23 +438,27 @@ public class TestingServiceImpl implements TestingService {
 
     private AvailableTerm makeAvailableTerm(LocalDateTime dateAndTime, String token) {
         TokenPayload tokenPayload = TokenPayloadUtil.getTokenPayload();
-        int availableNurses = getAvailableNurses(tokenPayload.getPbo(), token);
+        TimeRequest timeRequest = new TimeRequest(
+                dateAndTime,
+                dateAndTime.plusMinutes(ScheduledTesting.getTestDurationMinutes())
+        );
+        int availableNurses = getAvailableNurses(tokenPayload.getPbo(), timeRequest, token);
         return testingMapper.makeAvailableTerm(dateAndTime,
                 tokenPayload.getPbo(),
                 availableNurses);
     }
 
-    private int getAvailableNurses(UUID pbo, String token) {
+    private int getAvailableNurses(UUID pbo, TimeRequest request, String token) {
         int availableNurses;
         try {
-            availableNurses = HttpUtils.getNumOfCovidNursesForDepartment(pbo, token);
+            availableNurses = HttpUtils.getNumOfCovidNursesForDepartment(pbo, request, token);
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new InternalServerErrorException(e.getMessage());
         }
 
         if (availableNurses < 1) {
-            String errMessage = String.format("Nema dostupnih sestara za departman sa pbo-om %s", pbo);
+            String errMessage = String.format("Nema dostupnih sestara za departman sa pbo-om %s za termin '%s'", pbo, request.getStartTime());
             log.error(errMessage);
             throw new BadRequestException(errMessage);
         }

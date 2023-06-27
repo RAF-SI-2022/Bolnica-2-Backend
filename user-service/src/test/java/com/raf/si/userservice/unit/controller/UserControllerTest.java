@@ -1,14 +1,8 @@
 package com.raf.si.userservice.unit.controller;
 
 import com.raf.si.userservice.controller.UserController;
-import com.raf.si.userservice.dto.request.CreateUserRequest;
-import com.raf.si.userservice.dto.request.PasswordResetRequest;
-import com.raf.si.userservice.dto.request.UpdatePasswordRequest;
-import com.raf.si.userservice.dto.request.UpdateUserRequest;
-import com.raf.si.userservice.dto.response.DoctorResponse;
-import com.raf.si.userservice.dto.response.MessageResponse;
-import com.raf.si.userservice.dto.response.UserListAndCountResponse;
-import com.raf.si.userservice.dto.response.UserResponse;
+import com.raf.si.userservice.dto.request.*;
+import com.raf.si.userservice.dto.response.*;
 import com.raf.si.userservice.exception.ForbiddenException;
 import com.raf.si.userservice.model.enums.Profession;
 import com.raf.si.userservice.model.enums.Title;
@@ -17,15 +11,18 @@ import com.raf.si.userservice.utils.TokenPayload;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -192,6 +189,111 @@ public class UserControllerTest {
 
         assertEquals(userController.getHeadOfDepartment(pbo).getBody(),
                 doctorResponse);
+    }
+
+    @Test
+    public void updateCovidAccess_Success() {
+        UUID lbz = UUID.randomUUID();
+        boolean covidAccess = true;
+        UserResponse userResponse = new UserResponse();
+
+        when(userService.updateCovidAccess(lbz, covidAccess))
+                .thenReturn(userResponse);
+
+        assertEquals(userController.updateCovidAccess(lbz, covidAccess).getBody(),
+                userResponse);
+    }
+
+    @Test
+    public void getUsersByLbzList_Success() {
+        UUIDListRequest request = new UUIDListRequest();
+        List<UserResponse> list = new ArrayList<>();
+
+        when(userService.getUsersByLbzList(request))
+                .thenReturn(list);
+
+        assertEquals(userController.getUsersByLbzList(request).getBody(),
+                list);
+    }
+
+    @Test
+    public void getSubordinates_Success() {
+        List<UserListResponse> list = new ArrayList<>();
+        long count = 1;
+        UserListAndCountResponse response = new UserListAndCountResponse(list, count);
+        Pageable pageable = PageRequest.of(0, 5);
+
+        when(userService.getSubordinates(pageable))
+                .thenReturn(response);
+
+        assertEquals(userController.getSubordinates(0, 5).getBody(),
+                response);
+    }
+
+    @Test
+    public void addShift_Success() {
+        UUID lbz = UUID.randomUUID();
+        AddShiftRequest request = new AddShiftRequest();
+        String token = "token";
+        UserShiftResponse response = new UserShiftResponse();
+
+        when(userService.addShift(lbz, request, token))
+                .thenReturn(response);
+
+        assertEquals(userController.addShift(lbz, request, token).getBody(),
+                response);
+    }
+
+    @Test
+    public void updateDaysOff_Success() {
+        UUID lbz = UUID.randomUUID();
+        int daysOff = 1;
+        UserResponse response = new UserResponse();
+
+        when(userService.updateDaysOff(lbz, daysOff))
+                .thenReturn(response);
+
+        assertEquals(userController.updateDaysOff(lbz, daysOff).getBody(),
+                response);
+    }
+
+    @Test
+    public void getUserWithShifts_Success() {
+        UUID lbz = UUID.randomUUID();
+        UserShiftResponse response = new UserShiftResponse();
+
+        when(userService.getUserWithShiftsByLbz(lbz))
+                .thenReturn(response);
+
+        assertEquals(userController.getUserWithShifts(lbz).getBody(),
+                response);
+    }
+
+    @Test
+    public void getNumOfCovidNursesByDepartmentInTimeSlot_Success() {
+        UUID pbo = UUID.randomUUID();
+        TimeRequest timeRequest = new TimeRequest(LocalDateTime.now(), LocalDateTime.now());
+        int retVal = 1;
+
+        when(userService.getNumOfCovidNursesByDepartmentInTimeSlot(pbo, timeRequest))
+                .thenReturn(retVal);
+
+        assertEquals(userController.getNumOfCovidNursesByDepartmentInTimeSlot(pbo, timeRequest).getBody(),
+                retVal);
+    }
+
+    @Test
+    public void canScheduleForDoctor_Success() {
+        UUID lbz = UUID.randomUUID();
+        boolean covid = true;
+        TimeRequest timeRequest = new TimeRequest(LocalDateTime.now(), LocalDateTime.now());
+        boolean retVal = true;
+
+        when(userService.canScheduleForDoctor(lbz, covid, timeRequest))
+                .thenReturn(retVal);
+
+        assertEquals(userController.canScheduleForDoctor(lbz, covid, timeRequest).getBody(),
+                retVal);
     }
 
     private CreateUserRequest createUserRequest() {

@@ -29,6 +29,9 @@ jwt:
   secret:
     key: "secret_key"
 
+reset-password:
+  uri: "http://localhost:4200/forgot-password/"
+
 mail:
   host: "smtp.office365.com"
   port: 587
@@ -40,3 +43,14 @@ mail:
       enable: "true"
     auth: "true"
     debug: "true"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus,loggers
+  endpoint:
+    info:
+      enabled: 'true'
+
+patient-service-url: "http://localhost:8082/api"

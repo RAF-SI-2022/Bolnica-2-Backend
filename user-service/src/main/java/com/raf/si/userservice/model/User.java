@@ -54,6 +54,12 @@ public class User {
     private UUID passwordToken = UUID.randomUUID();
     @Column(name = "covid_access", nullable = false)
     private boolean covidAccess = false;
+    @Column(name = "days_off", nullable = false)
+    private Integer daysOff;
+    @Column(name = "used_days_off", nullable = false)
+    private Integer usedDaysOff = 0;
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Shift> shifts;
     @ManyToOne
     @JoinColumn(name = "department_id", referencedColumnName = "id")
     private Department department;
@@ -64,4 +70,11 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "permission_id"))
     private List<Permission> permissions;
 
+    public void incrementUsedDaysOff() {
+        this.usedDaysOff++;
+    }
+
+    public void decrementUsedDaysOff() {
+        this.usedDaysOff--;
+    }
 }

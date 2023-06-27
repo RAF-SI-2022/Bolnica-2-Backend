@@ -20,4 +20,6 @@ public class ScheduledTestingResponse {
     private String note;
     private UUID schedulerLbz;
     private UUID lbp;
+    private String patientFirstName;
+    private String patientLastName;
 }

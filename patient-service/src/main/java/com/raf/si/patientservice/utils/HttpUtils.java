@@ -1,5 +1,6 @@
 package com.raf.si.patientservice.utils;
 
+import com.raf.si.patientservice.dto.request.TimeRequest;
 import com.raf.si.patientservice.dto.request.UUIDListRequest;
 import com.raf.si.patientservice.dto.response.http.DepartmentResponse;
 import com.raf.si.patientservice.dto.response.http.DoctorResponse;
@@ -30,6 +31,7 @@ public class HttpUtils {
     private static final String CHANGE_REFERRAL_STATUS_URL = "/referral/change-status";
     private static final String USER_DOCTORS = "/users/doctors";
     private static final String USER_COVID_NURSES_FOR_DEPARTMENT = "/users/covid-nurses-num";
+    private static final String USER_CAN_SCHEDULE_FOR_DOCTOR = "/users/can-schedule-for-doctor";
 
 
     public static ResponseEntity<UserResponse> findUserByLbz(String token, UUID lbz) {
@@ -129,16 +131,29 @@ public class HttpUtils {
         );
     }
 
-    public static Integer getNumOfCovidNursesForDepartment(UUID pbo, String token) {
+    public static Integer getNumOfCovidNursesForDepartment(UUID pbo, TimeRequest request, String token) {
         String url = USER_SERVICE_BASE_URL + USER_COVID_NURSES_FOR_DEPARTMENT + "/" + pbo;
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", token);
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        HttpEntity<TimeRequest> entity = new HttpEntity<>(request, headers);
         return restTemplate.exchange(url.trim(),
-                HttpMethod.GET,
+                HttpMethod.POST,
                 entity,
                 Integer.class
+        ).getBody();
+    }
+
+    public static Boolean checkCanScheduleForDoctor(UUID lbz, Boolean covid, TimeRequest request, String token) {
+        String url = USER_SERVICE_BASE_URL + USER_CAN_SCHEDULE_FOR_DOCTOR + "/" + lbz + "?covid=" + covid;
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", token);
+        HttpEntity<TimeRequest> entity = new HttpEntity<>(request, headers);
+        return restTemplate.exchange(url.trim(),
+                HttpMethod.POST,
+                entity,
+                Boolean.class
         ).getBody();
     }
 

@@ -26,7 +26,7 @@ public class SchedMedExamMapper {
     }
 
     public ScheduledMedExamination schedMedExamRequestToScheduledMedExamination(ScheduledMedExamination scheduledMedExamination
-            , SchedMedExamRequest schedMedExamRequest, Patient patient){
+            , SchedMedExamRequest schedMedExamRequest, Patient patient) {
         scheduledMedExamination.setPatient(patient);
         scheduledMedExamination.setLbzDoctor(schedMedExamRequest.getLbzDoctor());
         scheduledMedExamination.setAppointmentDate(schedMedExamRequest.getAppointmentDate());
@@ -38,11 +38,11 @@ public class SchedMedExamMapper {
         if (schedMedExamRequest.getNote() != null)
             scheduledMedExamination.setNote(schedMedExamRequest.getNote());
 
-        return  scheduledMedExamination;
+        return scheduledMedExamination;
     }
 
     public SchedMedExamResponse scheduledMedExaminationToSchedMedExamResponse(ScheduledMedExamination scheduledMedExamination) {
-        SchedMedExamResponse schedMedExamResponse= new SchedMedExamResponse();
+        SchedMedExamResponse schedMedExamResponse = new SchedMedExamResponse();
 
         schedMedExamResponse.setId(scheduledMedExamination.getId());
         schedMedExamResponse.setPatientResponse(patientMapper.patientToPatientResponse(scheduledMedExamination.getPatient()));
@@ -60,9 +60,9 @@ public class SchedMedExamMapper {
     public ScheduledMedExamination updateSchedMedExamRequestToScheduledMedExaminationExamStatus(ScheduledMedExamination scheduledMedExamination
             , UpdateSchedMedExamRequest updateSchedMedExamRequest) {
 
-        ExaminationStatus examinationStatus= ExaminationStatus.valueOfNotation(updateSchedMedExamRequest.getNewStatus());
+        ExaminationStatus examinationStatus = ExaminationStatus.valueOfNotation(updateSchedMedExamRequest.getNewStatus());
 
-        if(examinationStatus == null){
+        if (examinationStatus == null) {
             String errMessage = String.format("Nepoznat status pregleda '%s'", updateSchedMedExamRequest.getNewStatus());
             log.info(errMessage);
             throw new BadRequestException(errMessage);
@@ -70,12 +70,14 @@ public class SchedMedExamMapper {
 
         switch (examinationStatus) {
             case ZAKAZANO:
-            case OTKAZANO:
                 String errMessage = String.format("Nije dozvoljeno izmeniti status pregleda  na '%s'"
-                            , updateSchedMedExamRequest.getNewStatus());
-                    log.info(errMessage);
-                    throw new BadRequestException(errMessage);
-
+                        , updateSchedMedExamRequest.getNewStatus());
+                log.info(errMessage);
+                throw new BadRequestException(errMessage);
+            case OTKAZANO:
+                scheduledMedExamination.setExaminationStatus(examinationStatus);
+                scheduledMedExamination.setPatientArrivalStatus(PatientArrivalStatus.OTKAZAO);
+                break;
             case U_TOKU:
                 scheduledMedExamination.setExaminationStatus(examinationStatus);
                 scheduledMedExamination.setPatientArrivalStatus(PatientArrivalStatus.PRIMLJEN);
@@ -92,9 +94,9 @@ public class SchedMedExamMapper {
     public ScheduledMedExamination updateSchedMedExamRequestToScheduledMedExaminationPatientArrivalStatus(ScheduledMedExamination scheduledMedExamination
             , UpdateSchedMedExamRequest updateSchedMedExamRequest) {
 
-        PatientArrivalStatus patientArrivalStatus= PatientArrivalStatus.valueOfNotation(updateSchedMedExamRequest.getNewStatus());
+        PatientArrivalStatus patientArrivalStatus = PatientArrivalStatus.valueOfNotation(updateSchedMedExamRequest.getNewStatus());
 
-        if(patientArrivalStatus == null){
+        if (patientArrivalStatus == null) {
             String errMessage = String.format("Nepoznat status o prispeću pacijenta '%s'", updateSchedMedExamRequest.getNewStatus());
             log.info(errMessage);
             throw new BadRequestException(errMessage);
@@ -117,12 +119,12 @@ public class SchedMedExamMapper {
     }
 
     public SchedMedExamListResponse schedMedExamPageToSchedMedExamListResponse(Page<ScheduledMedExamination> schedMedExaminationPage) {
-        List<SchedMedExamResponse> schedMedExamResponses= schedMedExaminationPage.toList()
+        List<SchedMedExamResponse> schedMedExamResponses = schedMedExaminationPage.toList()
                 .stream()
                 .map(this::scheduledMedExaminationToSchedMedExamResponse)
                 .collect(Collectors.toList());
 
-        return new SchedMedExamListResponse(schedMedExamResponses,schedMedExaminationPage.getTotalElements());
+        return new SchedMedExamListResponse(schedMedExamResponses, schedMedExaminationPage.getTotalElements());
     }
 
 

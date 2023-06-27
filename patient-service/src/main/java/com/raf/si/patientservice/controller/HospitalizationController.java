@@ -27,7 +27,7 @@ public class HospitalizationController {
         this.hospitalizationService = hospitalizationService;
     }
 
-    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @PreAuthorize("hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA') or hasRole('ROLE_RECEPCIONER')")
     @PostMapping("/hospitalize")
     public ResponseEntity<HospitalizationResponse> hospitalization(@Valid @RequestBody HospitalizationRequest request,
                                                                    @RequestHeader("Authorization") String authorizationHeader) {
@@ -35,7 +35,7 @@ public class HospitalizationController {
     }
 
     @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA') or hasRole('ROLE_DR_SPEC') or hasRole('ROLE_DR_SPEC_POV') " +
-            "or hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+            "or hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA') or hasRole('ROLE_RECEPCIONER')")
     @GetMapping("/{pbo}")
     public ResponseEntity<HospitalisedPatientsListResponse> getHospitalisedPatients(@PathVariable("pbo") UUID pbo,
                                                                                     @RequestParam(name = "lbp", required = false) UUID lbp,
@@ -61,13 +61,15 @@ public class HospitalizationController {
                                                                                                @RequestParam(name = "firstName", required = false) String firstName,
                                                                                                @RequestParam(name = "lastName", required = false) String lastName,
                                                                                                @RequestParam(name = "jmbg", required = false) String jmbg,
+                                                                                               @RequestParam(name = "respirator", required = false) String respirator,
+                                                                                               @RequestParam(name = "imunizovan", required = false) String imunizovan,
                                                                                                @RequestParam(defaultValue = "0") int page,
                                                                                                @RequestParam(defaultValue = "5") int size,
                                                                                                @RequestHeader("Authorization") String authorizationHeader) {
         return ResponseEntity.ok(
                 hospitalizationService.getHospitalisedPatientsByHospital(
                         authorizationHeader, pbb, lbp, firstName,
-                        lastName, jmbg, PageRequest.of(page, size)
+                        lastName, jmbg, respirator, imunizovan, PageRequest.of(page, size)
                 )
         );
     }

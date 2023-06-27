@@ -36,4 +36,7 @@ public class UserResponse {
     private Department department;
     private List<String> permissions;
     private boolean covidAccess;
+    private int daysOff;
+    private int usedDaysOff;
+    private int remainingDaysOff;
 }
