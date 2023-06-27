@@ -21,7 +21,7 @@ import java.util.UUID;
 
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -169,5 +169,48 @@ public class UserControllerStepsGet extends CucumberConfig {
     public void list_of_doctors_for_given_department_is_returned() throws Exception {
         resultActions.andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()", greaterThan(0)));
+    }
+
+    @When("User tries to update covid access but doesn't have permission")
+    public void user_tries_to_update_covid_access_but_doesn_t_have_permission() throws Exception {
+        User admin = userRepository.findUserByUsername("admin").get();
+        assertNotNull(admin);
+
+        resultActions = mvc.perform(put(String.format("/users/update-covid-access/%s?covidAccess=true", UUID.fromString("56776899-ae24-431a-818a-e5424683bf3c")))
+                .header("Authorization", "Bearer " + utils.generateToken(admin, new String[] {"ROLE_VISA_MED_SESTRA"}))
+                .contentType(MediaType.APPLICATION_JSON));
+    }
+    @Then("BadRequestException is thrown with status code {int} for given user")
+    public void bad_request_exception_is_thrown_with_status_code_for_given_user(Integer statusCode) throws Exception {
+        resultActions.andExpect(status().is(statusCode));
+    }
+
+    @When("User tries to get his subordinates, but he doesn't have any")
+    public void user_tries_to_get_his_subordinates_but_he_doesn_t_have_any() throws Exception {
+        User user = userRepository.findUserByLbz(UUID.fromString("f581b31f-adff-4a34-b9f3-32b3502310f1")).get();
+        assertNotNull(user);
+
+        resultActions = mvc.perform(get("/users/subordinates")
+                .header("Authorization", "Bearer " + utils.generateToken(user))
+                .contentType(MediaType.APPLICATION_JSON));
+    }
+    @Then("NotFoundException is thrown with status code {int} for given user's lbz")
+    public void not_found_exception_is_thrown_with_status_code_for_given_user_s_lbz(Integer statusCode) throws Exception {
+        resultActions.andExpect(status().is(statusCode));
+    }
+
+    @When("User tries to get his subordinates and he has subordinates")
+    public void user_tries_to_get_his_subordinates_and_he_has_subordinates() throws Exception {
+        User admin = userRepository.findUserByUsername("admin").get();
+        assertNotNull(admin);
+
+        resultActions = mvc.perform(get("/users/subordinates")
+                .header("Authorization", "Bearer " + utils.generateToken(admin))
+                .contentType(MediaType.APPLICATION_JSON));
+    }
+    @Then("User's subordinates are returned")
+    public void user_s_subordinates_are_returned() throws Exception {
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.count").value(2));
     }
 }
