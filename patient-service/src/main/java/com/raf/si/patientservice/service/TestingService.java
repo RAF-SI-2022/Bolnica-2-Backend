@@ -2,7 +2,6 @@ package com.raf.si.patientservice.service;
 
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
 import com.raf.si.patientservice.dto.request.TestingRequest;
-import com.raf.si.patientservice.dto.request.TimeRequest;
 import com.raf.si.patientservice.dto.request.UpdateTermsNewShiftRequest;
 import com.raf.si.patientservice.dto.response.*;
 import org.springframework.data.domain.Pageable;
@@ -30,4 +29,6 @@ public interface TestingService {
     TestingResponse updateTestResult(Long id, String testResultString);
 
     List<LocalDateTime> removeNurseFromTerms(UpdateTermsNewShiftRequest request);
+
+    List<TestingResponse> getTestingHistory(UUID lbp);
 }

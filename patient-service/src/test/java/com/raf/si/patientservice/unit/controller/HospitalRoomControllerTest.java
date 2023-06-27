@@ -1,6 +1,7 @@
 package com.raf.si.patientservice.unit.controller;
 
 import com.raf.si.patientservice.controller.HospitalRoomController;
+import com.raf.si.patientservice.dto.response.HospitalBedAvailabilityResponse;
 import com.raf.si.patientservice.dto.response.HospitalRoomListResponse;
 import com.raf.si.patientservice.service.HospitalRoomService;
 import org.junit.jupiter.api.Test;
@@ -33,5 +34,18 @@ public class HospitalRoomControllerTest {
 
         assertEquals(hospitalRoomController.getRooms(UUID.randomUUID(), 0, 1),
                 ResponseEntity.ok(response));
+    }
+
+    @Test
+    void getBedAvailabilityInTheRoom_Success() {
+        HospitalBedAvailabilityResponse response = new HospitalBedAvailabilityResponse();
+
+        when(hospitalRoomService.getBedAvailability(any()))
+                .thenReturn(response);
+
+        ResponseEntity<HospitalBedAvailabilityResponse> expectedResponse =
+                ResponseEntity.ok(response);
+
+        assertEquals(expectedResponse, hospitalRoomController.getBedAvailabilityInTheRoom(UUID.randomUUID()));
     }
 }

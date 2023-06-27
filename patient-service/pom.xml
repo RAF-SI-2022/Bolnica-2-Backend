@@ -31,6 +31,9 @@
         <jacoco.version>0.8.8</jacoco.version>
 		<sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+        <aspose-pdf.version>21.7</aspose-pdf.version>
+        <aspose-font.version>20.10</aspose-font.version>
+        <commons-io.version>2.13.0</commons-io.version>
 
         <!-- Ovo je opcioni parametar koji vam omogucava da neke klase iskljucite iz test coverage-a -->
         <sonar.coverage.exclusions>**/configuration/*, **/bootstrap/*, **/model/**,**/repository/**,**/dto/**, **/filters/*, **/exception/*, **/utils/* </sonar.coverage.exclusions>
@@ -197,7 +200,34 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.aspose</groupId>
+            <artifactId>aspose-pdf</artifactId>
+            <version>${aspose-pdf.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aspose</groupId>
+            <artifactId>aspose-font</artifactId>
+            <version>${aspose-font.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
+        </dependency>
+
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>AsposeJavaAPI</id>
+            <name>Aspose Java API</name>
+            <url>https://releases.aspose.com/java/repo/</url>
+        </repository>
+    </repositories>
 
 
     <build>

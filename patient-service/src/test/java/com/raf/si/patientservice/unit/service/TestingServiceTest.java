@@ -19,6 +19,7 @@ import com.raf.si.patientservice.repository.AvailableTermRepository;
 import com.raf.si.patientservice.repository.PatientConditionRepository;
 import com.raf.si.patientservice.repository.ScheduledTestingRepository;
 import com.raf.si.patientservice.repository.TestingRepository;
+import com.raf.si.patientservice.service.CovidCertificateService;
 import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.TestingService;
 import com.raf.si.patientservice.service.impl.TestingServiceImpl;
@@ -42,11 +43,11 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -77,13 +78,14 @@ public class TestingServiceTest {
         entityManager = mock(EntityManager.class);
 
         testingService = new TestingServiceImpl(
-                  scheduledTestingRepository
-                , testingRepository
-                , availableTermRepository
-                , patientConditionRepository
-                , patientService
-                , testingMapper
-                , lockRegistry);
+                  scheduledTestingRepository,
+                testingRepository,
+                availableTermRepository,
+                patientConditionRepository,
+                patientService,
+                testingMapper,
+                lockRegistry,
+                mock(CovidCertificateService.class));
 
         ReflectionTestUtils.setField(
                 testingService,
@@ -384,7 +386,17 @@ public class TestingServiceTest {
                 new ArrayList<>());
     }
 
+    @Test
+    void getTestingHistory_Success() {
+        Testing testing = makeTesting();
+        List<Testing> list = Collections.singletonList(testing);
 
+        when(testingRepository.findTestingByLbp(any()))
+                .thenReturn(list);
+
+        assertEquals(testingService.getTestingHistory(UUID.randomUUID()),
+                list.stream().map(testingMapper::testingToResponse).collect(Collectors.toList()));
+    }
 
     private Testing makeTesting(){
         Testing testing = new Testing();

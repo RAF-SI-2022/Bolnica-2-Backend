@@ -16,6 +16,7 @@ import com.raf.si.patientservice.repository.AvailableTermRepository;
 import com.raf.si.patientservice.repository.ScheduledVaccinationCovidRepository;
 import com.raf.si.patientservice.repository.VaccinationCovidRepository;
 import com.raf.si.patientservice.repository.VaccineRepository;
+import com.raf.si.patientservice.service.CovidCertificateService;
 import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.VaccinationCovidService;
 import com.raf.si.patientservice.service.impl.VaccinationCovidServiceImpl;
@@ -35,6 +36,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -66,13 +68,14 @@ public class VaccinationCovidServiceTest {
         vaccineRepository = mock(VaccineRepository.class);
 
         vaccinationCovidService= new VaccinationCovidServiceImpl(
-                  vaccinationCovidRepository
-                , scheduledVaccinationCovidRepository
-                , availableTermRepository
-                , patientService
-                , vaccinationMapper
-                , lockRegistry
-                , vaccineRepository);
+                  vaccinationCovidRepository,
+                scheduledVaccinationCovidRepository,
+                availableTermRepository,
+                patientService,
+                vaccinationMapper,
+                lockRegistry,
+                vaccineRepository,
+                mock(CovidCertificateService.class));
 
         when(patientService.findPatient((UUID) any()))
                 .thenReturn(makePatient());
@@ -327,6 +330,18 @@ public class VaccinationCovidServiceTest {
 
         assertEquals(vaccinationMapper.scheduledVaccinationToResponse(schedVaccCovid)
                 , vaccinationCovidService.deleteScheduledVaccination(1L));
+    }
+
+    @Test
+    void getVaccinationCovidHistory_Success(){
+        VaccinationCovid vaccinationCovid = makeVaccinationCovid();
+        List<VaccinationCovid> list = Collections.singletonList(vaccinationCovid);
+
+        when(vaccinationCovidRepository.getHistoryByLbp(any()))
+                .thenReturn(list);
+
+        assertEquals(vaccinationCovidService.getVaccinationCovidHistory(UUID.randomUUID()),
+                list.stream().map(vaccinationMapper::vaccinationCovidToResponse).collect(Collectors.toList()));
     }
 
 
