@@ -63,6 +63,7 @@ public class AuthServiceImpl implements AuthService {
         String[] roles = user.getPermissions().stream().map(Permission::getName).toArray(String[]::new);
         claims.put("permissions", roles);
         claims.put("covidAccess", user.isCovidAccess());
+        claims.put("gender", user.getGender());
 
         return claims;
     }
