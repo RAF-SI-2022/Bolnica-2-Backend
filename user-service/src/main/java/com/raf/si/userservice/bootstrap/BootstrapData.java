@@ -182,6 +182,7 @@ public class  BootstrapData implements CommandLineRunner {
         medSestra.setTitle(Title.DIPL_FARM);
         medSestra.setProfession(Profession.MED_SESTRA);
         medSestra.setLbz(UUID.fromString("3e1a51ab-a3aa-1add-a3ad-28e043f8b435"));
+        medSestra.setCovidAccess(true);
         medSestra = findUserDaysOff(medSestra);
 
         userRepository.save(user);

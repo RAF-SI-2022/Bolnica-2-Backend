@@ -9,6 +9,7 @@ import com.raf.si.patientservice.model.enums.healthrecord.RHFactor;
 import com.raf.si.patientservice.model.enums.medicalhistory.TreatmentResult;
 import com.raf.si.patientservice.model.enums.patient.*;
 import com.raf.si.patientservice.repository.*;
+import org.hibernate.Session;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,9 @@ public class BootstrapData implements CommandLineRunner {
     private final HospitalRoomRepository hospitalRoomRepository;
     private final HospitalizationRepository hospitalizationRepository;
     private final AppointmentRepository appointmentRepository;
+    private final ScheduledVaccinationCovidRepository scheduledVaccinationCovidRepository;
+    private final VaccinationCovidRepository vaccinationCovidRepository;
+    private final AvailableTermRepository availableTermRepository;
 
     public BootstrapData(PatientRepository patientRepository,
                          HealthRecordRepository healthRecordRepository,
@@ -54,7 +59,10 @@ public class BootstrapData implements CommandLineRunner {
                          ScheduledMedExamRepository scheduledMedExamRepository,
                          HospitalRoomRepository hospitalRoomRepository,
                          HospitalizationRepository hospitalizationRepository,
-                         AppointmentRepository appointmentRepository) {
+                         AppointmentRepository appointmentRepository,
+                         ScheduledVaccinationCovidRepository scheduledVaccinationCovidRepository,
+                         VaccinationCovidRepository vaccinationCovidRepository,
+                         AvailableTermRepository availableTermRepository) {
 
         this.patientRepository = patientRepository;
         this.healthRecordRepository = healthRecordRepository;
@@ -70,15 +78,53 @@ public class BootstrapData implements CommandLineRunner {
         this.hospitalRoomRepository = hospitalRoomRepository;
         this.hospitalizationRepository = hospitalizationRepository;
         this.appointmentRepository = appointmentRepository;
+        this.vaccinationCovidRepository = vaccinationCovidRepository;
+        this.scheduledVaccinationCovidRepository = scheduledVaccinationCovidRepository;
+        this.availableTermRepository = availableTermRepository;
     }
 
     @Override
     public void run(String... args) throws ParseException, IOException {
         makePatient();
         HospitalRoom hospitalRoom = makeRoom();
+        addCovidRooms();
         makeHospitalization(hospitalRoom);
         makeAppointment();
         //makeSchedExam();
+    }
+
+    private void addCovidRooms() {
+        HospitalRoom hospitalRoom = new HospitalRoom();
+        hospitalRoom.setPbo(UUID.fromString("50869452-02f6-4ef7-8592-24d342cd70d1"));
+        hospitalRoom.setDescription("COVID Bolnička soba 1");
+        hospitalRoom.setRoomName("COVID Soba 1");
+        hospitalRoom.setRoomNumber(1);
+        hospitalRoom.setCapacity(15);
+        hospitalRoom.setOccupation(1);
+        hospitalRoom.setCovid(true);
+        hospitalRoom.setRespirators(5);
+        hospitalRoomRepository.save(hospitalRoom);
+
+        HospitalRoom hospitalRoom1 = new HospitalRoom();
+        hospitalRoom1.setPbo(UUID.fromString("50869452-02f6-4ef7-8592-24d342cd70d1"));
+        hospitalRoom1.setDescription("Bolnička soba 2");
+        hospitalRoom1.setRoomName("Soba 2");
+        hospitalRoom1.setRoomNumber(2);
+        hospitalRoom1.setCapacity(20);
+        hospitalRoom1.setOccupation(1);
+        hospitalRoom1.setRespirators(5);
+        hospitalRoomRepository.save(hospitalRoom1);
+
+        HospitalRoom hospitalRoom2 = new HospitalRoom();
+        hospitalRoom2.setPbo(UUID.fromString("50869452-02f6-4ef7-8592-24d342cd70d1"));
+        hospitalRoom2.setDescription("COVID Bolnička soba 3");
+        hospitalRoom2.setRoomName("COVID Soba 3");
+        hospitalRoom2.setRoomNumber(3);
+        hospitalRoom2.setCapacity(15);
+        hospitalRoom2.setOccupation(1);
+        hospitalRoom2.setCovid(true);
+        hospitalRoom2.setRespirators(5);
+        hospitalRoomRepository.save(hospitalRoom2);
     }
 
     private void makePatient() throws ParseException, IOException {
@@ -99,7 +145,7 @@ public class BootstrapData implements CommandLineRunner {
         patient.setAddress("Jurija Gagarina 16");
         patient.setPlaceOfLiving("Novi Beograd");
         patient.setPhoneNumber("0601234567");
-        patient.setEmail("nemanja.todorovic@gmail.com");
+        patient.setEmail("mceculovic2819rn@raf.rs");
         patient.setCustodianJmbg("0101987123456");
         patient.setCustodianName("Žarko Todorović");
         patient.setFamilyStatus(FamilyStatus.OBA_RODITELJA);
@@ -173,7 +219,7 @@ public class BootstrapData implements CommandLineRunner {
         medicalExaminationRepository.save(examination2);
         medicalHistoryRepository.save(medicalHistory);
 
-
+        //makeVaccCovidAndSchedVacc(List.of(patient));
         // dodaj sve alergije
         String[] allergenNames = {"mleko", "jaja", "orasasti plodovi", "plodovi mora", "psenica",
                 "soja", "riba", "penicilin"};
@@ -393,6 +439,41 @@ public class BootstrapData implements CommandLineRunner {
         addMedExaminations(patients);
         addSchedExams(patientList);
         addAlergiesAndVacines(healthRecordList);
+        makeVaccCovidAndSchedVacc(patientList);
+    }
+
+    private void makeVaccCovidAndSchedVacc(List<Patient> patientList) throws IOException {
+        Resource resource = new ClassPathResource("bootstrap-data/vaccinationCovid.txt");
+        BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()));
+
+        String line = reader.readLine();
+        String[] split = line.split(",");
+        int iter = 0;
+        for (Patient patient : patientList){
+            ScheduledVaccinationCovid scheduledVaccinationCovid = new ScheduledVaccinationCovid();
+            scheduledVaccinationCovid.setPatient(patient);
+            int minusMinutes = Integer.parseInt(split[0]) * iter;
+            LocalDateTime schedVaccDate = LocalDateTime.now().plusDays(1).plusMinutes(minusMinutes);
+            scheduledVaccinationCovid.setDateAndTime(schedVaccDate);
+            scheduledVaccinationCovid.setNote(split[1]);
+            scheduledVaccinationCovid.setSchedulerLbz(UUID.fromString(split[2]));
+
+            AvailableTerm availableTerm = new AvailableTerm();
+            availableTerm.setDateAndTime(schedVaccDate);
+            availableTerm.setPbo(UUID.fromString(split[3]));
+            availableTerm.setAvailableNursesNum(Integer.parseInt(split[4]));
+            availableTerm.setScheduledTermsNum(Integer.parseInt(split[5]));
+            availableTerm.setScheduledVaccinationCovids(new ArrayList<>());
+            availableTerm.setScheduledTestings(new ArrayList<>());
+
+            scheduledVaccinationCovid.setAvailableTerm(availableTerm);
+            availableTerm.addScheduledVaccination(scheduledVaccinationCovid);
+
+            availableTermRepository.save(availableTerm);
+            scheduledVaccinationCovidRepository.save(scheduledVaccinationCovid);
+
+            iter++;
+        }
     }
 
     private void addMedExaminations(List<Patient> patients) throws IOException, ParseException {
@@ -578,6 +659,7 @@ public class BootstrapData implements CommandLineRunner {
         hospitalRoom.setRoomNumber(1);
         hospitalRoom.setCapacity(15);
         hospitalRoom.setOccupation(1);
+        hospitalRoom.setRespirators(5);
 
         hospitalRoomRepository.save(hospitalRoom);
         return hospitalRoom;

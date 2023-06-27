@@ -29,6 +29,9 @@ jwt:
   secret:
     key: "secret_key"
 
+reset-password:
+  uri: "http://localhost:4200/forgot-password/"
+
 mail:
   host: "smtp.office365.com"
   port: 587

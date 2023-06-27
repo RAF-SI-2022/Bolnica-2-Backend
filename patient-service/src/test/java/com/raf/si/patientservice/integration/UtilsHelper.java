@@ -1,14 +1,10 @@
 package com.raf.si.patientservice.integration;
 
 import com.raf.si.patientservice.dto.request.*;
-import com.raf.si.patientservice.model.Appointment;
-import com.raf.si.patientservice.model.HospitalRoom;
-import com.raf.si.patientservice.model.Patient;
-import com.raf.si.patientservice.model.ScheduledMedExamination;
+import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.model.enums.appointment.AppointmentStatus;
 import com.raf.si.patientservice.model.enums.user.Profession;
 import com.raf.si.patientservice.model.enums.user.Title;
-import com.raf.si.patientservice.unit.controller.PatientControllerTest;
 import com.raf.si.patientservice.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -16,7 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -26,6 +23,8 @@ public class UtilsHelper {
     private final String patientJmbg = "1209217282728";
     private final UUID patientBootstrapLbp = UUID.fromString("c208f04d-9551-404e-8c54-9321f3ae9be8");
     private final UUID bootstrapPbo = UUID.fromString("be7fed71-9a96-4644-8d0e-f80a216f77d6");
+    private final LocalDateTime patientBootStrapSchedVaccinationDate = LocalDateTime.now().plusDays(1);
+    private final UUID patientWithSchedVacc = UUID.fromString("c1c8ba08-966a-4cc5-b633-d1ef15d7caaf");
 
     private final String vaccineBootstrap = "PRIORIX";
 
@@ -58,6 +57,22 @@ public class UtilsHelper {
         claims.put("lastName","Sestra");
         claims.put("title","Med. sestra");
         claims.put("pbo",UUID.fromString("4e5911c8-ce7a-11ed-afa1-0242ac120002"));
+        claims.put("departmentName","Dijagnostika");
+        claims.put("pbb",UUID.randomUUID());
+        claims.put("hospitalName", "NoviBeograd");
+        claims.put("permissions",roles);
+        claims.put("covidAccess", false);
+        return  jwtUtil.generateToken(claims, "3e1a51ab-a3aa-1add-a3ad-28e043f8b435");
+    }
+
+    public String generateCovidNurseToken() {
+        String[] roles= new String[]{"ROLE_VISA_MED_SESTRA","ROLE_MED_SESTRA"};
+        Claims claims= Jwts.claims();
+
+        claims.put("firstName", "Medicinska");
+        claims.put("lastName","Sestra");
+        claims.put("title","Med. sestra");
+        claims.put("pbo",UUID.fromString("50869452-02f6-4ef7-8592-24d342cd70d1"));
         claims.put("departmentName","Dijagnostika");
         claims.put("pbb",UUID.randomUUID());
         claims.put("hospitalName", "NoviBeograd");
@@ -247,8 +262,70 @@ public class UtilsHelper {
         return vaccineBootstrap;
     }
 
+    public LocalDateTime getPatientBootStrapSchedVaccinationDate(){ return patientBootStrapSchedVaccinationDate;}
+
+    public UUID getPatientWithSchedVacc() {
+        return patientWithSchedVacc;
+    }
+
     public Date makeDate(String date) throws ParseException {
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
         return formatter.parse(date);
     }
+
+    public ScheduledVaccinationRequest makeSchedVaccinationCovidRequest() {
+        ScheduledVaccinationRequest request = new ScheduledVaccinationRequest();
+        request.setDateAndTime(LocalDateTime.now().plusHours(1));
+        request.setNote("notes");
+        return request;
+    }
+
+    public String generateNurseTokenForValidPbo(){
+        String[] roles= new String[]{"ROLE_VISA_MED_SESTRA","ROLE_MED_SESTRA"};
+        Claims claims= Jwts.claims();
+
+        claims.put("firstName", "Medicinska");
+        claims.put("lastName","Sestra");
+        claims.put("title","Med. sestra");
+        claims.put("pbo",UUID.fromString("8c9169e8-01ff-4172-b537-9e816f102750"));
+        claims.put("departmentName","Dijagnostika");
+        claims.put("pbb",UUID.randomUUID());
+        claims.put("hospitalName", "NoviBeograd");
+        claims.put("permissions",roles);
+        claims.put("covidAccess", false);
+        return  jwtUtil.generateToken(claims, "3e1a51ab-a3aa-1add-a3ad-28e043f8b435");
+    }
+
+    public VaccinationCovidRequest makeVaccinationCovidRequest(){
+        VaccinationCovidRequest request = new VaccinationCovidRequest();
+        request.setVaccinationId(2L);
+        request.setVaccineName("Pfizer");
+        request.setDateTime(LocalDateTime.now());
+        request.setDoseReceived(0L);
+
+        return  request;
+    }
+    public ScheduledVaccinationCovid makeScheduledVaccinationCovid(Patient patient){
+
+        ScheduledVaccinationCovid scheduledVaccinationCovid = new ScheduledVaccinationCovid();
+        scheduledVaccinationCovid.setPatient(patient);
+        LocalDateTime schedVaccDate = LocalDateTime.now().plusDays(3);
+        scheduledVaccinationCovid.setDateAndTime(schedVaccDate);
+        scheduledVaccinationCovid.setNote("");
+        scheduledVaccinationCovid.setSchedulerLbz(UUID.randomUUID());
+
+        AvailableTerm availableTerm = new AvailableTerm();
+        availableTerm.setDateAndTime(schedVaccDate);
+        availableTerm.setPbo(UUID.randomUUID());
+        availableTerm.setAvailableNursesNum(1);
+        availableTerm.setScheduledTermsNum(1);
+        availableTerm.setScheduledVaccinationCovids(new ArrayList<>());
+        availableTerm.setScheduledTestings(new ArrayList<>());
+
+        scheduledVaccinationCovid.setAvailableTerm(availableTerm);
+        availableTerm.addScheduledVaccination(scheduledVaccinationCovid);
+
+        return scheduledVaccinationCovid;
+    }
+
 }

@@ -2,7 +2,6 @@ package com.raf.si.patientservice.controller;
 
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
 import com.raf.si.patientservice.dto.request.TestingRequest;
-import com.raf.si.patientservice.dto.request.TimeRequest;
 import com.raf.si.patientservice.dto.request.UpdateTermsNewShiftRequest;
 import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.service.TestingService;
@@ -99,5 +98,12 @@ public class TestingController {
     @PostMapping("/update-nurse-terms")
     public ResponseEntity<List<LocalDateTime>> removeNurseFromTerms(@RequestBody UpdateTermsNewShiftRequest request) {
         return ResponseEntity.ok(testingService.removeNurseFromTerms(request));
+    }
+
+    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA') or hasRole('ROLE_DR_SPEC') or hasRole('ROLE_DR_SPEC_POV') " +
+            "or hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @GetMapping("/history/{lbp}")
+    public ResponseEntity<List<TestingResponse>> getTestingHistory(@PathVariable("lbp") UUID lbp) {
+        return ResponseEntity.ok(testingService.getTestingHistory(lbp));
     }
 }
