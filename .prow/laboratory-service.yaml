@@ -42,6 +42,7 @@ presubmits:
               # docker compose up -d mysql-user
               # docker compose --profile user-service up -d
               docker compose up -d redis laboratory-db
+              sleep 100
               branch=$PULL_HEAD_REF
               curr_branch=$(git rev-parse --abbrev-ref HEAD)
               if [[ "$branch" == "$curr_branch" ]]; then
@@ -101,6 +102,7 @@ postsubmits:
               # docker compose up -d mysql-user
               # docker compose --profile user-service up -d
               docker compose up -d redis laboratory-db
+              sleep 100
               cd "$SERVICE_NAME"
               
               ref=$(git rev-parse --abbrev-ref HEAD)
