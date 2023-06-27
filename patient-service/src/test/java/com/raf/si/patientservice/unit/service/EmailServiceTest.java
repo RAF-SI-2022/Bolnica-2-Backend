@@ -7,8 +7,10 @@ import com.raf.si.patientservice.model.enums.patient.Gender;
 import com.raf.si.patientservice.model.enums.testing.TestResult;
 import com.raf.si.patientservice.service.EmailService;
 import com.raf.si.patientservice.service.impl.EmailServiceImpl;
+import com.raf.si.patientservice.utils.PDFUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 
@@ -28,9 +30,13 @@ public class EmailServiceTest {
     private JavaMailSender javaMailSender;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws InterruptedException {
         javaMailSender = mock(JavaMailSender.class);
         emailService = new EmailServiceImpl(javaMailSender);
+        try (MockedStatic<PDFUtil> utilities = mockStatic(PDFUtil.class)) {
+            utilities.when(() -> PDFUtil.createPDF(any(), any()))
+                    .thenReturn(null);
+        }
     }
 
     @Test
