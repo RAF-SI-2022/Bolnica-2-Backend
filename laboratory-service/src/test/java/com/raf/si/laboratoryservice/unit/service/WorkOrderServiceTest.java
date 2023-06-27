@@ -16,10 +16,8 @@ import com.raf.si.laboratoryservice.repository.*;
 import com.raf.si.laboratoryservice.service.WorkOrderService;
 import com.raf.si.laboratoryservice.service.impl.WorkOrderServiceImplementation;
 import com.raf.si.laboratoryservice.utils.TokenPayload;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -32,8 +30,6 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@Slf4j
-@SpringBootTest
 public class WorkOrderServiceTest {
     private ReferralRepository referralRepository;
     private LabAnalysisRepository labAnalysisRepository;
