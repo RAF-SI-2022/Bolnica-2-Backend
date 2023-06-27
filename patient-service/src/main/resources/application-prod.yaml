@@ -49,5 +49,15 @@ jwt.secret.key: "secret_key"
 # Duration of scheduled medical examination expressed in minutes
 duration.of.exam: 44
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus,loggers
+  endpoint:
+    info:
+      enabled: 'true'
+
+
 user-service-url: "http://user-service:8081/api"
 laboratory-service-url: "http://laboratory-service:8083/api"

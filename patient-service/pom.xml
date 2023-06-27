@@ -162,6 +162,12 @@
 
         <dependency>
             <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-core</artifactId>
+            <version>${cucumber.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.cucumber</groupId>
             <artifactId>cucumber-java</artifactId>
             <version>${cucumber.version}</version>
             <scope>test</scope>
@@ -181,12 +187,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>io.cucumber</groupId>
-            <artifactId>cucumber-core</artifactId>
-            <version>${cucumber.version}</version>
-        </dependency>
-
         <!-- Vezbe 7 -->
 		<!-- Dodati u root pom.xml ako imate ili u svaki mikroservis -->
 		<dependency>
@@ -199,7 +199,14 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.aspose</groupId>
             <artifactId>aspose-pdf</artifactId>
@@ -218,7 +225,6 @@
             <artifactId>commons-io</artifactId>
             <version>${commons-io.version}</version>
         </dependency>
-
     </dependencies>
 
     <repositories>
@@ -238,9 +244,7 @@
             </resource>
         </resources>
 
-        <!-- Vezbe 7 -->
-		<!-- Obavezno dodati ovaj parametar u pom.xml za svaki mikroservis kako bi Dockerfile radio -->
-		<finalName>${finalName}</finalName>
+        <finalName>${finalName}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -300,5 +304,4 @@
 			</build>
 		</profile>
 	</profiles>
-
 </project>

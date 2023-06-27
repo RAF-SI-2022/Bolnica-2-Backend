@@ -44,5 +44,13 @@ mail:
     auth: "true"
     debug: "true"
 
-patient-service-url: "http://patient-service:8082/api"
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus,loggers
+  endpoint:
+    info:
+      enabled: 'true'
 
+patient-service-url: "http://patient-service:8082/api"
