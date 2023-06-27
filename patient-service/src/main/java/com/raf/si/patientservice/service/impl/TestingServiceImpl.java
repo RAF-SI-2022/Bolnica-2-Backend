@@ -292,9 +292,9 @@ public class TestingServiceImpl implements TestingService {
 //        if (testResult.equals(TestResult.POZITIVAN) || testResult.equals(TestResult.NEGATIVAN)) {
 //            certificate()
 //        }
-        testingRepository.save(testing);
+        testing = testingRepository.save(testing);
 
-        log.info(String.format("Rezultat testiranja za testiranje sa id-jem '%d' je promenjeno na '%s'"), id, testResult);
+        log.info(String.format("Rezultat testiranja za testiranje sa id-jem '%d' je promenjeno na '%s'", id, testResult));
         return testingMapper.testingToResponse(testing);
     }
 
