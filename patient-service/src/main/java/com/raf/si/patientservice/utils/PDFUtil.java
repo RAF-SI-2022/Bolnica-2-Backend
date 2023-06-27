@@ -23,7 +23,6 @@ public class PDFUtil {
 
     private static final String VACCINATION_PDF = "certificate/Certificate_vaccination.pdf";
     private static final String TESTING_PDF = "certificate/Certificate_testing.pdf";
-    private static final String FONT_URL = "certificate/arial.ttf";
 
     public static File createPDF(CovidCertificate covidCertificate, Patient patient) {
 
@@ -34,16 +33,13 @@ public class PDFUtil {
             resource = new ClassPathResource(TESTING_PDF);
         }
 
-        FontRepository.addLocalFontPath(FONT_URL);
         Document pdfDocument = null;
         String filename = UUID.randomUUID().toString() + ".pdf";
         Map<String, String> words = new HashMap<>();
         addWordsToReplace(words, covidCertificate, patient);
         File file = new File(filename);
         FileOutputStream outputStream;
-        Resource fontResource = new ClassPathResource(FONT_URL);
         try {
-            Font font = FontRepository.openFont(fontResource.getURI().getPath());
             outputStream = FileUtils.openOutputStream(file);
             pdfDocument = new Document(resource.getInputStream());
             for (Map.Entry<String, String> entry : words.entrySet()) {
@@ -60,9 +56,7 @@ public class PDFUtil {
                 // Loop through the fragments
                 for (TextFragment textFragment : textFragmentCollection) {
                     // Update text and other properties
-                    textFragment.getTextState().setFont(font);
                     textFragment.setText(entry.getValue());
-
                 }
             }
             // Save the updated PDF file
