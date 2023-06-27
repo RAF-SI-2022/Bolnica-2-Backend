@@ -24,21 +24,11 @@ public class PDFUtil {
     private static final String VACCINATION_PDF = "certificate/Certificate_vaccination.pdf";
     private static final String TESTING_PDF = "certificate/Certificate_testing.pdf";
     private static final String FONT_URL = "certificate/arial.ttf";
-    private static final String DEST_FILE = "certificate/";
-    private static Font font;
-
-    static {
-        Resource resource = new ClassPathResource(FONT_URL);
-        try {
-            font = FontRepository.openFont(resource.getURI().getPath());
-        } catch (IOException e) {
-            font = null;
-        }
-    }
 
     public static File createPDF(CovidCertificate covidCertificate, Patient patient) {
+
         Resource resource;
-        if(covidCertificate.getCovidCertificateType() == CovidCertificateType.PRIMLJENA_VAKCINA){
+        if (covidCertificate.getCovidCertificateType() == CovidCertificateType.PRIMLJENA_VAKCINA) {
             resource = new ClassPathResource(VACCINATION_PDF);
         } else {
             resource = new ClassPathResource(TESTING_PDF);
@@ -49,12 +39,14 @@ public class PDFUtil {
         String filename = UUID.randomUUID().toString() + ".pdf";
         Map<String, String> words = new HashMap<>();
         addWordsToReplace(words, covidCertificate, patient);
-        File file = new File(DEST_FILE + filename);
+        File file = new File(filename);
         FileOutputStream outputStream;
+        Resource fontResource = new ClassPathResource(FONT_URL);
         try {
+            Font font = FontRepository.openFont(fontResource.getURI().getPath());
             outputStream = FileUtils.openOutputStream(file);
             pdfDocument = new Document(resource.getInputStream());
-            for(Map.Entry<String, String> entry: words.entrySet()) {
+            for (Map.Entry<String, String> entry : words.entrySet()) {
 
                 // Create TextAbsorber object to find all instances of the input search phrase
                 TextFragmentAbsorber textFragmentAbsorber = new TextFragmentAbsorber(entry.getKey());
@@ -79,7 +71,7 @@ public class PDFUtil {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if(pdfDocument != null)
+            if (pdfDocument != null)
                 pdfDocument.close();
         }
         return file;
@@ -88,7 +80,7 @@ public class PDFUtil {
     private static void addWordsToReplace(Map<String, String> words, CovidCertificate covidCertificate, Patient patient) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         words.put(CertificatePlaceHolders.CERTIFICATE_NUMBER, covidCertificate.getCertificateNumber().toString());
-        words.put(CertificatePlaceHolders.FIRST_NAME,patient.getFirstName());
+        words.put(CertificatePlaceHolders.FIRST_NAME, patient.getFirstName());
         words.put(CertificatePlaceHolders.LAST_NAME, patient.getLastName());
         words.put(CertificatePlaceHolders.DATE_OF_BIRTH, sdf.format(patient.getBirthDate()));
         words.put(CertificatePlaceHolders.GENDER, patient.getGender().getNotation());
@@ -96,12 +88,12 @@ public class PDFUtil {
         words.put(CertificatePlaceHolders.DATE_OF_ISSUE,
                 sdf.format(Date.from(covidCertificate.getDateOfIssue().atZone(ZoneId.systemDefault()).toInstant())));
 
-        if(covidCertificate.getVaccinationCovid() != null) {
+        if (covidCertificate.getVaccinationCovid() != null) {
             words.put(CertificatePlaceHolders.VACCINE_NAME, covidCertificate.getVaccinationCovid().getVaccine().getName());
-            words.put(CertificatePlaceHolders.DOSE,covidCertificate.getVaccinationCovid().getDoseReceived().toString());
+            words.put(CertificatePlaceHolders.DOSE, covidCertificate.getVaccinationCovid().getDoseReceived().toString());
         }
 
-        if(covidCertificate.getTesting() != null) {
+        if (covidCertificate.getTesting() != null) {
             words.put(CertificatePlaceHolders.RESULT, covidCertificate.getTesting().getTestResult().getNotation());
         }
 
