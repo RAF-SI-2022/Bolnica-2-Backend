@@ -14,6 +14,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
@@ -28,7 +29,7 @@ public class EmailServiceTest {
     private JavaMailSender javaMailSender;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws InterruptedException, IOException {
         javaMailSender = mock(JavaMailSender.class);
         emailService = new EmailServiceImpl(javaMailSender);
     }
@@ -41,6 +42,7 @@ public class EmailServiceTest {
         CovidCertificate covidCertificate = makeCovidCertificate();
         covidCertificate.setVaccinationCovid(vaccinationCovid);
         covidCertificate.setCovidCertificateType(CovidCertificateType.PRIMLJENA_VAKCINA);
+
 
         when(javaMailSender.createMimeMessage()).thenReturn(message);
         doThrow(new MailSendException("error")).when(javaMailSender).send(any(MimeMessage.class));
