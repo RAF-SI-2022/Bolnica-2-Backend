@@ -199,6 +199,13 @@ public class  BootstrapData implements CommandLineRunner {
         shift.setStartTime(startTime);
         shift.setEndTime(endTime);
 
+        Shift adminShift = new Shift();
+        adminShift.setShiftType(ShiftType.PRVA_SMENA);
+        adminShift.setUser(user);
+        adminShift.setStartTime(LocalDateTime.now().plusDays(1).truncatedTo(ChronoUnit.DAYS).plusHours(6));
+        adminShift.setEndTime(shift.getStartTime().plusHours(8));
+        shiftRepository.save(adminShift);
+
         Shift nurseShift = new Shift();
         nurseShift.setShiftType(ShiftType.MEDJUSMENA);
         nurseShift.setUser(medSestra);

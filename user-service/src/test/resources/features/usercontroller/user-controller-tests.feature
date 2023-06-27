@@ -94,3 +94,28 @@ Feature: Service for User Management
   Scenario: User resets new password by email
     When given password token is valid
     Then Successful message is returned with status 200
+
+  Scenario: User tries to update covid access for someone, but doesn't have the permission
+    When User tries to update covid access but doesn't have permission
+    Then BadRequestException is thrown with status code 400 for given user
+
+  Scenario: User tries to update covid access for someone and it is successful
+    When User tries to update covid access for someone
+    Then User's covid access is updated in the database
+
+  Scenario: User tries to find his subordinates, but he doesn't have any
+    When User tries to get his subordinates, but he doesn't have any
+    Then NotFoundException is thrown with status code 404 for given user's lbz
+
+  Scenario: User tries to find his subordinates and he has subordinates
+    When User tries to get his subordinates and he has subordinates
+    Then User's subordinates are returned
+
+  Scenario: User tries to update someone's days off, but he used all days off for next year
+    Given Someone who used all days off for next year
+    When User tries to update someone's days off, but he used all of them for next year
+    Then BadRequestException is thrown with status code 400 saying he used all of his days off for next year
+
+  Scenario: User tries to update someone's days off and it is successful
+    When User tries to update someones days off
+    Then User's days off are updated in the database

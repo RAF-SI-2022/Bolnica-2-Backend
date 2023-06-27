@@ -10,6 +10,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 
 import java.util.Date;
+import java.util.UUID;
 
 public class UtilsHelper {
 
@@ -31,6 +32,21 @@ public class UtilsHelper {
         claims.put("hospitalName", user.getDepartment().getHospital().getFullName());
         String[] roles = new String[]{"ROLE_ADMIN", "ROLE_DR_SPEC_ODELJENJA", "ROLE_DR_SPEC",
                 "ROLE_DR_SPEC_POV", "ROLE_VISA_MED_SESTRA", "ROLE_MED_SESTRA"};
+        claims.put("permissions", roles);
+        claims.put("covidAccess", user.isCovidAccess());
+        return jwtUtil.generateToken(claims, user.getLbz().toString());
+    }
+
+    public String generateToken(User user, String[] roles) {
+        Claims claims = Jwts.claims();
+        claims.put("firstName", user.getFirstName());
+        claims.put("lastName", user.getLastName());
+        claims.put("title", user.getTitle().getNotation());
+        claims.put("profession", user.getProfession().getNotation());
+        claims.put("pbo", user.getDepartment().getPbo());
+        claims.put("departmentName", user.getDepartment().getName());
+        claims.put("pbb", user.getDepartment().getHospital().getPbb());
+        claims.put("hospitalName", user.getDepartment().getHospital().getFullName());
         claims.put("permissions", roles);
         claims.put("covidAccess", user.isCovidAccess());
         return jwtUtil.generateToken(claims, user.getLbz().toString());
@@ -88,5 +104,29 @@ public class UtilsHelper {
         updateUserRequest.setResidentialAddress("Adresa");
 
         return updateUserRequest;
+    }
+
+    public User makeUser() {
+        User user = new User();
+
+        user.setFirstName("Ime");
+        user.setLastName("Prezime");
+        user.setJMBG("1010101010");
+        user.setDaysOff(10);
+        user.setUsername("username");
+        user.setLbz(UUID.randomUUID());
+        user.setUsedDaysOff(0);
+        user.setDateOfBirth(new Date());
+        user.setPassword("psw");
+        user.setEmail("mail@mail.com");
+        user.setPasswordToken(UUID.randomUUID());
+        user.setResidentialAddress("add");
+        user.setProfession(Profession.LAB_TEHNICAR);
+        user.setGender("Muski");
+        user.setTitle(Title.MR);
+        user.setPhone("00000000");
+        user.setPlaceOfLiving("POL");
+
+        return user;
     }
 }
