@@ -17,13 +17,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class TestingControllerTest {
@@ -106,7 +108,16 @@ public class TestingControllerTest {
                 , ResponseEntity.ok(response));
     }
 
+    @Test
+    void getTestingHistory_Success() {
+        List<TestingResponse> result = new ArrayList<>();
 
+        when(testingService.getTestingHistory(any()))
+                .thenReturn(result);
+
+        assertEquals(testingController.getTestingHistory(UUID.randomUUID()).getBody(),
+                result);
+    }
 
     private TestingRequest makeCreateTesting(){
         TestingRequest testingRequest = new TestingRequest();

@@ -27,4 +27,15 @@ server:
     context-path: "/api"
 jwt.secret.key: "secret_key"
 
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus,loggers
+  endpoint:
+    info:
+      enabled: 'true'
+
+
 user-service-url: "http://user-service:8081/api/"

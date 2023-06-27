@@ -59,6 +59,8 @@ public class TestingMapper {
         response.setPatientArrivalStatus(scheduledTesting.getPatientArrivalStatus());
         response.setId(scheduledTesting.getId());
         response.setLbp(scheduledTesting.getPatient().getLbp());
+        response.setPatientFirstName(scheduledTesting.getPatient().getFirstName());
+        response.setPatientLastName(scheduledTesting.getPatient().getLastName());
 
         return response;
     }
@@ -127,5 +129,13 @@ public class TestingMapper {
         response.setPatientCondition(patientConditionResponse);
 
         return response;
+    }
+
+    public TestingListResponse testingPageToResponse(Page<Testing> testingPage) {
+        List<TestingResponse> list = testingPage.toList()
+                .stream()
+                .map(this::testingToResponse)
+                .collect(Collectors.toList());
+        return new TestingListResponse(list, testingPage.getTotalElements());
     }
 }

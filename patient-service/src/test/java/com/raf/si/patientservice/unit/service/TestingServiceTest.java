@@ -1,9 +1,10 @@
 package com.raf.si.patientservice.unit.service;
 
-
-
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
 import com.raf.si.patientservice.dto.request.TestingRequest;
+import com.raf.si.patientservice.dto.request.TimeRequest;
+import com.raf.si.patientservice.dto.request.UpdateTermsNewShiftRequest;
+import com.raf.si.patientservice.dto.response.TestingResponse;
 import com.raf.si.patientservice.exception.BadRequestException;
 import com.raf.si.patientservice.exception.InternalServerErrorException;
 import com.raf.si.patientservice.exception.NotFoundException;
@@ -13,16 +14,17 @@ import com.raf.si.patientservice.model.*;
 import com.raf.si.patientservice.model.enums.examination.ExaminationStatus;
 import com.raf.si.patientservice.model.enums.examination.PatientArrivalStatus;
 import com.raf.si.patientservice.model.enums.testing.Availability;
+import com.raf.si.patientservice.model.enums.testing.TestResult;
 import com.raf.si.patientservice.repository.AvailableTermRepository;
 import com.raf.si.patientservice.repository.PatientConditionRepository;
 import com.raf.si.patientservice.repository.ScheduledTestingRepository;
 import com.raf.si.patientservice.repository.TestingRepository;
+import com.raf.si.patientservice.service.CovidCertificateService;
 import com.raf.si.patientservice.service.PatientService;
 import com.raf.si.patientservice.service.TestingService;
 import com.raf.si.patientservice.service.impl.TestingServiceImpl;
 import com.raf.si.patientservice.utils.TokenPayload;
 import com.raf.si.patientservice.utils.TokenPayloadUtil;
-import io.cucumber.java.bs.A;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,25 +34,25 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
-import org.springframework.integration.support.locks.LockRegistry;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import javax.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
 public class TestingServiceTest {
-
 
     private  ScheduledTestingRepository scheduledTestingRepository;
     private  TestingRepository testingRepository;
@@ -60,6 +62,7 @@ public class TestingServiceTest {
     private  TestingMapper testingMapper;
     private  JdbcLockRegistry lockRegistry;
     private Lock lock;
+    private EntityManager entityManager;
     private TestingService testingService;
 
     @BeforeEach
@@ -72,21 +75,26 @@ public class TestingServiceTest {
         lockRegistry = mock(JdbcLockRegistry.class);
         lock = mock(Lock.class);
         patientService = mock(PatientService.class);
-
+        entityManager = mock(EntityManager.class);
 
         testingService = new TestingServiceImpl(
-                  scheduledTestingRepository
-                , testingRepository
-                , availableTermRepository
-                , patientConditionRepository
-                , patientService
-                , testingMapper
-                , lockRegistry);
+                  scheduledTestingRepository,
+                testingRepository,
+                availableTermRepository,
+                patientConditionRepository,
+                patientService,
+                testingMapper,
+                lockRegistry,
+                mock(CovidCertificateService.class));
 
+        ReflectionTestUtils.setField(
+                testingService,
+                "entityManager",
+                entityManager
+        );
 
         when(patientService.findPatient((UUID) any()))
                 .thenReturn(makePatient());
-
 
         mockTokenPayloadUtil();
 
@@ -97,7 +105,6 @@ public class TestingServiceTest {
     public void cleanup() {
         Mockito.framework().clearInlineMocks();
     }
-
 
     @Test
     void scheduleTesting_TwoUsersTryToPutTheLockAtTheSameTimeAndOneTimesOut_ThrowBadRequestException(){
@@ -145,7 +152,6 @@ public class TestingServiceTest {
         assertThrows(BadRequestException.class,
                 () -> testingService.scheduleTesting(lbp, request, token));
     }
-
 
     @Test
     void scheduledTesting_PatientHadScheduledTestInThePast2Days_ThrowBadRequestException(){
@@ -317,7 +323,80 @@ public class TestingServiceTest {
                 , testingService.deleteScheduledTesting(1L));
     }
 
+    @Test
+    void updateTestResult_TestNotFound_ThrowsNotFoundException() {
+        when(testingRepository.findById(any()))
+                .thenReturn(Optional.empty());
 
+        assertThrows(NotFoundException.class,
+                () -> testingService.updateTestResult(1L, ""));
+    }
+
+    @Test
+    void updateTestResult_TestResultNotFouns_ThrowsNotFoundException() {
+        Testing testing = makeTesting();
+
+        when(testingRepository.findById(any()))
+                .thenReturn(Optional.of(testing));
+
+        assertThrows(NotFoundException.class,
+                () -> testingService.updateTestResult(1L, "A"));
+    }
+
+    @Test
+    void updateTestResult_Success() {
+        Testing testing = makeTesting();
+        testing.setTestResult(TestResult.POZITIVAN);
+
+        TestingResponse response = testingMapper.testingToResponse(testing);
+
+        when(testingRepository.findById(any()))
+                .thenReturn(Optional.of(testing));
+        when(testingRepository.save(testing))
+                .thenReturn(testing);
+
+        assertEquals(testingService.updateTestResult(1L, "Pozitivan"),
+                response);
+    }
+
+    @Test
+    void updateNurseTerms_Success() throws InterruptedException {
+        TimeRequest timeRequest = new TimeRequest(LocalDateTime.now(), LocalDateTime.now());
+
+        UpdateTermsNewShiftRequest request = new UpdateTermsNewShiftRequest(timeRequest, timeRequest);
+
+        AvailableTerm term1 = new AvailableTerm();
+        term1.setAvailableNursesNum(1);
+        term1.setScheduledTermsNum(0);
+
+        AvailableTerm term2 = new AvailableTerm();
+        term2.setAvailableNursesNum(1);
+        term2.setScheduledTermsNum(1);
+
+        List<AvailableTerm> availableTermList = Arrays.asList(new AvailableTerm[] {term1, term2});
+
+        when(lockRegistry.obtain(any()))
+                .thenReturn(lock);
+        when(lock.tryLock(1L, TimeUnit.SECONDS))
+                .thenReturn(true);
+        when(availableTermRepository.findByTimeSlot(any(), any()))
+                .thenReturn(availableTermList);
+
+        assertEquals(testingService.removeNurseFromTerms(request),
+                new ArrayList<>());
+    }
+
+    @Test
+    void getTestingHistory_Success() {
+        Testing testing = makeTesting();
+        List<Testing> list = Collections.singletonList(testing);
+
+        when(testingRepository.findTestingByLbp(any()))
+                .thenReturn(list);
+
+        assertEquals(testingService.getTestingHistory(UUID.randomUUID()),
+                list.stream().map(testingMapper::testingToResponse).collect(Collectors.toList()));
+    }
 
     private Testing makeTesting(){
         Testing testing = new Testing();
@@ -392,7 +471,6 @@ public class TestingServiceTest {
         return scheduledTesting;
     }
 
-
     private ScheduledTestingRequest makeScheduledTestingRequest() {
         ScheduledTestingRequest scheduledTestingRequest = new ScheduledTestingRequest();
         scheduledTestingRequest.setDateAndTime(LocalDateTime.now().plusDays(1));
@@ -431,8 +509,4 @@ public class TestingServiceTest {
 
         return patient;
     }
-
-
-
-
 }

@@ -31,10 +31,33 @@ server:
   port: 8082
   servlet:
     context-path: "/api"
+
+mail:
+  host: "smtp.office365.com"
+  port: 587
+  username: "balkan.medic2023@outlook.com"
+  password: "bolnica2"
+  smtp:
+    host: "smtp-mail.outlook.com"
+    starttls:
+      enable: "true"
+    auth: "true"
+    debug: "true"
+
 jwt.secret.key: "secret_key"
 
 # Duration of scheduled medical examination expressed in minutes
 duration.of.exam: 44
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus,loggers
+  endpoint:
+    info:
+      enabled: 'true'
+
 
 user-service-url: "http://user-service:8081/api"
 laboratory-service-url: "http://laboratory-service:8083/api"

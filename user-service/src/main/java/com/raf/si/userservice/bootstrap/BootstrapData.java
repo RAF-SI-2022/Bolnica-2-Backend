@@ -1,15 +1,10 @@
 package com.raf.si.userservice.bootstrap;
 
-import com.raf.si.userservice.model.Department;
-import com.raf.si.userservice.model.Hospital;
-import com.raf.si.userservice.model.Permission;
-import com.raf.si.userservice.model.User;
+import com.raf.si.userservice.model.*;
 import com.raf.si.userservice.model.enums.Profession;
+import com.raf.si.userservice.model.enums.ShiftType;
 import com.raf.si.userservice.model.enums.Title;
-import com.raf.si.userservice.repository.DepartmentRepository;
-import com.raf.si.userservice.repository.HospitalRepository;
-import com.raf.si.userservice.repository.PermissionsRepository;
-import com.raf.si.userservice.repository.UserRepository;
+import com.raf.si.userservice.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -21,10 +16,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -34,15 +29,20 @@ public class  BootstrapData implements CommandLineRunner {
     private final PermissionsRepository permissionsRepository;
     private final DepartmentRepository departmentRepository;
     private final HospitalRepository hospitalRepository;
+    private final ShiftTimeRepository shiftTimeRepository;
+    private final ShiftRepository shiftRepository;
     private final PasswordEncoder passwordEncoder;
 
     public BootstrapData(UserRepository userRepository, PermissionsRepository permissionsRepository,
                          DepartmentRepository departmentRepository, HospitalRepository hospitalRepository,
+                         ShiftTimeRepository shiftTimeRepository, ShiftRepository shiftRepository,
                          PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.permissionsRepository = permissionsRepository;
         this.departmentRepository = departmentRepository;
         this.hospitalRepository = hospitalRepository;
+        this.shiftTimeRepository = shiftTimeRepository;
+        this.shiftRepository = shiftRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -106,35 +106,35 @@ public class  BootstrapData implements CommandLineRunner {
         addDepartmentsToHospital(
                 List.of("Interne bolesti", "Neurologija",
                         "Hirurgija", "Ginekologija i akušerstvo",
-                        "Onkologija","Laboratorija", "Dijagnostika", "Stacionar"),
+                        "Onkologija","Laboratorija", "Dijagnostika", "Stacionar", "Covid odsek"),
                 List.of("4349eb95-d671-41c6-8cb1-389a45466cde", "c2de9275-ee7d-4994-85e7-ab433c843529",
                         "4260b200-9abf-42c5-acdf-8050fd55783e", "bf027665-8d73-4ec1-8f05-9e73ca4434a0",
                         "73e69114-7e40-4bd9-a69d-1599ba011baf", "13531c13-ac0b-465c-9b2c-56ecd5bf3474",
-                        "4812d5d8-f43c-432a-a12c-7ff88c28fd4d", "49f62e58-d996-4f7d-bded-965a8719454f"),
+                        "4812d5d8-f43c-432a-a12c-7ff88c28fd4d", "49f62e58-d996-4f7d-bded-965a8719454f", "50869452-02f6-4ef7-8592-24d342cd70d1"),
                 kbcZemun
         );
 
-        Permission adminPermission = addPermission("ROLE_ADMIN");
+        Permission adminPermission = addPermission("ROLE_ADMIN", 30);
 
-        Permission drSpecOdeljenjaPermission = addPermission("ROLE_DR_SPEC_ODELJENJA");
+        Permission drSpecOdeljenjaPermission = addPermission("ROLE_DR_SPEC_ODELJENJA", 29);
 
-        Permission drSpecPermission = addPermission("ROLE_DR_SPEC");
+        Permission drSpecPermission = addPermission("ROLE_DR_SPEC", 28);
 
-        Permission drSpecPovPermission = addPermission("ROLE_DR_SPEC_POV");
+        Permission drSpecPovPermission = addPermission("ROLE_DR_SPEC_POV", 28);
 
-        Permission visaMedSestraPermission = addPermission("ROLE_VISA_MED_SESTRA");
+        Permission visaMedSestraPermission = addPermission("ROLE_VISA_MED_SESTRA", 27);
 
-        Permission medSestraPermission = addPermission("ROLE_MED_SESTRA");
+        Permission medSestraPermission = addPermission("ROLE_MED_SESTRA", 26);
 
-        Permission visiLabTehnicar = addPermission("ROLE_VISI_LAB_TEHNICAR");
+        Permission visiLabTehnicar = addPermission("ROLE_VISI_LAB_TEHNICAR", 27);
 
-        Permission labTehnicar = addPermission("ROLE_LAB_TEHNICAR");
+        Permission labTehnicar = addPermission("ROLE_LAB_TEHNICAR", 26);
 
-        Permission medBiohemicar = addPermission("ROLE_MED_BIOHEMICAR");
+        Permission medBiohemicar = addPermission("ROLE_MED_BIOHEMICAR", 26);
 
-        Permission specMedBiohemije = addPermission("ROLE_SPEC_MED_BIOHEMIJE");
+        Permission specMedBiohemije = addPermission("ROLE_SPEC_MED_BIOHEMIJE", 26);
 
-        Permission receptionistPermission = addPermission("ROLE_RECEPCIONER");
+        Permission receptionistPermission = addPermission("ROLE_RECEPCIONER", 24);
 
         List<Permission> adminPermissions = new ArrayList<>(
                 List.of(adminPermission, drSpecOdeljenjaPermission, drSpecPermission, drSpecPovPermission, visiLabTehnicar,
@@ -162,6 +162,7 @@ public class  BootstrapData implements CommandLineRunner {
         user.setTitle(Title.PROF_DR_MED);
         user.setProfession(Profession.SPEC_HIRURG);
         user.setLbz(UUID.fromString("5a2e71bb-e4ee-43dd-a3ad-28e043f8b435"));
+        user = findUserDaysOff(user);
 
         User medSestra = new User();
         medSestra.setEmail("edotlic10320rn@raf.rs");
@@ -181,9 +182,38 @@ public class  BootstrapData implements CommandLineRunner {
         medSestra.setTitle(Title.DIPL_FARM);
         medSestra.setProfession(Profession.MED_SESTRA);
         medSestra.setLbz(UUID.fromString("3e1a51ab-a3aa-1add-a3ad-28e043f8b435"));
+        medSestra.setCovidAccess(true);
+        medSestra = findUserDaysOff(medSestra);
 
         userRepository.save(user);
         userRepository.save(medSestra);
+
+        addShiftTimes();
+
+        LocalDateTime startTime = LocalDateTime.of(2024, 1, 1, 1, 1);
+        LocalDateTime endTime = startTime.plusHours(11);
+
+        Shift shift = new Shift();
+        shift.setShiftType(ShiftType.MEDJUSMENA);
+        shift.setUser(user);
+        shift.setStartTime(startTime);
+        shift.setEndTime(endTime);
+
+        Shift adminShift = new Shift();
+        adminShift.setShiftType(ShiftType.PRVA_SMENA);
+        adminShift.setUser(user);
+        adminShift.setStartTime(LocalDateTime.now().plusDays(1).truncatedTo(ChronoUnit.DAYS).plusHours(6));
+        adminShift.setEndTime(shift.getStartTime().plusHours(8));
+        shiftRepository.save(adminShift);
+
+        Shift nurseShift = new Shift();
+        nurseShift.setShiftType(ShiftType.MEDJUSMENA);
+        nurseShift.setUser(medSestra);
+        nurseShift.setStartTime(startTime);
+        nurseShift.setEndTime(endTime);
+
+        shiftRepository.save(shift);
+        shiftRepository.save(nurseShift);
 
         addOtherUsers();
     }
@@ -214,14 +244,32 @@ public class  BootstrapData implements CommandLineRunner {
         }
     }
 
-    private Permission addPermission(String role) {
+    private Permission addPermission(String role, int daysOff) {
         Permission permission = new Permission();
         permission.setName(role);
+        permission.setDaysOff(daysOff);
         permission = permissionsRepository.save(permission);
 
         return permission;
     }
 
+    private void addShiftTimes() {
+        addShiftTime(ShiftType.PRVA_SMENA, LocalTime.of(6, 0), LocalTime.of(14, 0));
+        addShiftTime(ShiftType.DRUGA_SMENA, LocalTime.of(14, 0), LocalTime.of(22, 0));
+        addShiftTime(ShiftType.TRECA_SMENA, LocalTime.of(22, 0), LocalTime.of(6, 0));
+        addShiftTime(ShiftType.MEDJUSMENA, null, null);
+        addShiftTime(ShiftType.SLOBODAN_DAN, null, null);
+    }
+
+    private void addShiftTime(ShiftType shiftType, LocalTime startTime, LocalTime endTime) {
+        ShiftTime shiftTime = new ShiftTime();
+
+        shiftTime.setShiftType(shiftType);
+        shiftTime.setStartTime(startTime);
+        shiftTime.setEndTime(endTime);
+
+        shiftTimeRepository.save(shiftTime);
+    }
 
     private void addOtherUsers() throws IOException, ParseException {
         Resource resource = new ClassPathResource("bootstrap-data/employees.txt");
@@ -254,8 +302,41 @@ public class  BootstrapData implements CommandLineRunner {
             user.setTitle(Title.valueOfNotation(split[12]));
             user.setProfession(Profession.valueOfNotation(split[13]));
             user.setLbz(UUID.fromString(split[14]));
+            user.setCovidAccess(true);
+            user = findUserDaysOff(user);
             userRepository.save(user);
+
+            addShiftsForUser(user);
         }
 
+    }
+
+    private void addShiftsForUser(User user) {
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS);
+
+        for (int i = 0; i < 10; i++) {
+            Shift shift = new Shift();
+
+            shift.setUser(user);
+            shift.setShiftType(ShiftType.PRVA_SMENA);
+
+            LocalDateTime startTime = now.plusDays(i).plusHours(6);
+            LocalDateTime endTime = startTime.plusHours(8);
+
+            shift.setStartTime(startTime);
+            shift.setEndTime(endTime);
+
+            shiftRepository.save(shift);
+        }
+    }
+
+    private User findUserDaysOff(User user) {
+        Permission maxDaysOffPerm = user.getPermissions()
+                .stream()
+                .max(Comparator.comparing(Permission::getDaysOff))
+                .orElseThrow(NoSuchElementException::new);
+
+        user.setDaysOff(maxDaysOffPerm.getDaysOff());
+        return user;
     }
 }

@@ -2,8 +2,6 @@ package com.raf.si.laboratoryservice.unit.service;
 
 import com.raf.si.laboratoryservice.dto.request.CreateReferralRequest;
 import com.raf.si.laboratoryservice.dto.response.*;
-import com.raf.si.laboratoryservice.exception.BadRequestException;
-import com.raf.si.laboratoryservice.exception.InternalServerErrorException;
 import com.raf.si.laboratoryservice.exception.NotFoundException;
 import com.raf.si.laboratoryservice.mapper.ReferralMapper;
 import com.raf.si.laboratoryservice.model.LabWorkOrder;
@@ -15,13 +13,10 @@ import com.raf.si.laboratoryservice.repository.ReferralRepository;
 import com.raf.si.laboratoryservice.service.impl.ReferralServiceImpl;
 import com.raf.si.laboratoryservice.utils.HttpUtils;
 import com.raf.si.laboratoryservice.utils.TokenPayload;
-import com.raf.si.laboratoryservice.utils.TokenPayloadUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.junit.jupiter.api.BeforeEach;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -36,8 +31,6 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@Slf4j
-@SpringBootTest
 class ReferralServiceTest {
 
     private ReferralServiceImpl referralService;

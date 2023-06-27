@@ -2,10 +2,8 @@ package com.raf.si.patientservice.controller;
 
 import com.raf.si.patientservice.dto.request.ScheduledTestingRequest;
 import com.raf.si.patientservice.dto.request.TestingRequest;
-import com.raf.si.patientservice.dto.response.AvailableTermResponse;
-import com.raf.si.patientservice.dto.response.ScheduledTestingListResponse;
-import com.raf.si.patientservice.dto.response.ScheduledTestingResponse;
-import com.raf.si.patientservice.dto.response.TestingResponse;
+import com.raf.si.patientservice.dto.request.UpdateTermsNewShiftRequest;
+import com.raf.si.patientservice.dto.response.*;
 import com.raf.si.patientservice.service.TestingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -17,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -78,5 +77,33 @@ public class TestingController {
     @DeleteMapping("/scheduled/delete/{id}")
     public ResponseEntity<ScheduledTestingResponse> deleteScheduledTesting(@PathVariable("id") Long id) {
         return ResponseEntity.ok(testingService.deleteScheduledTesting(id));
+    }
+
+    @PreAuthorize("hasRole('ROLE_VISI_LAB_TEHNICAR') or hasRole('ROLE_LAB_TEHNICAR')" +
+            " or hasRole('ROLE_MED_BIOHEMICAR') or hasRole('ROLE_SPEC_MED_BIOHEMIJE')")
+    @GetMapping("/scheduled/in-process")
+    public ResponseEntity<TestingListResponse> processingOfTestResults(@RequestParam(defaultValue = "0") int page,
+                                                                       @RequestParam(defaultValue = "5") int size){
+        return ResponseEntity.ok(testingService.processingOfTestResults(PageRequest.of(page, size)));
+    }
+
+    @PreAuthorize("hasRole('ROLE_VISI_LAB_TEHNICAR') or hasRole('ROLE_LAB_TEHNICAR')" +
+            " or hasRole('ROLE_MED_BIOHEMICAR') or hasRole('ROLE_SPEC_MED_BIOHEMIJE')")
+    @PatchMapping("/{id}/update-test-result")
+    public ResponseEntity<TestingResponse> updateTestResult(@PathVariable("id") Long id,
+                                                            @RequestParam String newTestResult) {
+        return ResponseEntity.ok(testingService.updateTestResult(id, newTestResult));
+    }
+
+    @PostMapping("/update-nurse-terms")
+    public ResponseEntity<List<LocalDateTime>> removeNurseFromTerms(@RequestBody UpdateTermsNewShiftRequest request) {
+        return ResponseEntity.ok(testingService.removeNurseFromTerms(request));
+    }
+
+    @PreAuthorize("hasRole('ROLE_DR_SPEC_ODELJENJA') or hasRole('ROLE_DR_SPEC') or hasRole('ROLE_DR_SPEC_POV') " +
+            "or hasRole('ROLE_MED_SESTRA') or hasRole('ROLE_VISA_MED_SESTRA')")
+    @GetMapping("/history/{lbp}")
+    public ResponseEntity<List<TestingResponse>> getTestingHistory(@PathVariable("lbp") UUID lbp) {
+        return ResponseEntity.ok(testingService.getTestingHistory(lbp));
     }
 }

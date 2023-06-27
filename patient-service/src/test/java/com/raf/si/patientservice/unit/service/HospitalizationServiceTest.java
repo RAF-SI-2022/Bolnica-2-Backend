@@ -206,7 +206,7 @@ public class HospitalizationServiceTest {
                 .thenReturn(pages);
 
         assertEquals(hospitalizationService.getHospitalisedPatientsByHospital(null, pbb, null,
-                null, null, null,
+                null, null, null, null, null,
                 PageRequest.of(0, 5)),
                 new HospPatientByHospitalListResponse(
                         Collections.singletonList(hospitalizationMapper.

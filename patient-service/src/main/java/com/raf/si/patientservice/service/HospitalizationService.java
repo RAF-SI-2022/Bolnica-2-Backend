@@ -20,6 +20,7 @@ public interface HospitalizationService {
 
     HospPatientByHospitalListResponse getHospitalisedPatientsByHospital(String token, UUID pbb, UUID lbp,
                                                                         String firstName, String lastName, String jmbg,
+                                                                        String respirator, String imunizovan,
                                                                         Pageable pageable);
 
     PatientConditionResponse createPatientCondition(UUID lbp, PatientConditionRequest patientConditionRequest);
