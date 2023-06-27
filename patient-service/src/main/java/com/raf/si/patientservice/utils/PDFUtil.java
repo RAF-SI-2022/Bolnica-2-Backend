@@ -1,9 +1,7 @@
 package com.raf.si.patientservice.utils;
 
-import com.aspose.pdf.Document;
-import com.aspose.pdf.TextFragment;
-import com.aspose.pdf.TextFragmentAbsorber;
-import com.aspose.pdf.TextFragmentCollection;
+import com.aspose.pdf.*;
+import com.aspose.pdf.text.FontTypes;
 import com.raf.si.patientservice.dto.CertificatePlaceHolders;
 import com.raf.si.patientservice.model.CovidCertificate;
 import com.raf.si.patientservice.model.Patient;
@@ -26,6 +24,7 @@ public class PDFUtil {
 
     private static final String VACCINATION_PDF = "certificate/Certificate_vaccination.pdf";
     private static final String TESTING_PDF = "certificate/Certificate_testing.pdf";
+    private static final String FONT_URI = "certificate/arial.ttf";
 
     public static File createPDF(CovidCertificate covidCertificate, Patient patient) {
 
@@ -43,8 +42,13 @@ public class PDFUtil {
         File file = new File(filename);
         FileOutputStream outputStream;
         try {
+            Resource fontResource = new ClassPathResource(FONT_URI);
+            Font font = FontRepository.openFont(fontResource.getInputStream(), FontTypes.TTF);
             outputStream = FileUtils.openOutputStream(file);
             pdfDocument = new Document(resource.getInputStream());
+            TextState textState = new TextState();
+            textState.setFont(font);
+            pdfDocument.getPageInfo().setDefaultTextState(textState);
 
             for (Map.Entry<String, String> entry : words.entrySet()) {
 
@@ -60,6 +64,7 @@ public class PDFUtil {
                 // Loop through the fragments
                 for (TextFragment textFragment : textFragmentCollection) {
                     // Update text and other properties
+                    textFragment.getTextState().setFont(font);
                     textFragment.setText(entry.getValue());
                 }
             }
