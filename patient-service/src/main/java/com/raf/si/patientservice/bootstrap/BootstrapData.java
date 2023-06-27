@@ -102,6 +102,7 @@ public class BootstrapData implements CommandLineRunner {
         hospitalRoom.setCapacity(15);
         hospitalRoom.setOccupation(1);
         hospitalRoom.setCovid(true);
+        hospitalRoom.setRespirators(5);
         hospitalRoomRepository.save(hospitalRoom);
 
         HospitalRoom hospitalRoom1 = new HospitalRoom();
@@ -111,6 +112,7 @@ public class BootstrapData implements CommandLineRunner {
         hospitalRoom1.setRoomNumber(2);
         hospitalRoom1.setCapacity(20);
         hospitalRoom1.setOccupation(1);
+        hospitalRoom1.setRespirators(5);
         hospitalRoomRepository.save(hospitalRoom1);
 
         HospitalRoom hospitalRoom2 = new HospitalRoom();
@@ -121,6 +123,7 @@ public class BootstrapData implements CommandLineRunner {
         hospitalRoom2.setCapacity(15);
         hospitalRoom2.setOccupation(1);
         hospitalRoom2.setCovid(true);
+        hospitalRoom2.setRespirators(5);
         hospitalRoomRepository.save(hospitalRoom2);
     }
 
