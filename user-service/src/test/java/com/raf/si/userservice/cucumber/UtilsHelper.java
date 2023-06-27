@@ -1,5 +1,6 @@
 package com.raf.si.userservice.cucumber;
 
+import com.raf.si.userservice.dto.request.AddShiftRequest;
 import com.raf.si.userservice.dto.request.CreateUserRequest;
 import com.raf.si.userservice.dto.request.UpdateUserRequest;
 import com.raf.si.userservice.model.User;
@@ -9,6 +10,8 @@ import com.raf.si.userservice.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.UUID;
 

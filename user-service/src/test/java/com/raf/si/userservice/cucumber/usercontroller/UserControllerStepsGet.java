@@ -3,29 +3,20 @@ package com.raf.si.userservice.cucumber.usercontroller;
 import com.raf.si.userservice.cucumber.CucumberConfig;
 import com.raf.si.userservice.cucumber.UtilsHelper;
 import com.raf.si.userservice.model.Department;
-import com.raf.si.userservice.model.Shift;
 import com.raf.si.userservice.model.User;
-import com.raf.si.userservice.model.enums.ShiftType;
 import com.raf.si.userservice.repository.DepartmentRepository;
-import com.raf.si.userservice.repository.ShiftRepository;
 import com.raf.si.userservice.repository.UserRepository;
 import com.raf.si.userservice.utils.JwtUtil;
 import io.cucumber.java.Before;
-import io.cucumber.java.an.E;
-import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.greaterThan;
@@ -38,8 +29,6 @@ public class UserControllerStepsGet extends CucumberConfig {
 
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    ShiftRepository shiftRepository;
     @Autowired
     private DepartmentRepository departmentRepository;
     @Autowired
@@ -196,21 +185,6 @@ public class UserControllerStepsGet extends CucumberConfig {
         resultActions.andExpect(status().is(statusCode));
     }
 
-    @When("User tries to update covid access for someone")
-    public void user_tries_to_update_covid_access_for_someone() throws Exception {
-        User admin = userRepository.findUserByUsername("admin").get();
-        assertNotNull(admin);
-
-        resultActions = mvc.perform(put(String.format("/users/update-covid-access/%s?covidAccess=true", admin.getLbz()))
-                .header("Authorization", "Bearer " + utils.generateToken(admin))
-                .contentType(MediaType.APPLICATION_JSON));
-    }
-    @Then("User's covid access is updated in the database")
-    public void user_s_covid_access_is_updated_in_the_database() throws Exception {
-        resultActions.andExpect(status().isOk())
-                .andExpect(jsonPath("$.covidAccess").value(true));
-    }
-
     @When("User tries to get his subordinates, but he doesn't have any")
     public void user_tries_to_get_his_subordinates_but_he_doesn_t_have_any() throws Exception {
         User user = userRepository.findUserByLbz(UUID.fromString("f581b31f-adff-4a34-b9f3-32b3502310f1")).get();
@@ -238,59 +212,5 @@ public class UserControllerStepsGet extends CucumberConfig {
     public void user_s_subordinates_are_returned() throws Exception {
         resultActions.andExpect(status().isOk())
                 .andExpect(jsonPath("$.count").value(2));
-    }
-
-    @Given("Someone who used all days off for next year")
-    public void someone_who_used_all_days_off_for_next_year() {
-        User admin = userRepository.findUserByUsername("admin").get();
-        assertNotNull(admin);
-
-        User newUser = utils.makeUser();
-        newUser.setDepartment(admin.getDepartment());
-        userRepository.save(newUser);
-
-        Shift shift = new Shift();
-        shift.setUser(newUser);
-        shift.setShiftType(ShiftType.SLOBODAN_DAN);
-        shift.setStartTime(LocalDateTime.now().plusYears(1).minusDays(1).truncatedTo(ChronoUnit.DAYS));
-        shift.setEndTime(shift.getStartTime().minusDays(1));
-        shiftRepository.save(shift);
-    }
-    @When("User tries to update someone's days off, but he used all of them for next year")
-    public void user_tries_to_update_someone_s_days_off_but_he_used_all_of_them_for_next_year() throws Exception {
-        User admin = userRepository.findUserByUsername("admin").get();
-        assertNotNull(admin);
-
-        User user = userRepository.findUserByUsername(utils.makeUser().getUsername()).get();
-        assertNotNull(user);
-
-        resultActions = mvc.perform(put("/users/update-days-off/" + user.getLbz() + "?daysOff=0")
-                .header("Authorization", "Bearer " + utils.generateToken(admin))
-                .contentType(MediaType.APPLICATION_JSON));
-    }
-    @Then("BadRequestException is thrown with status code {int} saying he used all of his days off for next year")
-    public void bad_request_exception_is_thrown_with_status_code_saying_he_used_all_of_his_days_off_for_next_year(Integer statusCode) throws Exception {
-        resultActions.andExpect(status().is(statusCode));
-    }
-
-    @When("User tries to update someones days off")
-    public void user_tries_to_update_someones_days_off() throws Exception {
-        User admin = userRepository.findUserByUsername("admin").get();
-        assertNotNull(admin);
-
-        User user = userRepository.findUserByUsername(utils.makeUser().getUsername()).get();
-        assertNotNull(user);
-
-        resultActions = mvc.perform(put("/users/update-days-off/" + user.getLbz() + "?daysOff=5")
-                .header("Authorization", "Bearer " + utils.generateToken(admin))
-                .contentType(MediaType.APPLICATION_JSON));
-    }
-    @Then("User's days off are updated in the database")
-    public void user_s_days_off_are_updated_in_the_database() throws Exception {
-        resultActions.andExpect(status().isOk())
-                .andExpect(jsonPath("$.daysOff").value(5));
-
-        User user = userRepository.findUserByUsername(utils.makeUser().getUsername()).get();
-        userRepository.delete(user);
     }
 }
