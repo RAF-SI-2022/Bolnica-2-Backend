@@ -117,9 +117,11 @@ public class HospitalizationServiceImpl implements HospitalizationService {
 
     @Override
     public HospitalisedPatientsListResponse getHospitalisedPatients(String token, UUID pbo, UUID lbp, String firstName,
-                                                                    String lastName, String jmbg, Pageable pageable) {
+                                                                    String lastName, String jmbg, String covid,
+                                                                    Boolean onRespirator, Boolean immunized, Pageable pageable) {
         log.info("Dohvatanje hospitalizovanih pacijenata po odeljenju..");
-        HospitalisedPatientSearchFilter filter = new HospitalisedPatientSearchFilter(lbp, pbo, firstName, lastName, jmbg, null);
+        HospitalisedPatientSearchFilter filter = new HospitalisedPatientSearchFilter(lbp, pbo, firstName, lastName,
+                jmbg, covid, onRespirator, immunized,null);
         HospitalisedPatientSpecification spec = new HospitalisedPatientSpecification(filter);
         Page<Hospitalization> hospitalizations = hospitalizationRepository.findAll(spec, pageable);
         List<DoctorResponse> doctorResponseList = getDoctorsResponse(token);
@@ -132,13 +134,13 @@ public class HospitalizationServiceImpl implements HospitalizationService {
 
     @Override
     public HospPatientByHospitalListResponse getHospitalisedPatientsByHospital(String token, UUID pbb, UUID lbp, String firstName,
-                                                                               String lastName, String jmbg, String respirator,
-                                                                               String imunizovan, Pageable pageable) {
+                                                                               String lastName, String jmbg, Boolean onRespirator,
+                                                                               Boolean immunized, String covid, Pageable pageable) {
         log.info("Dohvatanje hospitalizovanih pacijenata po bolnici..");
         List<DepartmentResponse> departmentResponses = getDepartmentsByHospital(pbb, token);
         List<DoctorResponse> doctorResponseList = getDoctorsResponse(token);
         HospitalisedPatientSearchFilter filter = new HospitalisedPatientSearchFilter(
-                lbp, null, firstName, lastName, jmbg,
+                lbp, null, firstName, lastName, jmbg, covid, onRespirator, immunized,
                 departmentResponses.stream()
                         .map(DepartmentResponse::getPbo)
                         .collect(Collectors.toList())
@@ -213,10 +215,10 @@ public class HospitalizationServiceImpl implements HospitalizationService {
     }
 
     @Override
-    public MedicalReportListResponse getMedicalReports(UUID lbp, Date from, Date to, Pageable pageable) {
+    public MedicalReportListResponse getMedicalReports(UUID lbp, Date from, Date to, String covid, Pageable pageable) {
         log.info("Getting medical reports from date '{}' to date '{}' for patient with lbp '{}'",
                 from, to, lbp);
-        MedicalReportFilter filter = new MedicalReportFilter(lbp, from, to, isDoctorPOV());
+        MedicalReportFilter filter = new MedicalReportFilter(lbp, from, to, isDoctorPOV(), covid);
         MedicalReportSpecification specification = new MedicalReportSpecification(filter);
         Page<MedicalReport> medicalReports = medicalReportRepository.findAll(specification, pageable);
 
@@ -257,9 +259,9 @@ public class HospitalizationServiceImpl implements HospitalizationService {
     }
 
     @Override
-    public DischargeListResponse getDischarge(UUID lbp, Date dateFrom, Date dateTo,
+    public DischargeListResponse getDischarge(UUID lbp, Date dateFrom, Date dateTo, String covid,
                                               Pageable pageable, String token) {
-        DischargeFilter filter = new DischargeFilter(lbp, dateFrom, dateTo);
+        DischargeFilter filter = new DischargeFilter(lbp, dateFrom, dateTo, covid);
         DischargeSpecification specification = new DischargeSpecification(filter);
         List<DoctorResponse> doctorResponses = getDoctorsResponse(token);
         Page<DischargeList> dischargeLists = dischargeRepository.findAll(specification, pageable);

@@ -14,4 +14,6 @@ public class MedicalReportFilter {
     private final Date from;
     private final Date to;
     private final boolean confidential;
+
+    private final String diagnosis;
 }

@@ -28,6 +28,7 @@ public class MedicalReportSpecification implements Specification<MedicalReport> 
         Path<Date> date = root.get("date");
         Path<Boolean> confidentIndicator = root.get("confidentIndicator");
         Path<Boolean> isDeleted = root.get("isDeleted");
+        Path<String> diagnosis = root.get("diagnosis");
 
         final List<Predicate> predicates = new ArrayList<>();
         if (filter.getLbp() != null)
@@ -40,6 +41,8 @@ public class MedicalReportSpecification implements Specification<MedicalReport> 
             predicates.add(criteriaBuilder.equal(confidentIndicator, false));
         }
         predicates.add(criteriaBuilder.equal(isDeleted, false));
+        if(filter.getDiagnosis() != null)
+            predicates.add(criteriaBuilder.like(diagnosis, "%" + filter.getDiagnosis() + "%"));
 
         return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
     }

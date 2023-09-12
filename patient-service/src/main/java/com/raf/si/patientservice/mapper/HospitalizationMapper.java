@@ -69,6 +69,13 @@ public class HospitalizationMapper {
         response.setRoomNumber(hospitalization.getHospitalRoom().getRoomNumber());
         response.setRoomCapacity(hospitalization.getHospitalRoom().getCapacity());
         response.setLbp(hospitalization.getPatient().getLbp());
+        response.setImmunized(hospitalization.getPatient().getImmunized());
+        //FIXME ako nije kreiran condition nema sta da cita
+        if(hospitalization.getPatient().getConditions().size() != 0) {
+            response.setOnRespirator(hospitalization.getPatient().getConditions().get(
+                    hospitalization.getPatient().getConditions().size() - 1
+            ).getOnRespirator());
+        }
         response.setPatientFirstName(hospitalization.getPatient().getFirstName());
         response.setPatientLastName(hospitalization.getPatient().getLastName());
         response.setBirthDate(hospitalization.getPatient().getBirthDate());

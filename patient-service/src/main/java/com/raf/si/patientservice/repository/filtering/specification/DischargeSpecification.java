@@ -25,6 +25,7 @@ public class DischargeSpecification implements Specification<DischargeList> {
         Join<Patient, DischargeList> patientConditionJoin = root.join("patient");
         Path<UUID> lbp = patientConditionJoin.get("lbp");
         Path<Date> date = root.get("date");
+        Path<String> conclusion = root.get("conclusion");
 
         final List<Predicate> predicates = new ArrayList<>();
         if (filter.getLbp() != null)
@@ -33,6 +34,8 @@ public class DischargeSpecification implements Specification<DischargeList> {
             predicates.add(criteriaBuilder.greaterThanOrEqualTo(date, filter.getDateFrom()));
         if (filter.getDateTo() != null)
             predicates.add(criteriaBuilder.lessThanOrEqualTo(date, filter.getDateTo()));
+        if(filter.getConclusion() != null)
+            predicates.add(criteriaBuilder.like(conclusion, "%" + filter.getConclusion() +"%"));
 
         return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
     }

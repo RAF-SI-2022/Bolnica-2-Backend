@@ -48,13 +48,13 @@ public class HospitalizationControllerTest {
         UUID pbo = UUID.randomUUID();
 
         when(hospitalizationService.getHospitalisedPatients(
-                null, pbo, null, null, null, null, PageRequest.of(0, 5))
+                null, pbo, null, null, null, null, null, null, null,PageRequest.of(0, 5))
         ).thenReturn(response);
 
         assertEquals(hospitalizationController.getHospitalisedPatients(pbo, null,
                 null, null,
-                null, 0,
-                5, null)
+                null, null, null, null,
+                0, 5, null)
                         .getBody(),
                 response);
     }
@@ -65,12 +65,13 @@ public class HospitalizationControllerTest {
         UUID pbb = UUID.randomUUID();
 
         when(hospitalizationService.getHospitalisedPatientsByHospital(
-                null, pbb, null, null, null, null, null, null,PageRequest.of(0, 5))
+                null, pbb, null, null, null, null, null, null,null
+                ,PageRequest.of(0, 5))
         ).thenReturn(response);
 
         assertEquals(hospitalizationController.getHospitalisedPatientsByHospital(pbb, null,
                 null, null,
-                null, null, null, 0,
+                null, null, null, null, 0,
                 5, null)
                         .getBody(),
                 response);
@@ -125,10 +126,10 @@ public class HospitalizationControllerTest {
         UUID lbp = UUID.randomUUID();
         MedicalReportListResponse response = new MedicalReportListResponse(new ArrayList<>(), 0L);
 
-        when(hospitalizationService.getMedicalReports(lbp, null, null, PageRequest.of(0, 5)))
+        when(hospitalizationService.getMedicalReports(lbp, null, null, null, PageRequest.of(0, 5)))
                 .thenReturn(response);
 
-        assertEquals(hospitalizationController.getMedicalReports(lbp, null, null, 0, 5).getBody(),
+        assertEquals(hospitalizationController.getMedicalReports(lbp, null, null, null,0, 5).getBody(),
                 response);
     }
 
@@ -157,10 +158,10 @@ public class HospitalizationControllerTest {
         String token = UUID.randomUUID().toString();
         DischargeListResponse response = new DischargeListResponse(new ArrayList<>(), 0L);
 
-        when(hospitalizationService.getDischarge(lbp, null, null, PageRequest.of(0, 5), token))
+        when(hospitalizationService.getDischarge(lbp, null, null, null, PageRequest.of(0, 5), token))
                 .thenReturn(response);
 
-        assertEquals(hospitalizationController.getDischarges(lbp, null, null, 0, 5, token).getBody(),
+        assertEquals(hospitalizationController.getDischarges(lbp, null, null, null, 0, 5, token).getBody(),
                 response);
     }
 }
